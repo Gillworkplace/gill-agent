@@ -3,6 +3,7 @@ package com.gill.web.config;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -16,6 +17,7 @@ import java.nio.file.Files;
 
 /** 启动初始化：管理员账号 + 前端静态托管（SPA fallback 到 index.html）。 */
 @Configuration
+@EnableScheduling
 @EnableConfigurationProperties(GillProperties.class)
 public class WebInit implements WebMvcConfigurer {
     private final JdbcTemplate db;
@@ -41,6 +43,35 @@ public class WebInit implements WebMvcConfigurer {
             db.update("INSERT INTO space_members(space_id, user_id, role) VALUES (?::uuid,?,'owner')", spaceId, uid);
             org.slf4j.LoggerFactory.getLogger("init").info("初始管理员 {} / {}", u, pwd);
         }
+    }
+
+    /** 空闲会话回收（FR-23）：>30 分钟未活跃的会话 → closing → 发 session_close 给 agentd（销毁沙箱）。 */
+    @org.springframework.scheduling.annotation.Scheduled(fixedDelay = 300_000)
+    public void reapIdleSessions() {
+        try {
+            var idle = db.queryForList(
+                    "SELECT id::text FROM sessions WHERE status IN ('active','idle','created','sandbox_creating') " +
+                    "AND last_active_at < now() - interval '30 minutes' LIMIT 20");
+            for (var row : idle) {
+                db.update("UPDATE sessions SET status='closing', closed_at=now() WHERE id=?::uuid", row.get("id"));
+                post("http://" + System.getenv().getOrDefault("AGENTD_URL", "http://agentd:8000").replace("http://", "")
+                                + "/internal/sessions/" + row.get("id") + "/cmd",
+                        "{\"type\":\"session_close\",\"payload\":{}}");
+                org.slf4j.LoggerFactory.getLogger("reaper").info("reaped idle session {}", row.get("id"));
+            }
+        } catch (Exception e) {
+            org.slf4j.LoggerFactory.getLogger("reaper").warn("reap fail: {}", e.getMessage());
+        }
+    }
+
+    private void post(String url, String json) {
+        try {
+            java.net.http.HttpClient.newHttpClient().send(
+                    java.net.http.HttpRequest.newBuilder(java.net.URI.create(url.startsWith("http") ? url : "http://" + url))
+                            .header("Content-Type", "application/json")
+                            .POST(java.net.http.HttpRequest.BodyPublishers.ofString(json)).build(),
+                    java.net.http.HttpResponse.BodyHandlers.discarding());
+        } catch (Exception ignored) {}
     }
 
     @Override

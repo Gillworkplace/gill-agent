@@ -38,21 +38,56 @@ public class JwtFilter extends OncePerRequestFilter {
         if (token == null) token = req.getParameter("token");
         if (token == null) { deny(res, "AUTH-1004", 401); return; }
         try {
-            var claims = jwt.parse(token);
-            long uid = jwt.userId(claims);
+            Long uid = null;
+            String role = null;
+            if (token.startsWith("gpat_")) {                 // PAT：哈希比对（FR-16）
+                try (var conn = ds.getConnection()) {
+                    var rows = conn.createStatement().executeQuery(
+                            "SELECT user_id FROM pats WHERE token_hash='" + com.gill.web.controller.PatController.sha256(token).replace("'", "") + "' AND revoked=false");
+                    if (rows.next()) {
+                        uid = rows.getLong(1);
+                        role = "USER";
+                        try (var st = conn.prepareStatement("UPDATE pats SET last_used_at=now() WHERE token_hash=?")) {
+                            st.setString(1, com.gill.web.controller.PatController.sha256(token));
+                            st.executeUpdate();
+                        }
+                    }
+                }
+            } else {
+                var claims = jwt.parse(token);
+                uid = jwt.userId(claims);
+                role = jwt.role(claims);
+            }
+            if (uid == null) { deny(res, "AUTH-1006", 401); return; }
+            // ---- 限流（FR-85 简化内存版：60 req/min/user；多副本时换 Redis）----
+            if (!RateLimit.allow(uid)) { deny(res, "QUOTA-429", 429); return; }
             // 禁用即失效（FR-13）
             String status;
-            try (var st = ds.getConnection().prepareStatement("SELECT status FROM users WHERE id=?")) {
+            try (var conn = ds.getConnection();
+                 var st = conn.prepareStatement("SELECT status FROM users WHERE id=?")) {
                 st.setLong(1, uid);
                 var rs = st.executeQuery();
                 status = rs.next() ? rs.getString(1) : null;
             }
             if (!"ACTIVE".equals(status)) { deny(res, "AUTH-1005", 401); return; }
             req.setAttribute("uid", uid);
-            req.setAttribute("role", jwt.role(claims));
+            req.setAttribute("role", role);
             chain.doFilter(req, res);
         } catch (Exception e) {
             deny(res, "AUTH-1004", 401);
+        }
+    }
+
+    /** 每用户滑动窗口限流（单副本内存实现）。 */
+    static class RateLimit {
+        private static final java.util.Map<Long, java.util.Deque<Long>> HITS = new java.util.concurrent.ConcurrentHashMap<>();
+        static boolean allow(long uid) {
+            long now = System.currentTimeMillis();
+            var q = HITS.computeIfAbsent(uid, k -> new java.util.concurrent.ConcurrentLinkedDeque<>());
+            while (!q.isEmpty() && now - q.peekFirst() > 60_000) q.pollFirst();
+            if (q.size() >= 60) return false;
+            q.addLast(now);
+            return true;
         }
     }
 
