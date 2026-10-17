@@ -28,6 +28,8 @@ class SessionRuntime:
         self.session_meta: dict = {}
         self.approval_mode: str = "auto"          # auto | suggest（会话级，FR-38）
         self.pending_approvals: dict[str, dict] = {}   # cid -> {"event": Event, "result": None}
+        self.op_mode: str = "free"                # free | relay（FR-135）
+        self.op_holder: int | None = None
         self.running = asyncio.Lock()      # FR-37 同会话单任务
         self.stop_requested = False
         self.task: asyncio.Task | None = None
@@ -278,13 +280,39 @@ class SessionRuntime:
                         await self.browser.stop_screencast()
                 elif t == "input_event":
                     if self.browser:
-                        try:
-                            await self.browser.input_event(env.get("payload", {}))
-                        except Exception as e:
-                            log.warning("input_event err: %s", e)
+                        if self.op_mode == "relay" and self.op_holder is not None and env.get("actor") != self.op_holder:
+                            await self._emit("error", {"code": "OP-423", "message": "接力模式下仅操作权持有者可交互"})
+                        else:
+                            try:
+                                await self.browser.input_event(env.get("payload", {}))
+                            except Exception as e:
+                                log.warning("input_event err: %s", e)
                 elif t == "browser_navigate":
                     if self.browser:
                         await self.browser.navigate(env["payload"].get("url", "about:blank"))
+                elif t == "op_lock":               # FR-135 操作权（自由/接力）
+                    p = env.get("payload", {})
+                    act = p.get("action")
+                    if act == "mode":
+                        self.op_mode = p.get("mode", "free")
+                        await self._emit("op_lock_changed", {"mode": self.op_mode, "holder": None})
+                    elif act == "acquire" and self.op_mode == "relay":
+                        if not self.op_holder:
+                            self.op_holder = env.get("actor")
+                            await self._emit("op_lock_changed", {"mode": "relay", "holder": self.op_holder})
+                    elif act == "release":
+                        self.op_holder = None
+                        await self._emit("op_lock_changed", {"mode": self.op_mode, "holder": None})
+                elif t == "space_chat":            # FR-137 成员聊天（@agent 转任务）
+                    p = env.get("payload", {})
+                    text = p.get("text", "")
+                    if text.startswith("@agent"):
+                        rest = text[5:].strip()
+                        if rest:
+                            await self.bus.push_cmd(self.sid, "user_input", {"text": rest}, actor=env.get("actor"))
+                    else:
+                        await self._emit("space_chat_msg", {"userId": env.get("actor"),
+                                                            "text": text[:500]})
                 elif t == "file_sync_in":
                     await self.handle_file_sync_in(env)
                 elif t == "file_export":

@@ -86,6 +86,14 @@ main{flex:1;display:flex;flex-direction:column;min-width:0}
 #modebar{position:fixed;bottom:8px;left:270px;z-index:40;font-size:12px;color:var(--text2);display:flex;gap:6px;align-items:center}
 #modebar button{border:1px solid var(--border);background:var(--bg1);border-radius:6px;padding:2px 10px;font-size:12px;color:var(--text2)}
 #modebar button.on{color:#fff;background:var(--accent);border-color:var(--accent)}
+#chat{display:none;position:fixed;left:276px;bottom:196px;width:320px;height:240px;background:var(--bg1);border:1px solid var(--border);border-radius:12px;flex-direction:column;z-index:45}
+#chat.on{display:flex}
+#chat .bar{padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px;display:flex;align-items:center}
+#chatmsgs{flex:1;overflow:auto;padding:8px 12px;font-size:13px;display:flex;flex-direction:column;gap:6px}
+#chatmsgs .m b{color:var(--accent)}
+#chat .inp{display:flex;border-top:1px solid var(--border)}
+#chat .inp input{flex:1;border:none;background:var(--bg2);color:var(--text1);padding:8px 12px;font:inherit;font-size:13px;border-radius:0 0 0 12px}
+#chat .inp button{border:none;background:var(--accent);color:#fff;padding:0 14px;border-radius:0 0 12px 0}
 .hint{align-self:center;font-size:12px;color:var(--text2);margin-top:auto}
 </style>
 </head>
@@ -121,10 +129,15 @@ main{flex:1;display:flex;flex-direction:column;min-width:0}
 
 <div id="preview">
   <div class="bar"><b>🌐 浏览器预览</b><input id="purl" placeholder="输入网址回车导航"><span class="sp"></span>
-    <span id="pfps"></span><button onclick="wsSend({type:'preview_stop',payload:{}});$('#preview').classList.remove('on')">关闭</button></div>
+    <span id="pfps"></span><button onclick="opMode()">接力</button><button onclick="wsSend({type:'preview_stop',payload:{}});$('#preview').classList.remove('on')">关闭</button></div>
   <canvas id="pcv"></canvas>
 </div>
 
+<div id="chat">
+  <div class="bar">💬 成员聊天（@agent 转任务）</div>
+  <div id="chatmsgs"></div>
+  <div class="inp"><input id="chatin" placeholder="说点什么… / @agent 帮我…"><button onclick="sendChat()">送</button></div>
+</div>
 <div id="modebar">审批档：<button id="mAuto" class="on" onclick="setMode('auto')">auto 全自动</button><button id="mSug" onclick="setMode('suggest')">suggest 需审批</button></div>
 <div id="fpanel">
   <div class="bar"><b>📁 文件</b><span class="sp" style="flex:1"></span>
@@ -249,6 +262,17 @@ $('#purl')?.addEventListener('keydown', e => {
     wsSend({type:'browser_navigate', payload:{url: u}});
   }
 });
+
+/* ---------- 操作权 + 成员聊天（FR-135/137）---------- */
+let myUid = null;
+function opMode() { wsSend({type:'op_lock', payload:{action:'mode', mode: 'relay'}}); sys('已切接力模式（多人协作防误触）'); }
+function sendChat() {
+  const t = $('#chatin').value.trim(); if (!t) return;
+  wsSend({type:'space_chat', payload:{text: t}}); $('#chatin').value = '';
+  $('#chatmsgs').insertAdjacentHTML('beforeend', `<div class="m"><b>我</b> ${escapeHtml(t)}</div>`);
+  $('#chatmsgs').scrollTop = 1e9;
+}
+function toggleChat() { $('#chat').classList.toggle('on'); }
 
 /* ---------- 空间切换/管理（FR-131/132）---------- */
 let allSpaces = [];
@@ -408,6 +432,10 @@ function handle2(env) {
       });
       $('#stream').appendChild(a); scroll(); break;
     case 'approval_timeout': sys('审批超时已自动拒绝'); break;
+    case 'op_lock_changed': sys(p.holder ? `🔒 接力模式：操作权 → 用户${p.holder}` : (p.mode === 'relay' ? '接力模式：操作权空闲（点「接力」旁按钮申请）' : '已切回自由模式')); break;
+    case 'space_chat_msg': $('#chat').classList.add('on');
+      $('#chatmsgs').insertAdjacentHTML('beforeend', `<div class="m"><b>用户${p.userId}</b> ${escapeHtml(p.text)}</div>`);
+      $('#chatmsgs').scrollTop = 1e9; break;
     case 'kb_captured': sys(`🧠 已记住：${(p.titles || []).join('、')}（查看请点左下 📚）`); break;
     case 'screencast_meta': pvMeta = env.payload; break;
     case 'screencast_frame': drawFrame(env.payload.data); break;
