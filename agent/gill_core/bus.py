@@ -23,7 +23,9 @@ def envelope(type_: str, payload: dict, cid: str | None = None, actor: str | Non
 class Bus:
     def __init__(self, url: str):
         import redis.asyncio as aioredis
-        self.r = aioredis.from_url(url, decode_responses=True)
+        self.r = aioredis.from_url(url, decode_responses=True,
+                                   socket_timeout=60, socket_connect_timeout=10,
+                                   health_check_interval=30, max_connections=64)
         self.group_created: set[str] = set()
 
     # ---- cmd（agentd 消费） ----

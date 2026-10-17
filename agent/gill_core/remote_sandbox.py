@@ -62,8 +62,9 @@ def _install_dns_patch(cube_ip: str):
         return
     orig = _socket.getaddrinfo
     def patched(host, *args, **kwargs):
-        if host and host.endswith(".cube.app"):
-            host = cube_ip
-        return orig(host, *args, **kwargs)
+        h = host.decode("idna") if isinstance(host, (bytes, bytearray)) else host
+        if h and isinstance(h, str) and h.endswith(".cube.app"):
+            h = cube_ip
+        return orig(h, *args, **kwargs)
     _socket.getaddrinfo = patched
     _DNS_PATCHED = True

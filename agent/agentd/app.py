@@ -69,13 +69,22 @@ class SessionRuntime:
         log.info("session runtime up: %s", self.sid)
         try:
             while True:
-                await self.bus.renew_lease(self.sid, NODE)
-                env = await self.bus.consume_cmd(self.sid, block_ms=1000)
+                try:
+                    await self.bus.renew_lease(self.sid, NODE)
+                    env = await self.bus.consume_cmd(self.sid, block_ms=1000)
+                except Exception as e:
+                    log.exception("consume error sid=%s", self.sid)
+                    await asyncio.sleep(1)
+                    continue
                 if env is None:
                     continue
                 t = env["type"]
                 if t == "user_input":
-                    await self.handle_user_input(env)
+                    try:
+                        await self.handle_user_input(env)
+                    except Exception:
+                        log.exception("task error sid=%s", self.sid)
+                        await self._emit("error", {"code": "SYS-9001", "message": "任务执行异常，请重试"})
                 elif t == "stop":
                     self.stop_requested = True
                 elif t == "session_close":

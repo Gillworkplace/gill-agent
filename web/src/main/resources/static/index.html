@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gill Agent — 协作开发工作台</title>
+<style>
+:root{--bg1:#fff;--bg2:#f7f8fa;--bg3:#eff1f4;--text1:#171a1f;--text2:#5c6470;--accent:#2f6bff;--ok:#22a06b;--warn:#f5a623;--err:#e5484d;--border:#e3e6ea;--radius:10px;--mono:ui-monospace,Consolas,monospace}
+[data-theme=dark]{--bg1:#0f1115;--bg2:#16181d;--bg3:#1e2128;--text1:#e8eaed;--text2:#9aa3af;--border:#2a2e36;--accent:#4d82ff}
+*{box-sizing:border-box;margin:0}
+body{font-family:system-ui,'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg2);color:var(--text1);height:100vh;display:flex;flex-direction:column}
+button{cursor:pointer;font:inherit}
+/* 登录页 */
+#login{display:flex;align-items:center;justify-content:center;height:100vh;background:var(--bg2)}
+.card{background:var(--bg1);border:1px solid var(--border);border-radius:14px;padding:32px;width:360px;box-shadow:0 8px 30px rgba(0,0,0,.06)}
+.card h1{font-size:20px;margin-bottom:4px}.card p{color:var(--text2);font-size:13px;margin-bottom:20px}
+.field{margin-bottom:12px}.field input{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg1);color:var(--text1);font-size:14px}
+.field input:focus{outline:2px solid var(--accent);border-color:transparent}
+.btn{width:100%;padding:10px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-weight:600;margin-top:6px}
+.btn.ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}
+.err{color:var(--err);font-size:13px;margin-top:8px;min-height:16px}
+/* 工作台布局 */
+#app{display:none;flex:1;overflow:hidden}
+#app.on{display:flex}
+aside{width:260px;background:var(--bg1);border-right:1px solid var(--border);display:flex;flex-direction:column}
+aside .top{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-weight:600}
+aside .new{font-size:12px;padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:none;color:var(--accent)}
+#sessions{flex:1;overflow:auto;padding:8px}
+.sess{padding:10px 12px;border-radius:8px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center}
+.sess:hover{background:var(--bg2)}.sess.on{background:var(--bg3)}
+.sess .dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+aside .bottom{padding:12px 16px;border-top:1px solid var(--border);font-size:12px;color:var(--text2);display:flex;justify-content:space-between;align-items:center}
+main{flex:1;display:flex;flex-direction:column;min-width:0}
+#stream{flex:1;overflow:auto;padding:24px 32px;display:flex;flex-direction:column;gap:14px}
+.msg{max-width:78%;padding:10px 14px;border-radius:12px;font-size:14px;line-height:1.65;white-space:pre-wrap;word-break:break-word}
+.msg.user{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:4px}
+.msg.ai{align-self:flex-start;background:var(--bg1);border:1px solid var(--border);border-bottom-left-radius:4px}
+.msg.ai code{font-family:var(--mono);font-size:13px;background:var(--bg3);padding:1px 5px;border-radius:4px}
+.msg.sys{align-self:center;color:var(--text2);font-size:12px}
+.tool{align-self:flex-start;font-family:var(--mono);font-size:12px;color:var(--text2);background:var(--bg3);border-radius:8px;padding:6px 10px;max-width:78%}
+.tool b{color:var(--accent)}
+#inputbar{padding:14px 32px;border-top:1px solid var(--border);background:var(--bg1);display:flex;gap:10px}
+#input{flex:1;padding:12px 14px;border:1px solid var(--border);border-radius:10px;background:var(--bg2);color:var(--text1);resize:none;font:inherit;max-height:140px}
+#send{padding:0 22px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-weight:600}
+#send.stop{background:var(--err)}
+#term{height:180px;border-top:1px solid var(--border);background:#0c0e12;color:#9fe8b5;font-family:var(--mono);font-size:12px;padding:10px 16px;overflow:auto;white-space:pre-wrap;display:none}
+#term.on{display:block}
+#banner{display:none;background:var(--warn);color:#fff;text-align:center;padding:6px;font-size:13px}
+#banner.on{display:block}
+.hint{align-self:center;font-size:12px;color:var(--text2);margin-top:auto}
+</style>
+</head>
+<body>
+<div id="banner">连接中断，正在重连…</div>
+
+<div id="login">
+  <div class="card">
+    <h1>Gill Agent</h1><p>协作开发工作台 · 私有部署</p>
+    <div class="field"><input id="lu" placeholder="用户名（3-32 位字母数字）"></div>
+    <div class="field"><input id="lp" type="password" placeholder="密码（≥8 位，含字母数字）"></div>
+    <button class="btn" onclick="doLogin()">登录</button>
+    <button class="btn ghost" onclick="doRegister()">注册新账号</button>
+    <div class="err" id="lerr"></div>
+  </div>
+</div>
+
+<div id="app">
+  <aside>
+    <div class="top">会话 <button class="new" onclick="newSession()">＋新建</button></div>
+    <div id="sessions"></div>
+    <div class="bottom"><span id="whoami"></span><button class="new" onclick="toggleTheme()">🌗</button><button class="new" onclick="logout()">退出</button></div>
+  </aside>
+  <main>
+    <div id="stream"><div class="hint">选择或新建一个会话开始 · Enter 发送 / Shift+Enter 换行 / Esc 停止 · Ctrl+` 终端</div></div>
+    <textarea id="input" rows="1" placeholder="描述任务，例如：写一个爬虫脚本并运行验证…"></textarea>
+    <div id="inputbar" style="border-top:none;padding-top:0"><textarea id="input" rows="1" placeholder="描述任务，例如：写一个脚本并在沙箱运行验证…（Enter 发送）"></textarea><button id="send" onclick="sendOrStop()">发送</button></div>
+    <div id="term"></div>
+  </main>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+let TOKEN = localStorage.getItem('gill_token') || '';
+let USER = localStorage.getItem('gill_user') || '';
+let sessions = [], cur = null, ws = null, wsSid = null, taskRunning = false;
+let reconnectAttempts = 0;
+
+/* ---------- 认证 ---------- */
+async function api(path, body, method) {
+  const r = await fetch('/api/v1' + path, {method: method || (body ? 'POST' : 'GET'),
+    headers: {'Content-Type': 'application/json', ...(TOKEN ? {Authorization: 'Bearer ' + TOKEN} : {})},
+    body: body ? JSON.stringify(body) : undefined});
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error?.message || ('HTTP ' + r.status));
+  return d;
+}
+async function doLogin() { try { const d = await api('/auth/login', {username: $('#lu').value, password: $('#lp').value}); TOKEN = d.token; USER = $('#lu').value; localStorage.setItem('gill_token', TOKEN); localStorage.setItem('gill_user', USER); enter(); } catch(e) { $('#lerr').textContent = e.message; } }
+async function doRegister() { try { await api('/auth/register', {username: $('#lu').value, password: $('#lp').value}); $('#lerr').textContent = '注册成功，自动登录中…'; doLogin(); } catch(e) { $('#lerr').textContent = e.message; } }
+function logout() { localStorage.clear(); TOKEN=''; location.reload(); }
+
+/* ---------- 会话 ---------- */
+async function loadSessions() {
+  const spaces = await api('/spaces');
+  const sid = spaces.find(s => s.type === 'personal')?.id || spaces[0]?.id;
+  if (!sid) return;
+  sessions = await api('/spaces/' + sid + '/sessions');
+  renderSessions();
+}
+async function newSession() {
+  const spaces = await api('/spaces');
+  const sid = spaces.find(s => s.type === 'personal')?.id;
+  const s = await api('/spaces/' + sid + '/sessions', {title: '新会话 ' + (sessions.length + 1)});
+  await loadSessions(); openSession(s.id);
+}
+function renderSessions() {
+  $('#sessions').innerHTML = sessions.map(s =>
+    `<div class="sess ${s.id === cur ? 'on' : ''}" onclick="openSession('${s.id}')">${s.title || '会话'}<span class="dot"></span></div>`).join('');
+}
+function openSession(id) { cur = id; renderSessions(); $('#stream').innerHTML = ''; hist(id); connectWs(); }
+
+/* ---------- WS ---------- */
+function connectWs() {
+  if (ws && wsSid === cur) return;
+  if (ws) ws.close();
+  wsSid = cur;
+  ws = new WebSocket(`ws://${location.host}/ws/agent?sessionId=${cur}&token=${TOKEN}`);
+  ws.onopen = () => { $('#banner').classList.remove('on'); reconnectAttempts = 0; };
+  ws.onclose = () => { if (cur === wsSid && TOKEN) { $('#banner').classList.add('on'); setTimeout(connectWs, Math.min(30000, 1000 * Math.pow(2, reconnectAttempts++))); } };
+  ws.onmessage = ev => handle(JSON.parse(ev.data));
+}
+
+/* ---------- 事件渲染 ---------- */
+let aiBuf = null;
+function addAI() { if (!aiBuf) { aiBuf = document.createElement('div'); aiBuf.className = 'msg ai'; $('#stream').appendChild(aiBuf); } return aiBuf; }
+function handle(env) {
+  const p = env.payload || {};
+  switch (env.type) {
+    case 'agent_delta': addAI().textContent += p.content; scroll(); break;
+    case 'tool_call':
+      aiBuf = null;
+      const t = document.createElement('div'); t.className = 'tool';
+      t.innerHTML = `<b>▶ ${p.tool}</b> ${escapeHtml(JSON.stringify(p.args || {})).slice(0, 120)}`;
+      $('#stream').appendChild(t); scroll(); break;
+    case 'tool_result': aiBuf = null; break;
+    case 'terminal':
+      const term = $('#term'); term.classList.add('on');
+      term.textContent += (p.stream === 'stderr' ? '[err] ' : '') + (p.data || '');
+      term.scrollTop = term.scrollHeight; break;
+    case 'session_status':
+      sys(p.status === 'sandbox_creating' ? '沙箱启动中…' : p.status === 'active' ? `沙箱就绪 (${p.sandboxId || ''})` : p.status); break;
+    case 'done':
+      taskRunning = false; $('#send').textContent = '发送'; $('#send').classList.remove('stop'); aiBuf = null;
+      sys(p.status === 'done' ? `任务完成（${p.rounds} 轮 · tokens ${p.tokens?.prompt || 0}+${p.tokens?.completion || 0}）` : `任务${p.status === 'stopped' ? '已停止' : '失败：' + (p.answer || '')}`);
+      break;
+    case 'approval_request': sys(`⚠ 需要审批（${p.riskLevel}）：${p.command}`); break;
+    case 'error': sys('错误：' + (p.message || '')); break;
+  }
+}
+function sys(t) { const d = document.createElement('div'); d.className = 'msg sys'; d.textContent = t; $('#stream').appendChild(d); scroll(); }
+function scroll() { const s = $('#stream'); s.scrollTop = s.scrollHeight; }
+function escapeHtml(s) { return s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+async function hist(id) {
+  try { const msgs = await api(`/sessions/${id}/messages?limit=50`); msgs.reverse().forEach(m => {
+    if (m.role === 'user') { const d = document.createElement('div'); d.className = 'msg user'; d.textContent = m.content; $('#stream').appendChild(d); }
+    else if (m.role === 'assistant' && m.content) { const d = document.createElement('div'); d.className = 'msg ai'; d.textContent = m.content; $('#stream').appendChild(d); }
+  }); scroll(); } catch(e) {}
+}
+
+/* ---------- 发送 ---------- */
+function sendOrStop() {
+  if (taskRunning) { ws?.send(JSON.stringify({type: 'stop', payload: {}})); return; }
+  const text = $('#input').value.trim(); if (!text || !cur) return;
+  const d = document.createElement('div'); d.className = 'msg user'; d.textContent = text; $('#stream').appendChild(d);
+  $('#input').value = ''; scroll();
+  taskRunning = true; $('#send').textContent = '停止'; $('#send').classList.add('stop');
+  connectWs();
+  ws.onopen = () => ws.send(JSON.stringify({type: 'user_input', payload: {text}}));
+  if (ws.readyState === 1) ws.send(JSON.stringify({type: 'user_input', payload: {text}}));
+}
+
+/* ---------- 入口 ---------- */
+function toggleTheme() { const h = document.documentElement; h.dataset.theme = h.dataset.theme === 'dark' ? '' : 'dark'; localStorage.setItem('gill_theme', h.dataset.theme); }
+document.documentElement.dataset.theme = localStorage.getItem('gill_theme') || '';
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') sendOrStop();
+  if (e.ctrlKey && e.key === '`') $('#term').classList.toggle('on');
+  if (e.key === 'Enter' && !e.shiftKey && document.activeElement?.id === 'input') { e.preventDefault(); sendOrStop(); }
+});
+// 清理重复的 input 元素（构建期容错）
+document.querySelectorAll('#input').forEach((el, i, all) => { if (i < all.length - 1) el.remove(); });
+async function enter() {
+  $('#login').style.display = 'none'; $('#app').classList.add('on');
+  $('#whoami').textContent = USER;
+  await loadSessions();
+  if (sessions.length) openSession(sessions[0].id); else newSession();
+}
+if (TOKEN) { api('/auth/me').then(enter).catch(() => { TOKEN=''; }); }
+$('#lp').addEventListener('keydown', e => e.key === 'Enter' && doLogin());
+</script>
+</body>
+</html>
