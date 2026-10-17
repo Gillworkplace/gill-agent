@@ -30,8 +30,12 @@ if [ "$PUSH" = true ]; then
   echo "== 沙箱机建模板（需 docker login ACR + cubemastercli）=="
   ssh -o BatchMode=yes "$SBX" "
     docker login -u '$ACR_USERNAME' --password-stdin '$ACR_REGISTRY' <<< '$ACR_PASSWORD' 2>/dev/null || true
-    cubemastercli tpl create-from-image --name '$TPL_NAME' --cpu '$CPU' --memory '$MEM' \
-      --image '$IMAGE' --expose-port 9222 --expose-port 49999 --alias template.cube.app
+    # 关键经验（踩坑固化）：①--cmd sleep --arg infinity 必须加（镜像默认 CMD 秒退导致 envd 丢失）；
+    # ②--enable-inject-envd --envd-path /root/envd 注入配套 envd（v0.7.3 release 版 CLI 未内嵌，
+    #   envd 二进制从官方 sandbox-code 镜像提取：docker cp \$(docker create cube-sandbox-cn.tencentcloudcr.com/cube-sandbox/sandbox-code:latest):/usr/bin/envd /root/envd）
+    cubemastercli template create-from-image --name '$TPL_NAME' --cpu '$CPU' --memory '$MEM' \
+      --image '$IMAGE' --expose-port 9222 --expose-port 49999 \
+      --cmd sleep --arg infinity --enable-inject-envd --envd-path /root/envd
     cubemastercli tpl ls"
 else
   echo "--no-push：仅构建完成 $IMAGE"
