@@ -32,7 +32,8 @@ async def run_task(task_text: str, settings: Settings,
                    approve: Approver | None = None,
                    stop_flag: Callable[[], bool] | None = None,
                    llm: LLM | None = None, sandbox: BaseSandbox | None | object = None,
-                   kb=None, system_extra: str = "", always_ok_rules: set[str] | None = None) -> TaskResult:
+                   kb=None, system_extra: str = "", always_ok_rules: set[str] | None = None,
+                   exts=None) -> TaskResult:
     llm = llm or LLM(settings)
     sandbox = sandbox or make_sandbox(settings)
     messages = list(history or []) + [{"role": "user", "content": task_text}]
@@ -59,7 +60,15 @@ async def run_task(task_text: str, settings: Settings,
             round_text: list[str] = []
             tool_calls: list[dict] = []
             usage = {}
-            async for kind, payload in llm.stream(messages, TOOLS_SCHEMA):
+            ext_schemas = []
+            if exts:
+                try:
+                    from .exts import tool_schemas
+                    ext_schemas = tool_schemas(exts)
+                except Exception as e:
+                    log_kb = __import__("logging").getLogger("gill.loop")
+                    log_kb.warning("ext schemas fail: %s", e)
+            async for kind, payload in llm.stream(messages, TOOLS_SCHEMA + ext_schemas):
                 if kind == "delta":
                     round_text.append(payload)
                     await emit("agent_delta", {"content": payload})
@@ -98,6 +107,13 @@ async def run_task(task_text: str, settings: Settings,
                         if approve is not None and getattr(approve, "always", False):
                             always_ok.add(rule.id)
                 await emit("agent_tool", {"round": rnd, "tool": name})
+                if name.startswith("ext_") and exts:
+                    from .exts import execute_http
+                    await emit("tool_call", {"tool": name, "args": args})
+                    out = await execute_http(sandbox, exts, name, args, emit=emit)
+                    result.tools.append({"name": name, "ok": '"error"' not in out[:60]})
+                    messages.append({"role": "tool", "tool_call_id": tc["id"], "content": out[:4000]})
+                    continue
                 out = await execute(sandbox, name, args, lambda ev: emit(ev.kind, ev.payload), settings, kb=kb)
                 if name == "knowledge_save" and kb is not None:
                     try:

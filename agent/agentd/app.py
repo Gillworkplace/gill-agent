@@ -117,6 +117,19 @@ class SessionRuntime:
         ci = (self.session_meta or {}).get("custom_instructions")
         return f"\n\n[用户个人指令]\n{ci}" if ci else ""
 
+    async def load_exts(self):
+        """FR-10x：加载用户/空间启用的 http-tools 扩展。"""
+        dsn = os.getenv("DATABASE_URL_DSN")
+        if not dsn:
+            return None
+        meta = self.session_meta or {}
+        try:
+            from gill_core.exts import load_enabled
+            return await load_enabled(dsn, user_id=meta.get("user_id", 0), space_id=meta.get("space_id"))
+        except Exception as e:
+            log.warning("exts load fail: %s", e)
+            return None
+
     async def handle_user_input(self, env: dict):
         text = env["payload"].get("text", "")
         actor = env.get("actor")
@@ -172,7 +185,8 @@ class SessionRuntime:
                                     stop_flag=lambda: self.stop_requested,
                                     sandbox=self.sandbox, kb=kb,
                                     system_extra=self.custom_instructions(),
-                                    always_ok_rules=self.always_ok_rules)
+                                    always_ok_rules=self.always_ok_rules,
+                                    exts=await self.load_exts())
             await self._emit("done", {"status": result.status, "rounds": result.rounds,
                                       "tokens": result.tokens, "answer": result.answer})
 
