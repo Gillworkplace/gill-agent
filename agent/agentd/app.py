@@ -363,6 +363,8 @@ class SessionRuntime:
                     else:
                         await self._emit("space_chat_msg", {"userId": env.get("actor"),
                                                             "text": text[:500]})
+                elif t == "nav_follow":          # FR-139 演示模式：URL 广播（agentd 中转回 evt 流扇出所有端）
+                    await self._emit("nav_follow", env.get("payload", {}))
                 elif t == "file_sync_in":
                     await self.handle_file_sync_in(env)
                 elif t == "file_export":

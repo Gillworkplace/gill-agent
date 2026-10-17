@@ -96,6 +96,9 @@ main{flex:1;display:flex;flex-direction:column;min-width:0}
 #chat .inp button{border:none;background:var(--accent);color:#fff;padding:0 14px;border-radius:0 0 12px 0}
 .hint{align-self:center;font-size:12px;color:var(--text2);margin-top:auto}
 </style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css">
+<script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
 </head>
 <body>
 <div id="banner">连接中断，正在重连…</div>
@@ -129,7 +132,7 @@ main{flex:1;display:flex;flex-direction:column;min-width:0}
 
 <div id="preview">
   <div class="bar"><b>🌐 浏览器预览</b><input id="purl" placeholder="输入网址回车导航"><span class="sp"></span>
-    <span id="pfps"></span><button onclick="opMode()">接力</button><button onclick="wsSend({type:'preview_stop',payload:{}});$('#preview').classList.remove('on')">关闭</button></div>
+    <span id="pfps"></span><button onclick="toggleDemo()">🎬 演示</button><button onclick="opMode()">接力</button><button onclick="wsSend({type:'preview_stop',payload:{}});$('#preview').classList.remove('on')">关闭</button></div>
   <canvas id="pcv"></canvas>
 </div>
 
@@ -260,12 +263,19 @@ $('#purl')?.addEventListener('keydown', e => {
   if (e.key === 'Enter' && e.target.value.trim()) {
     let u = e.target.value.trim(); if (!/^https?:/.test(u)) u = 'https://' + u;
     wsSend({type:'browser_navigate', payload:{url: u}});
+    if (demoMode) wsSend({type:'nav_follow', payload:{url: u}});
   }
 });
 
 /* ---------- 操作权 + 成员聊天（FR-135/137）---------- */
 let myUid = null;
 function opMode() { wsSend({type:'op_lock', payload:{action:'mode', mode: 'relay'}}); sys('已切接力模式（多人协作防误触）'); }
+let demoMode = false;
+function toggleDemo() {
+  demoMode = !demoMode;
+  if (demoMode) { $('#preview').classList.add('on'); sys('🎬 演示模式：你的导航将同步给空间内其他成员'); }
+  else sys('演示模式已结束');
+}
 function sendChat() {
   const t = $('#chatin').value.trim(); if (!t) return;
   wsSend({type:'space_chat', payload:{text: t}}); $('#chatin').value = '';
@@ -432,6 +442,9 @@ function handle2(env) {
       });
       $('#stream').appendChild(a); scroll(); break;
     case 'approval_timeout': sys('审批超时已自动拒绝'); break;
+    case 'nav_follow':
+      if (!demoMode) { $('#preview').classList.add('on'); $('#purl').value = p.url || ''; sys(`跟随演示导航：${p.url}`); }
+      break;
     case 'op_lock_changed': sys(p.holder ? `🔒 接力模式：操作权 → 用户${p.holder}` : (p.mode === 'relay' ? '接力模式：操作权空闲（点「接力」旁按钮申请）' : '已切回自由模式')); break;
     case 'space_chat_msg': $('#chat').classList.add('on');
       $('#chatmsgs').insertAdjacentHTML('beforeend', `<div class="m"><b>用户${p.userId}</b> ${escapeHtml(p.text)}</div>`);
@@ -457,8 +470,13 @@ function handle(env) {
     case 'tool_result': aiBuf = null; break;
     case 'terminal':
       const term = $('#term'); term.classList.add('on');
-      term.textContent += (p.stream === 'stderr' ? '[err] ' : '') + (p.data || '');
-      term.scrollTop = term.scrollHeight; break;
+      const txt = (p.stream === 'stderr' ? '[31m' : '') + (p.data || '');
+      if (xterm) { xterm.write(txt.replace(/
+/g, '
+
+')); }
+      else { term.textContent += txt; term.scrollTop = term.scrollHeight; }
+      break;
     case 'session_status':
       sys(p.status === 'sandbox_creating' ? '沙箱启动中…' : p.status === 'active' ? `沙箱就绪 (${p.sandboxId || ''})` : p.status); break;
     case 'done':
@@ -509,9 +527,24 @@ document.addEventListener('keydown', e => {
   if (e.ctrlKey && e.key === '`') $('#term').classList.toggle('on');
   if (e.key === 'Enter' && !e.shiftKey && document.activeElement?.id === 'input') { e.preventDefault(); sendOrStop(); }
 });
+// xterm 终端（FR：真终端面板；CDN 失败自动降级）
+let xterm = null;
+function initTerm() {
+  const el = $('#term');
+  if (typeof Terminal === 'undefined') return;   // CDN 不可用 → 保持纯文本
+  xterm = new Terminal({fontSize: 12, theme: {background: '#0c0e12', foreground: '#9fe8b5'}, convertEol: true, disableStdin: true});
+  const fit = new FitAddon.FitAddon();
+  xterm.loadAddon(fit);
+  xterm.open(el);
+  fit.fit();
+  setTimeout(() => fit.fit(), 300);
+}
+// terminal 事件改写 xterm
+const _origHandle = handle;
 // 清理重复的 input 元素（构建期容错）
 document.querySelectorAll('#input').forEach((el, i, all) => { if (i < all.length - 1) el.remove(); });
 async function enter() {
+  initTerm();
   $('#login').style.display = 'none'; $('#app').classList.add('on');
   $('#whoami').textContent = USER;
   await loadSessions();
