@@ -4,6 +4,7 @@ import json
 import logging
 import re
 import time
+import uuid as _uuid
 
 log = logging.getLogger("gill.kb")
 
@@ -17,11 +18,26 @@ INJECT_TEMPLATE = """[用户知识库]（检索到 {n} 条，按相关度）
 
 
 class KnowledgeBase:
+    EMBED_MODEL = None   # 懒加载 Settings
+
     def __init__(self, pg_dsn: str, user_id: int, space_id: str | None = None,
                  project_tag: str | None = None, session_id: str | None = None):
         self.dsn, self.uid, self.space_id = pg_dsn, user_id, space_id
         self.project_tag, self.session_id = project_tag, session_id
         self._pool = None
+
+    async def _embed(self, text: str) -> list[float] | None:
+        """智谱 embedding-3（BD-9）；失败返回 None（降级关键词）。"""
+        try:
+            from .config import Settings
+            from openai import AsyncOpenAI
+            s = Settings()
+            client = AsyncOpenAI(api_key=s.zhipu_api_key, base_url=s.zhipu_base_url, timeout=30)
+            r = await client.embeddings.create(model=s.embed_model, input=text[:8000])
+            return list(r.data[0].embedding)
+        except Exception as e:
+            log.warning("embed fail (降级关键词): %s", e)
+            return None
 
     async def pool(self):
         if self._pool is None:
@@ -56,42 +72,68 @@ class KnowledgeBase:
                        updated_at=now(), version=version+1 WHERE id=$4""",
                     content, tags, confidence, row["id"])
                 return {"id": str(row["id"]), "updated": True}
-            import uuid as _uuid
+            emb = await self._embed(title + " " + content)
             rid = await c.fetchval(
                 """INSERT INTO knowledge_items(id, user_id, space_id, scope, project_tag, session_id,
-                     type, title, content, tags, source, source_msg_id, confidence)
-                   VALUES ($13,$1,$2::uuid,$3,$4,$5::uuid,$6,$7,$8,$9,$10,$11,$12) RETURNING id""",
+                     type, title, content, tags, source, source_msg_id, confidence, embedding)
+                   VALUES ($13,$1,$2::uuid,$3,$4,$5::uuid,$6,$7,$8,$9,$10,$11,$12,
+                           CASE WHEN $14::text IS NULL THEN NULL ELSE $14::vector END) RETURNING id""",
                 self.uid, spid, scope, ptag, sid, ktype, title, content, tags,
-                source, source_msg_id, confidence, _uuid.uuid4())
+                source, source_msg_id, confidence, _uuid.uuid4(),
+                "[" + ",".join(f"{x}" for x in emb) + "]" if emb else None)
             return {"id": str(rid), "updated": False}
 
-    # ---------- 检索（FR-93：关键词+标签，优先级 session>project>group>user；pinned 置顶） ----------
+    # ---------- 检索（FR-93/BD-9：向量+关键词混合，优先级 session>project>group>user；pinned 置顶） ----------
     async def search(self, query: str, limit: int = 8) -> list[dict]:
         pool = await self.pool()
         words = [w for w in re.split(r"[\s,，。；;！？!?]+", query) if len(w) >= 2][:8]
-        if not words:
-            return []
+        emb = await self._embed(query)
         async with pool.acquire() as c:
-            rows = await c.fetch(
-                """SELECT id::text, scope, type, title, content, tags, pinned, hit_count,
-                          (CASE scope WHEN 'session' THEN 0 WHEN 'project' THEN 1
-                                      WHEN 'group' THEN 2 ELSE 3 END) AS prio,
-                          (SELECT count(*) FROM unnest($3::text[]) w
-                             WHERE content ILIKE '%' || w || '%'
-                                OR title ILIKE '%' || w || '%') AS hits
-                   FROM knowledge_items
-                   WHERE status='active' AND user_id=$2
-                     AND (scope='user' OR (scope='session' AND session_id=$4::uuid)
-                          OR (scope='project' AND project_tag=$5)
-                          OR (scope='group' AND space_id=$6::uuid))
-                     AND EXISTS (SELECT 1 FROM unnest($3::text[]) w
-                           WHERE content ILIKE '%' || w || '%'
-                              OR title ILIKE '%' || w || '%'
-                              OR title ILIKE '%' || $1 || '%')
-                   ORDER BY pinned DESC, prio, hits DESC, confidence DESC, hit_count DESC
-                   LIMIT $7""",
-                query, self.uid, words, self.session_id, self.project_tag, self.space_id, limit)
-            return [dict(r) for r in rows]
+            # 语义检索（embedding 命中时）
+            sem_rows = []
+            if emb:
+                vec = "[" + ",".join(str(x) for x in emb) + "]"
+                sem_rows = await c.fetch(
+                    """SELECT id::text, scope, type, title, content, tags, pinned, hit_count,
+                              (CASE scope WHEN 'session' THEN 0 WHEN 'project' THEN 1
+                                          WHEN 'group' THEN 2 ELSE 3 END) AS prio,
+                              1 - (embedding <=> $1::vector) AS sim
+                       FROM knowledge_items
+                       WHERE status='active' AND user_id=$2 AND embedding IS NOT NULL
+                         AND (scope='user' OR (scope='session' AND session_id=$3::uuid)
+                              OR (scope='project' AND project_tag=$4)
+                              OR (scope='group' AND space_id=$5::uuid))
+                       ORDER BY pinned DESC, sim DESC LIMIT $6""",
+                    vec, self.uid, self.session_id, self.project_tag, self.space_id, limit)
+            kw_rows = []
+            if words:
+                kw_rows = await c.fetch(
+                    """SELECT id::text, scope, type, title, content, tags, pinned, hit_count,
+                              (CASE scope WHEN 'session' THEN 0 WHEN 'project' THEN 1
+                                          WHEN 'group' THEN 2 ELSE 3 END) AS prio,
+                              (SELECT count(*) FROM unnest($1::text[]) w
+                                 WHERE content ILIKE '%' || w || '%'
+                                    OR title ILIKE '%' || w || '%')::float AS sim
+                       FROM knowledge_items
+                       WHERE status='active' AND user_id=$2
+                         AND (scope='user' OR (scope='session' AND session_id=$3::uuid)
+                              OR (scope='project' AND project_tag=$4)
+                              OR (scope='group' AND space_id=$5::uuid))
+                         AND EXISTS (SELECT 1 FROM unnest($1::text[]) w
+                               WHERE content ILIKE '%' || w || '%'
+                                  OR title ILIKE '%' || w || '%'
+                                  OR title ILIKE '%' || $6 || '%')
+                       ORDER BY pinned DESC, prio, sim DESC LIMIT $7""",
+                    words, self.uid, self.session_id, self.project_tag, self.space_id, query, limit)
+            # 混合融合（id 去重，语义优先）
+            merged: dict[str, dict] = {}
+            for r in [*sem_rows, *kw_rows]:
+                d = dict(r)
+                if d["id"] not in merged:
+                    merged[d["id"]] = d
+            rows = sorted(merged.values(),
+                          key=lambda d: (not d["pinned"], d["prio"], -(d["sim"] or 0)))
+            return rows[:limit]
 
     # ---------- 注入块（FR-93：token 预算截断） ----------
     async def build_injection(self, query: str, max_items: int = 8, max_chars: int = 2000) -> str:
