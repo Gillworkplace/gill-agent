@@ -14,6 +14,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.*;
 
 /** 浏览器 WS 网关：鉴权 → 会话归属校验 → 双向桥接 agentd（SSE 事件流 → WS 下发；WS 上行 → agentd cmd）。 */
@@ -24,7 +25,7 @@ public class AgentWebSocketHandler extends TextWebSocketHandler {
     private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
     private final String agentdBase = System.getenv().getOrDefault("AGENTD_URL", "http://agentd:8000");
     private final Map<String, ScheduledExecutorService> pumps = new ConcurrentHashMap<>();
-    private final Map<String, WebSocketSession> conns = new ConcurrentHashMap<>();
+    private final Map<String, Set<WebSocketSession>> conns = new ConcurrentHashMap<>();
 
     public AgentWebSocketHandler(JdbcTemplate db) { this.db = db; }
 
@@ -35,7 +36,8 @@ public class AgentWebSocketHandler extends TextWebSocketHandler {
         String sid = q.getFirst("sessionId");
         Long uid = auth(token);
         if (uid == null || sid == null || !owns(uid, sid)) { ws.close(CloseStatus.POLICY_VIOLATION); return; }
-        conns.put(sid, ws);
+        conns.computeIfAbsent(sid, k -> ConcurrentHashMap.newKeySet()).add(ws);
+        if (pumps.containsKey(sid)) return;   // 已有泵：多端复用
         // 启动 agentd 会话运行时（携带元数据：用户/空间/项目标签/个人指令——知识库与注入依赖）+ 事件泵（SSE → WS）
         post("/internal/sessions/" + sid + "/start", metaJson(uid, sid));
         ScheduledExecutorService ex = Executors.newSingleThreadScheduledExecutor();
@@ -93,17 +95,23 @@ public class AgentWebSocketHandler extends TextWebSocketHandler {
         var q = UriComponentsBuilder.fromUri(ws.getUri()).build().getQueryParams();
         String sid = q.getFirst("sessionId");
         if (sid != null) {
-            var ex = pumps.remove(sid);
-            if (ex != null) ex.shutdownNow();
-            conns.remove(sid);
+            var set = conns.get(sid);
+            if (set != null) set.remove(ws);
+            if (set == null || set.isEmpty()) {          // 最后一端断开才停泵
+                var ex = pumps.remove(sid);
+                if (ex != null) ex.shutdownNow();
+                conns.remove(sid);
+            }
         }
     }
 
     private void send(String sid, String json) {
-        try {
-            WebSocketSession ws = conns.get(sid);
-            if (ws != null && ws.isOpen()) synchronized (ws) { ws.sendMessage(new TextMessage(json)); }
-        } catch (Exception ignored) {}
+        var set = conns.get(sid);
+        if (set == null) return;
+        for (WebSocketSession ws : set) {
+            try { if (ws.isOpen()) synchronized (ws) { ws.sendMessage(new TextMessage(json)); } }
+            catch (Exception ignored) { set.remove(ws); }
+        }
     }
 
     private void post(String path, String json) {

@@ -105,7 +105,9 @@ main{flex:1;display:flex;flex-direction:column;min-width:0}
 
 <div id="app">
   <aside>
-    <div class="top">会话 <button class="new" onclick="newSession()">＋新建</button></div>
+    <div class="top"><select id="spaceSel" onchange="switchSpace(this.value)" style="max-width:120px;font:inherit;border:1px solid var(--border);border-radius:6px;background:var(--bg2);color:var(--text1);padding:2px"></select>
+  <button class="new" onclick="newSession()">＋</button></div>
+<div style="padding:4px 12px;border-bottom:1px solid var(--border);font-size:11px"><a href="javascript:void(0)" onclick="spaceMgr()" style="color:var(--text2)">空间管理 / 邀请成员</a></div>
     <div id="sessions"></div>
     <div class="bottom"><span id="whoami"></span><button class="new" onclick="togglePreview()">🌐 预览</button><button class="new" onclick="toggleTheme()">🌗</button><button class="new" onclick="logout()">退出</button></div>
   </aside>
@@ -129,6 +131,30 @@ main{flex:1;display:flex;flex-direction:column;min-width:0}
     <button onclick="pickUpload()">⬆ 上传</button><button onclick="wsSend({type:'file_list',payload:{}})">⟳ 工作区</button>
     <button onclick="$('#fpanel').classList.remove('on')">✕</button></div>
   <div id="flist"><div class="hint2">上传件经 MinIO 直传；「同步」送入沙箱工作区</div></div>
+</div>
+
+<div id="sp" style="display:none;position:fixed;inset:0;background:var(--bg1);z-index:60;flex-direction:column">
+  <div class="bar" style="padding:14px 24px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:center"><h2 style="font-size:16px;flex:1">👥 空间管理</h2><button class="new" onclick="$('#sp').classList.remove('on');$('#sp').style.display='none'">返回</button></div>
+  <div style="flex:1;overflow:auto;padding:20px 24px">
+    <h3 style="font-size:14px;margin-bottom:8px">创建协作空间</h3>
+    <div style="display:flex;gap:8px;margin-bottom:20px"><input id="spName" placeholder="空间名称" style="flex:1;max-width:300px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text1)"><button class="new" onclick="createSpace()">创建</button></div>
+    <h3 style="font-size:14px;margin-bottom:8px">邀请成员（用户名直邀）</h3>
+    <div style="display:flex;gap:8px;margin-bottom:20px"><input id="invUser" placeholder="对方用户名" style="flex:1;max-width:300px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text1)"><button class="new" onclick="inviteUser()">邀请</button></div>
+    <h3 style="font-size:14px;margin-bottom:8px">成员列表</h3><div id="spMembers"></div>
+  </div>
+</div>
+
+<div id="ex" style="display:none;position:fixed;inset:0;background:var(--bg1);z-index:60;flex-direction:column">
+  <div class="bar" style="padding:14px 24px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:center"><h2 style="font-size:16px;flex:1">🔌 扩展中心</h2><button class="new" onclick="addExt()">＋ HTTP 工具</button><button class="new" onclick="$('#ex').style.display='none'">返回</button></div>
+  <div id="exList" style="flex:1;overflow:auto;padding:20px 24px"></div>
+</div>
+
+<div id="adm" style="display:none;position:fixed;inset:0;background:var(--bg1);z-index:60;flex-direction:column">
+  <div class="bar" style="padding:14px 24px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:center"><h2 style="font-size:16px;flex:1">⚙️ 管理后台</h2><button class="new" onclick="$('#adm').style.display='none'">返回</button></div>
+  <div style="flex:1;overflow:auto;padding:20px 24px;display:grid;grid-template-columns:1fr 1fr;gap:24px">
+    <div><h3 style="font-size:14px;margin-bottom:8px">用户</h3><div id="admUsers"></div></div>
+    <div><h3 style="font-size:14px;margin-bottom:8px">命令审计（最近）</h3><div id="admAudit" style="font-family:var(--mono);font-size:12px"></div></div>
+  </div>
 </div>
 
 <div id="kb">
@@ -170,7 +196,7 @@ async function newSession() {
   const spaces = await api('/spaces');
   const sid = spaces.find(s => s.type === 'personal')?.id;
   const s = await api('/spaces/' + sid + '/sessions', {title: '新会话 ' + (sessions.length + 1)});
-  await loadSessions(); openSession(s.id);
+  await loadSpaceSel(); await loadSessions(); openSession(s.id);
 }
 function renderSessions() {
   $('#sessions').innerHTML = sessions.map(s =>
@@ -223,6 +249,63 @@ $('#purl')?.addEventListener('keydown', e => {
     wsSend({type:'browser_navigate', payload:{url: u}});
   }
 });
+
+/* ---------- 空间切换/管理（FR-131/132）---------- */
+let allSpaces = [];
+async function loadSpaceSel(sel) {
+  allSpaces = await api('/spaces');
+  $('#spaceSel').innerHTML = allSpaces.map(x => `<option value="${x.id}" ${x.id === sel ? 'selected' : ''}>${x.type === 'personal' ? '🏠' : '👥'} ${escapeHtml(x.name)}</option>`).join('');
+}
+async function switchSpace(id) { kbSpace = id; curSpaceId = id; await loadSessions(); }
+async function spaceMgr() {
+  $('#sp').style.display = 'flex';
+  const m = await api(`/spaces/${$('#spaceSel').value}/members`);
+  $('#spMembers').innerHTML = m.map(x => `<div class="frow"><span class="nm">${escapeHtml(String(x.username))}</span><span class="sz">${x.role}</span></div>`).join('');
+}
+async function createSpace() {
+  const name = $('#spName').value.trim(); if (!name) return;
+  const r = await api('/spaces', {name});
+  await loadSpaceSel(r.id); await loadSessions(); $('#sp').style.display = 'none';
+}
+async function inviteUser() {
+  const u = $('#invUser').value.trim(); if (!u) return;
+  try { await api(`/spaces/${$('#spaceSel').value}/invites`, {username: u}); sys(`已邀请 ${u}`); spaceMgr(); }
+  catch (e) { sys('邀请失败：' + e.message); }
+}
+/* ---------- 扩展中心（FR-106）---------- */
+async function openEx() { $('#ex').style.display = 'flex'; loadExts(); }
+async function loadExts() {
+  const sp = await ensureSpace();
+  const list = await api(`/spaces/${sp}/extensions`);
+  $('#exList').innerHTML = list.map(x => `<div class="kbcard" style="margin-bottom:10px">
+    <div class="t">${escapeHtml(x.name)}<span class="tag">${x.type}</span><span class="tag">${x.status}</span></div>
+    <div class="c">HTTP 工具集 · v${x.version}</div>
+    <div class="ops"><span>调用 ${x.call_count_7d} 次</span>
+      <span style="margin-left:auto" onclick="toggleExt('${x.id}','${x.status === 'enabled' ? 'disabled' : 'enabled'}')">${x.status === 'enabled' ? '停用' : '启用'}</span>
+      <span onclick="delExt('${x.id}')">删除</span></div></div>`).join('') || '<div class="hint2">暂无扩展</div>';
+}
+async function toggleExt(id, status) { await api('/extensions/' + id, {status}, 'PATCH'); loadExts(); }
+async function delExt(id) { if (!confirm('删除扩展？')) return; await api('/extensions/' + id, null, 'DELETE'); loadExts(); }
+async function addExt() {
+  const name = prompt('扩展名（小写字母数字-）'); if (!name) return;
+  const url = prompt('工具 URL 模板（如 https://api.corp.com/tickets/{id}）'); if (!url) return;
+  const host = new URL(url.replace('{id}', 'x')).hostname;
+  const manifest = {tools: [{name: 'call', desc: `调用 ${name} API`, method: 'GET', url, params: {}, network: [host]}]};
+  try { await api(`/spaces/${await ensureSpace()}/extensions`, {name, manifest}); loadExts(); }
+  catch (e) { alert('创建失败：' + e.message); }
+}
+/* ---------- 管理后台（FR-7x 简化）---------- */
+async function openAdm() {
+  const me = await api('/auth/me');
+  if (me.role !== 'ADMIN') { sys('仅管理员可用'); return; }
+  $('#adm').style.display = 'flex';
+  const users = await api('/admin/users');
+  $('#admUsers').innerHTML = users.map(u => `<div class="frow"><span class="nm">${escapeHtml(String(u.username))}</span><span class="sz">${u.role}·${u.status}</span>
+    <button onclick="admToggle(${u.id},'${u.status === 'ACTIVE' ? 'DISABLED' : 'ACTIVE'}')">${u.status === 'ACTIVE' ? '禁用' : '启用'}</button></div>`).join('');
+  const audit = await api('/admin/audit?limit=30');
+  $('#admAudit').innerHTML = audit.map(a => `<div style="padding:4px 0;border-bottom:1px solid var(--border)">${escapeHtml(String(a.command || '')).slice(0, 60)} <span style="color:var(--text2)">exit=${a.exit_code}</span></div>`).join('');
+}
+async function admToggle(id, status) { await api('/admin/users/' + id, {status}, 'PATCH'); openAdm(); }
 
 /* ---------- 知识库页（FR-97）---------- */
 let kbSpace = null;
