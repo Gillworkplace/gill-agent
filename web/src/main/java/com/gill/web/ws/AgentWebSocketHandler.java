@@ -36,12 +36,27 @@ public class AgentWebSocketHandler extends TextWebSocketHandler {
         Long uid = auth(token);
         if (uid == null || sid == null || !owns(uid, sid)) { ws.close(CloseStatus.POLICY_VIOLATION); return; }
         conns.put(sid, ws);
-        // 启动 agentd 会话运行时 + 事件泵（SSE → WS）
-        post("/internal/sessions/" + sid + "/start", "{}");
+        // 启动 agentd 会话运行时（携带元数据：用户/空间/项目标签/个人指令——知识库与注入依赖）+ 事件泵（SSE → WS）
+        post("/internal/sessions/" + sid + "/start", metaJson(uid, sid));
         ScheduledExecutorService ex = Executors.newSingleThreadScheduledExecutor();
         pumps.put(sid, ex);
         final String sseUrl = agentdBase + "/internal/sessions/" + sid + "/events";
         ex.submit(() -> pumpSse(sseUrl, sid));
+    }
+
+    private String metaJson(Long uid, String sid) {
+        try {
+            var s = db.queryForMap("SELECT space_id::text, project_tag FROM sessions WHERE id=?::uuid", sid);
+            var u = db.queryForMap("SELECT custom_instructions FROM users WHERE id=?", uid);
+            var m = new java.util.HashMap<String, Object>();
+            m.put("user_id", uid);
+            m.put("space_id", s.get("space_id"));
+            m.put("project_tag", s.get("project_tag"));
+            m.put("custom_instructions", u.get("custom_instructions"));
+            return om.writeValueAsString(java.util.Map.of("meta", m));
+        } catch (Exception e) {
+            return "{\"meta\":{}}";
+        }
     }
 
     private void pumpSse(String url, String sid) {

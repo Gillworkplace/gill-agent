@@ -24,6 +24,21 @@ TOOLS_SCHEMA = [
         "description": "读取沙箱内文本文件内容。",
         "parameters": {"type": "object", "properties": {"path": {"type": "string"}},
             "required": ["path"]}}},
+    {"type": "function", "function": {
+        "name": "knowledge_save",
+        "description": "把有长期价值的信息存入用户知识库：用户偏好(preference)、用户/团队事实(fact)、纠错(correction)、项目知识(project)、常用片段(snippet)。当用户表达长期偏好、纠正你、或给出项目事实时调用。",
+        "parameters": {"type": "object", "properties": {
+            "title": {"type": "string", "description": "短标题（≤30字）"},
+            "content": {"type": "string", "description": "知识内容（客观、可独立理解）"},
+            "type": {"type": "string", "enum": ["preference", "fact", "correction", "project", "snippet"]},
+            "tags": {"type": "array", "items": {"type": "string"}}},
+            "required": ["title", "content", "type"]}}},
+    {"type": "function", "function": {
+        "name": "knowledge_search",
+        "description": "检索用户知识库（用户偏好/事实/项目知识等长期记忆）。",
+        "parameters": {"type": "object", "properties": {
+            "query": {"type": "string"}, "limit": {"type": "integer", "default": 5}},
+            "required": ["query"]}}},
 ]
 
 TAIL = 8000  # 工具结果入库/回模型的截断（01 §11.4.4）
@@ -37,10 +52,20 @@ class ToolEvent:
 
 async def execute(sandbox: BaseSandbox, name: str, args: dict,
                   emit: Callable[[ToolEvent], Awaitable[None]],
-                  settings) -> str:
+                  settings, kb=None) -> str:
     """执行一个工具调用，返回给模型的结果文本（错误信息也作为结果返回，由模型决策）。"""
     await emit(ToolEvent("tool_call", {"tool": name, "args": args}))
     try:
+        if name == "knowledge_save" and kb is not None:      # FR-91 自动沉淀
+            r = await kb.save(args["title"], args["content"], args.get("type", "fact"),
+                              args.get("tags"), source="auto", confidence=0.8)
+            await emit(ToolEvent("tool_result", {"tool": name, "exit_code": 0, "kb": r}))
+            return json.dumps({"ok": True, **r}, ensure_ascii=False)
+        if name == "knowledge_search" and kb is not None:
+            hits = await kb.search(args["query"], int(args.get("limit", 5)))
+            await kb.touch([h["id"] for h in hits])
+            await emit(ToolEvent("tool_result", {"tool": name, "exit_code": 0, "hits": len(hits)}))
+            return json.dumps(hits, ensure_ascii=False)[:4000]
         if name == "shell":
             cmd = args["command"]
             timeout = min(int(args.get("timeout") or settings.cmd_timeout), 300)

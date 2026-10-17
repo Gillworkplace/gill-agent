@@ -44,6 +44,18 @@ main{flex:1;display:flex;flex-direction:column;min-width:0}
 #send.stop{background:var(--err)}
 #term{height:180px;border-top:1px solid var(--border);background:#0c0e12;color:#9fe8b5;font-family:var(--mono);font-size:12px;padding:10px 16px;overflow:auto;white-space:pre-wrap;display:none}
 #term.on{display:block}
+#kb{display:none;position:fixed;inset:0;background:var(--bg1);z-index:60;flex-direction:column}
+#kb.on{display:flex}
+#kb .bar{padding:14px 24px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:center}
+#kb .bar h2{font-size:16px;flex:1}
+#kb .bar input{padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text1);width:260px;font:inherit}
+#kblist{flex:1;overflow:auto;padding:20px 24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;align-content:start}
+.kbcard{border:1px solid var(--border);border-radius:10px;padding:12px 14px;background:var(--bg2)}
+.kbcard .t{font-weight:600;font-size:14px;margin-bottom:4px;display:flex;gap:6px;align-items:center}
+.kbcard .tag{font-size:10px;padding:1px 6px;border-radius:4px;background:var(--bg3);color:var(--text2)}
+.kbcard .c{font-size:13px;color:var(--text2);line-height:1.5;white-space:pre-wrap}
+.kbcard .ops{margin-top:8px;display:flex;gap:8px;font-size:12px;color:var(--text2)}
+.kbcard .ops span{cursor:pointer}.kbcard .ops span:hover{color:var(--err)}
 #preview{display:none;position:fixed;right:16px;top:16px;bottom:210px;width:440px;background:var(--bg1);border:1px solid var(--border);border-radius:12px;flex-direction:column;z-index:50;box-shadow:0 10px 40px rgba(0,0,0,.15)}
 #preview.on{display:flex}
 #preview .bar{padding:8px 12px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;font-size:12px;color:var(--text2)}
@@ -89,6 +101,13 @@ main{flex:1;display:flex;flex-direction:column;min-width:0}
   <div class="bar"><b>🌐 浏览器预览</b><input id="purl" placeholder="输入网址回车导航"><span class="sp"></span>
     <span id="pfps"></span><button onclick="wsSend({type:'preview_stop',payload:{}});$('#preview').classList.remove('on')">关闭</button></div>
   <canvas id="pcv"></canvas>
+</div>
+
+<div id="kb">
+  <div class="bar"><h2>📚 知识库</h2><input id="kbq" placeholder="搜索…" oninput="loadKb(this.value)">
+    <button class="new" onclick="addKb()">＋ 添加</button>
+    <button class="new" onclick="$('#kb').classList.remove('on')">返回工作台</button></div>
+  <div id="kblist"></div>
 </div>
 
 <script>
@@ -177,8 +196,37 @@ $('#purl')?.addEventListener('keydown', e => {
   }
 });
 
+/* ---------- 知识库页（FR-97）---------- */
+let kbSpace = null;
+async function openKb() {
+  $('#kb').classList.add('on');
+  if (!kbSpace) { const spaces = await api('/spaces'); kbSpace = spaces.find(s => s.type === 'personal')?.id; }
+  loadKb('');
+}
+async function loadKb(q) {
+  if (!kbSpace) return;
+  const items = await api(`/spaces/${kbSpace}/knowledge${q ? '?q=' + encodeURIComponent(q) : ''}`);
+  $('#kblist').innerHTML = items.map(i => `
+    <div class="kbcard"><div class="t">${escapeHtml(i.title)}
+      <span class="tag">${i.type}</span><span class="tag">${i.scope}</span>${i.pinned ? '<span class="tag">📌</span>' : ''}</div>
+      <div class="c">${escapeHtml(i.content || '')}</div>
+      <div class="ops"><span>命中 ${i.hit_count} 次</span><span>来源 ${i.source === 'explicit' ? '手动' : '对话沉淀'}</span>
+        <span style="margin-left:auto" onclick="pinKb('${i.id}',${!i.pinned})">置顶</span>
+        <span onclick="delKb('${i.id}')">删除</span></div></div>`).join('') ||
+    '<div class="hint" style="margin:40px auto">暂无知识条目 —— 在对话中说"记住 xxx"即可沉淀</div>';
+}
+async function addKb() {
+  const title = prompt('标题'); if (!title) return;
+  const content = prompt('内容'); if (!content) return;
+  await api(`/spaces/${kbSpace}/knowledge`, {title, content, type: 'fact', scope: 'user'});
+  loadKb($('#kbq').value);
+}
+async function delKb(id) { if (!confirm('删除该条知识？')) return; await api('/knowledge/' + id, null, 'DELETE'); loadKb($('#kbq').value); }
+async function pinKb(id, pinned) { await api('/knowledge/' + id, {pinned}, 'PATCH'); loadKb($('#kbq').value); }
+
 function handle2(env) {
   switch (env.type) {
+    case 'kb_captured': sys(`🧠 已记住：${(p.titles || []).join('、')}（查看请点左下 📚）`); break;
     case 'screencast_meta': pvMeta = env.payload; break;
     case 'screencast_frame': drawFrame(env.payload.data); break;
   }

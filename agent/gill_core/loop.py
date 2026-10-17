@@ -5,7 +5,7 @@ import json
 from dataclasses import dataclass, field
 from typing import Awaitable, Callable
 from .config import Settings
-from .llm import LLM
+from .llm import LLM, SYSTEM_PROMPT
 from .sandbox import BaseSandbox, make_sandbox
 from .tools import TOOLS_SCHEMA, ToolEvent, execute
 from . import risk
@@ -31,13 +31,26 @@ async def run_task(task_text: str, settings: Settings,
                    emit: Emitter, history: list[dict] | None = None,
                    approve: Approver | None = None,
                    stop_flag: Callable[[], bool] | None = None,
-                   llm: LLM | None = None, sandbox: BaseSandbox | None | object = None) -> TaskResult:
+                   llm: LLM | None = None, sandbox: BaseSandbox | None | object = None,
+                   kb=None, system_extra: str = "") -> TaskResult:
     llm = llm or LLM(settings)
     sandbox = sandbox or make_sandbox(settings)
     messages = list(history or []) + [{"role": "user", "content": task_text}]
     result = TaskResult()
     always_ok: set[str] = set()
     failures = 0
+    captured: list[str] = []
+    system = SYSTEM_PROMPT + system_extra
+    if kb is not None:
+        try:
+            block = await kb.build_injection(task_text, settings.kb_inject_max, settings.kb_inject_tokens)
+            if block:
+                messages = [{"role": "system", "content": block},
+                            *messages[:-1],
+                            {**messages[-1], "content": block + "\n\n[当前任务]\n" + task_text}]
+        except Exception as e:
+            log_kb = __import__("logging").getLogger("gill.loop")
+            log_kb.warning("kb inject fail: %s", e)
     try:
         for rnd in range(1, settings.max_rounds + 1):
             if stop_flag and stop_flag():
@@ -85,7 +98,16 @@ async def run_task(task_text: str, settings: Settings,
                         if approve is not None and getattr(approve, "always", False):
                             always_ok.add(rule.id)
                 await emit("agent_tool", {"round": rnd, "tool": name})
-                out = await execute(sandbox, name, args, lambda ev: emit(ev.kind, ev.payload), settings)
+                out = await execute(sandbox, name, args, lambda ev: emit(ev.kind, ev.payload), settings, kb=kb)
+                if name == "knowledge_save" and kb is not None:
+                    try:
+                        import json as _json
+                        r = _json.loads(out)
+                        if r.get("ok"):
+                            captured.append(args["title"])
+                            await emit("kb_captured", {"ids": [r.get("id")], "titles": captured})
+                    except Exception:
+                        pass
                 result.tools.append({"name": name, "ok": '"error"' not in out[:60]})
                 failures = failures + (1 if '"error"' in out[:60] else 0)
                 if failures >= settings.max_tool_failures:

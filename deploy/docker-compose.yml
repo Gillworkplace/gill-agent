@@ -27,6 +27,7 @@ services:
       - CUBE_API_URL=${CUBE_API_URL:-http://host.docker.internal:13000}
       - CUBE_PROXY_NODE_IP=${CUBE_PROXY_NODE_IP:-host.docker.internal}
       - CUBE_PUBLIC_HOST=host.docker.internal
+      - DATABASE_URL_DSN=postgresql://gill:${POSTGRES_PASSWORD:-gillpass123}@postgres:5432/gill
       - CUBE_TEMPLATE_ID=${CUBE_TEMPLATE_ID:-tpl-4264d9c2e5d6432e8a55cf4e}
       - E2B_API_KEY=${E2B_API_KEY:-e2b_00000000000000000000000000000}
       - HTTP_PROXY=${HTTP_PROXY:-http://host.docker.internal:7890}

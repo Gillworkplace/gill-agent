@@ -25,6 +25,7 @@ class SessionRuntime:
         self.sandbox: BaseSandbox | None = None
         self.browser: BrowserSession | None = None
         self.history: list[dict] = []
+        self.session_meta: dict = {}
         self.running = asyncio.Lock()      # FR-37 同会话单任务
         self.stop_requested = False
         self.task: asyncio.Task | None = None
@@ -56,12 +57,47 @@ class SessionRuntime:
     async def _emit(self, type_: str, payload: dict, **kw):
         await self.bus.publish_evt(self.sid, type_, payload, **kw)
 
+    def kb(self):
+        dsn = os.getenv("DATABASE_URL_DSN")  # postgresql://user:pass@host/db
+        if not dsn:
+            return None
+        try:
+            from gill_core.kb import KnowledgeBase
+            meta = self.session_meta
+            return KnowledgeBase(dsn, user_id=meta["user_id"], space_id=meta["space_id"],
+                                 project_tag=meta.get("project_tag"), session_id=self.sid)
+        except Exception as e:
+            log.warning("kb unavailable: %s", e)
+            return None
+
+    def custom_instructions(self) -> str:
+        ci = (self.session_meta or {}).get("custom_instructions")
+        return f"\n\n[用户个人指令]\n{ci}" if ci else ""
+
     async def handle_user_input(self, env: dict):
         text = env["payload"].get("text", "")
         actor = env.get("actor")
         if self.running.locked():
             await self._emit("error", {"code": "TASK-3001", "message": "已有任务进行中，请先停止或等待"}, cid=env.get("cid"))
             return
+        # FR-92 显式记忆/遗忘指令（优先拦截，不过 LLM）
+        kb = self.kb()
+        if kb is not None:
+            from gill_core.kb import REMEMBER_RE, FORGET_RE
+            m = REMEMBER_RE.match(text.strip())
+            if m:
+                r = await kb.save(title=m.group(1)[:30], content=m.group(1).strip(),
+                                  ktype="fact", source="explicit", confidence=1.0)
+                await self._emit("kb_captured", {"ids": [r["id"]], "titles": [m.group(1)[:30]]})
+                await self._emit("done", {"status": "done", "rounds": 0, "answer": "已记住。", "tokens": {}})
+                return
+            m = FORGET_RE.match(text.strip())
+            if m:
+                deleted = await kb.delete_matching(m.group(1).strip())
+                names = "、".join(d["title"] for d in deleted) if deleted else "（无匹配）"
+                await self._emit("done", {"status": "done", "rounds": 0,
+                                          "answer": f"已删除 {len(deleted)} 条：{names}", "tokens": {}})
+                return
         async with self.running:
             self.stop_requested = False
             await self.ensure_sandbox()
@@ -79,7 +115,8 @@ class SessionRuntime:
             result = await run_task(text, self.s, emit, self.history,
                                     approve=approve if self.s.approval == "suggest" else None,
                                     stop_flag=lambda: self.stop_requested,
-                                    sandbox=self.sandbox)
+                                    sandbox=self.sandbox, kb=kb,
+                                    system_extra=self.custom_instructions())
             await self._emit("done", {"status": result.status, "rounds": result.rounds,
                                       "tokens": result.tokens, "answer": result.answer})
 
@@ -143,12 +180,15 @@ class AgentDaemon:
         self.bus = Bus(os.getenv("REDIS_URL", "redis://localhost:6379"))
         self.runtimes: dict[str, SessionRuntime] = {}
 
-    def get_runtime(self, sid: str) -> SessionRuntime:
+    def get_runtime(self, sid: str, meta: dict | None = None) -> SessionRuntime:
         rt = self.runtimes.get(sid)
         if rt is None or rt.task is None or rt.task.done():
             rt = SessionRuntime(self.bus, self.settings, sid)
+            rt.session_meta = meta or {}
             rt.task = asyncio.create_task(rt.loop())
             self.runtimes[sid] = rt
+        elif meta:
+            rt.session_meta = meta
         return rt
 
     async def main(self):
@@ -162,8 +202,8 @@ class AgentDaemon:
             return {"ok": True, "node": NODE, "sessions": len(self.runtimes)}
 
         @app.post("/internal/sessions/{sid}/start")
-        async def start_session(sid: str):
-            self.get_runtime(sid)
+        async def start_session(sid: str, body: dict | None = None):
+            self.get_runtime(sid, (body or {}).get("meta"))
             return {"ok": True}
 
         @app.post("/internal/sessions/{sid}/cmd")
