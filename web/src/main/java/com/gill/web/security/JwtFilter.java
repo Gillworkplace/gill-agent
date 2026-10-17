@@ -36,7 +36,7 @@ public class JwtFilter extends OncePerRequestFilter {
         String auth = req.getHeader("Authorization");
         String token = auth != null && auth.startsWith("Bearer ") ? auth.substring(7) : null;
         if (token == null) token = req.getParameter("token");
-        if (token == null) { deny(res, "AUTH-1004", 401); return; }
+        if (token == null) { System.err.println("[JWT] null token for " + path); deny(res, "AUTH-1004", 401); return; }
         try {
             Long uid = null;
             String role = null;
@@ -74,6 +74,7 @@ public class JwtFilter extends OncePerRequestFilter {
             req.setAttribute("role", role);
             chain.doFilter(req, res);
         } catch (Exception e) {
+            System.err.println("[JWT] parse fail " + path + " : " + e);
             deny(res, "AUTH-1004", 401);
         }
     }

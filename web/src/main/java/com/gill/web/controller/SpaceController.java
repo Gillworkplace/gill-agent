@@ -105,9 +105,18 @@ public class SpaceController {
     public List<Map<String, Object>> messages(@RequestAttribute("uid") Long uid, @PathVariable String sid,
                                               @RequestParam(defaultValue = "50") int limit,
                                               @RequestParam(required = false) Long before) {
+        requireSessionAccess(uid, sid);
         return db.queryForList("SELECT seq, role, content, tool_name, actor_user_id, created_at FROM messages " +
-                "WHERE session_id=?::uuid AND (? IS NULL OR seq<?) ORDER BY seq DESC LIMIT ?", sid, before, limit)
-                .stream().peek(m -> { m.put("list", null); m.remove("list"); }).toList();
+                "WHERE session_id=?::uuid AND (?::bigint IS NULL OR seq<?::bigint) ORDER BY seq DESC LIMIT ?",
+                sid, before, before, limit);
+    }
+
+    /** 会话属主/成员校验（FR-14）：通过 space_members 判定。 */
+    void requireSessionAccess(long uid, String sid) {
+        List<Map<String, Object>> rows = db.queryForList(
+            "SELECT 1 FROM sessions s JOIN space_members sm ON sm.space_id=s.space_id AND sm.user_id=? WHERE s.id=?::uuid",
+            uid, sid);
+        if (rows.isEmpty()) throw new ApiException("SESS-2002", "无权访问该会话", 403);
     }
 
     /** 业务异常。 */

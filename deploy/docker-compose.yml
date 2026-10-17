@@ -44,7 +44,7 @@ services:
       - MINIO_ROOT_USER=gilladmin
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-gillminio123}
       - DATABASE_URL_DSN=postgresql://gill:${POSTGRES_PASSWORD:-gillpass123}@postgres:5432/gill
-      - CUBE_TEMPLATE_ID=${CUBE_TEMPLATE_ID:-tpl-4264d9c2e5d6432e8a55cf4e}
+      - CUBE_TEMPLATE_ID=${CUBE_TEMPLATE_ID:-tpl-4a99e9f82894474babaddf04}
       - E2B_API_KEY=${E2B_API_KEY:-e2b_00000000000000000000000000000}
       - HTTP_PROXY=${HTTP_PROXY:-http://host.docker.internal:7890}
       - NO_PROXY=localhost,127.0.0.1,postgres,redis,minio,agentd,web,host.docker.internal,39.107.34.109,.cube.app

@@ -82,6 +82,7 @@ public class WebInit implements WebMvcConfigurer {
                 .addResolver(new PathResourceResolver() {
                     @Override
                     protected org.springframework.core.io.Resource getResource(String resourcePath, org.springframework.core.io.Resource location) throws java.io.IOException {
+                        if (resourcePath.startsWith("api/") || resourcePath.startsWith("actuator")) return null;
                         var requested = location.createRelative(resourcePath);
                         if (requested.exists() && requested.isReadable()) return requested;
                         var index = new ClassPathResource("/static/index.html");
