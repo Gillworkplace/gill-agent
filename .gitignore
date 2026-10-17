@@ -1,0 +1,18 @@
+# secrets & local
+deploy/.env
+*.env.local
+agent/.venv/
+agent/dist/
+agent/build/
+web/target/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+scripts/reports/
+*.log
+.idea/
+.vscode/

@@ -1,0 +1,25 @@
+[project]
+name = "gill-agent"
+version = "0.1.0"
+description = "Gill Agent — agentd service + gill CLI (shared core gill_core)"
+requires-python = ">=3.12"
+dependencies = [
+    "openai>=1.40",          # 智谱 OpenAI 兼容（chat + embedding）
+    "typer>=0.12", "rich>=13",   # CLI
+    "httpx>=0.27",
+    "pydantic>=2.7",
+]
+[project.optional-dependencies]
+server = [                    # agentd 常驻服务形态
+    "fastapi>=0.111", "uvicorn>=0.30",
+    "redis>=5", "asyncpg>=0.29", "minio>=7.2", "websockets>=12",
+    "structlog>=24", "prometheus-client>=0.20",
+]
+sandbox = ["e2b>=2.24,<2.25"] # 真实 Cube 沙箱（协议锁定 <2.25）
+[project.scripts]
+gill = "gill_cli.main:app"
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+[tool.hatch.build.targets.wheel]
+packages = ["gill_core", "agentd", "gill_cli"]

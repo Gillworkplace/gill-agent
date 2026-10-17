@@ -1,0 +1,26 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: gill-web
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://postgres:5432/gill}
+    username: gill
+    password: ${POSTGRES_PASSWORD:gill}
+    hikari:
+      maximum-pool-size: 16
+  flyway:
+    locations: classpath:migration
+  threads:
+    virtual:
+      enabled: true
+gill:
+  jwt-secret: ${JWT_SECRET:dev-only-secret-change-me-32bytes-minimal!!}
+  jwt-ttl-hours: 24
+  init-admin-username: ${INIT_ADMIN_USERNAME:admin}
+  init-admin-password: ${INIT_ADMIN_PASSWORD:}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
