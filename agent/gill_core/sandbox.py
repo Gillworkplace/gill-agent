@@ -94,4 +94,7 @@ class MockSandbox(BaseSandbox):
 
 
 def make_sandbox(settings) -> BaseSandbox:
-    return RemoteSandbox(settings) if settings.sandbox == "remote" else MockSandbox()
+    if settings.sandbox == "remote":
+        from .remote_sandbox import RemoteSandbox
+        return RemoteSandbox(settings)
+    return MockSandbox()

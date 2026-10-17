@@ -46,9 +46,11 @@ class Settings:
     embed_model: str = os.getenv("ZHIPU_EMBED_MODEL", "embedding-3")
     # 沙箱
     sandbox: str = os.getenv("GILL_SANDBOX", "mock")          # mock | remote
-    e2b_api_url: str = os.getenv("E2B_API_URL", "http://39.107.34.109:3000")
+    cube_api_url: str = os.getenv("CUBE_API_URL", "http://127.0.0.1:13000")  # 隧道默认；直连改 http://39.107.34.109:3000
+    cube_ip: str = os.getenv("CUBE_PROXY_NODE_IP", "127.0.0.1")              # *.cube.app 重定向目标（隧道=127.0.0.1；直连=39.107.34.109）
     e2b_api_key: str = os.getenv("E2B_API_KEY", "e2b_00000000000000000000000000000")
-    cube_template_id: str = os.getenv("CUBE_TEMPLATE_ID", "gill-browser")
+    cube_template_id: str = os.getenv("CUBE_TEMPLATE_ID", "tpl-4264d9c2e5d6432e8a55cf4e")
+    sandbox_idle_ttl: int = 900                                # 沙箱空闲回收（秒）
     # 任务预算（FR-11.4.2）
     max_rounds: int = 25
     cmd_timeout: int = 60
