@@ -5,7 +5,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN sed -i 's|deb.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list.d/debian.sources 2>/dev/null || true \
  && apt-get update \
  && apt-get install -y --no-install-recommends \
-      chromium fonts-noto-cjk ca-certificates curl wget unzip zip jq procps tini \
+      chromium fonts-noto-cjk ca-certificates curl wget unzip zip jq procps tini socat \
  && rm -rf /var/lib/apt/lists/*
 RUN pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple \
       pandas matplotlib openpyxl requests httpie

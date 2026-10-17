@@ -11,7 +11,13 @@ nohup chromium $FLAGS about:blank >/tmp/chromium.log 2>&1 &
 i=0
 while [ $i -lt 40 ]; do
   if curl -s --max-time 2 http://127.0.0.1:9222/json/version >/dev/null 2>&1; then
-    echo "chromium up on 9222"; exit 0
+    # Chromium DevTools 强绑 127.0.0.1（headless 忽略 --remote-debugging-address），
+    # socat 把 0.0.0.0:9223 转发给 127.0.0.1:9222，供 CubeProxy 数据面访问（expose 9223）
+    if ! curl -s --max-time 2 http://127.0.0.1:9223/json/version >/dev/null 2>&1; then
+      nohup socat TCP-LISTEN:9223,bind=0.0.0.0,fork,reuseaddr TCP:127.0.0.1:9222 >/tmp/socat.log 2>&1 &
+      sleep 1
+    fi
+    echo "chromium up on 9222 (public via 0.0.0.0:9223)"; exit 0
   fi
   i=$((i+1)); sleep 0.5
 done
