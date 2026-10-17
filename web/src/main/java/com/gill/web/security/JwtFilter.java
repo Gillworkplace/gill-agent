@@ -30,8 +30,8 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
             throws ServletException, IOException {
         String path = req.getRequestURI();
-        boolean open = path.startsWith("/api/v1/auth/") || path.startsWith("/actuator")
-                || path.startsWith("/ws/") || !path.startsWith("/api/");
+        boolean open = path.startsWith("/api/v1/auth/register") || path.startsWith("/api/v1/auth/login")
+                || path.startsWith("/actuator") || path.startsWith("/ws/") || !path.startsWith("/api/");
         if (open) { chain.doFilter(req, res); return; }
         String auth = req.getHeader("Authorization");
         String token = auth != null && auth.startsWith("Bearer ") ? auth.substring(7) : null;

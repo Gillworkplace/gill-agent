@@ -124,6 +124,74 @@ def run(task_file: str = typer.Argument("-", help="任务文件路径，- 代表
 
 
 @app.command()
+def login(server: str = typer.Option("http://localhost:8080", "--server", "-s", help="Web 服务地址"),
+          token: str = typer.Option(None, "--token", help="JWT token（从网页登录获取）"),
+          username: str = typer.Option(None, "--username", "-u"),
+          password: str = typer.Option(None, "--password", "-p", hide_input=True)):
+    """登录 Web 服务（BD-11：CLI 与 Web 互通）。"""
+    import httpx, json as _json
+    cred = Path.home() / ".gill" / "credentials"
+    cred.parent.mkdir(exist_ok=True)
+    if not token and username and password:
+        r = httpx.post(f"{server}/api/v1/auth/login", json={"username": username, "password": password}, trust_env=False)
+        token = r.json().get("token", "")
+    if not token:
+        console.print("[red]需要 --token 或 --username/--password[/red]"); raise typer.Exit(2)
+    me = httpx.get(f"{server}/api/v1/auth/me", headers={"Authorization": "Bearer " + token}, trust_env=False)
+    if me.status_code != 200:
+        console.print(f"[red]token 无效：{me.status_code}[/red]"); raise typer.Exit(1)
+    cred.write_text(_json.dumps({"server": server, "token": token}), encoding="utf-8")
+    try:
+        os.chmod(cred, 0o600)
+    except Exception:
+        pass
+    console.print(f"[green]✔ 已登录[/green] {me.json()['username']} @ {server}（凭证 ~/.gill/credentials）")
+
+
+@app.command()
+def whoami():
+    """显示当前登录身份与会话列表（走 Web API）。"""
+    import httpx, json as _json
+    cred = Path.home() / ".gill" / "credentials"
+    if not cred.exists():
+        console.print("[yellow]未登录（gill login）[/yellow]"); raise typer.Exit(1)
+    c = _json.loads(cred.read_text())
+    h = {"Authorization": "Bearer " + c["token"]}
+    me = httpx.get(c["server"] + "/api/v1/auth/me", headers=h, trust_env=False)
+    if me.status_code != 200:
+        console.print("[red]凭证失效，请重新 login[/red]"); raise typer.Exit(1)
+    console.print(f"[green]{me.json()['username']}[/green]（{me.json()['role']}）")
+    spaces = httpx.get(c["server"] + "/api/v1/spaces", headers=h, trust_env=False).json()
+    for sp in spaces:
+        sess = httpx.get(f"{c['server']}/api/v1/spaces/{sp['id']}/sessions", headers=h, trust_env=False).json()
+        console.print(f"[cyan]{sp['name']}[/cyan]: {len(sess)} 会话")
+        for x in sess[:5]:
+            console.print(f"  {x['id'][:8]}  {x['title']}  {x['status']}")
+
+
+@app.command()
+def knowledge(query: str = typer.Argument(None, help="搜索；留空列出最近"),
+              server: str = typer.Option(None, "--server")):
+    """知识库查询（走 Web API）。"""
+    import httpx, json as _json
+    cred = Path.home() / ".gill" / "credentials"
+    if not cred.exists():
+        console.print("[yellow]未登录（gill login）[/yellow]"); raise typer.Exit(1)
+    c = _json.loads(cred.read_text())
+    h = {"Authorization": "Bearer " + c["token"]}
+    spaces = httpx.get(c["server"] + "/api/v1/spaces", headers=h, trust_env=False).json()
+    spid = next((s["id"] for s in spaces if s["type"] == "personal"), None)
+    if not spid:
+        console.print("无个人空间"); raise typer.Exit(1)
+    url = f"{c['server']}/api/v1/spaces/{spid}/knowledge" + (f"?q={query}" if query else "")
+    items = httpx.get(url, headers=h, trust_env=False).json()
+    if not isinstance(items, list):
+        console.print(items); raise typer.Exit(1)
+    for it in items[:15]:
+        console.print(f"[cyan]{it['title'][:40]}[/cyan] [{it['type']}/{it['scope']}] {it['content'][:60]}")
+
+
+@app.command()
 def doctor():
     """环境自检（FR-117）：配置/Key 连通/沙箱可用。"""
     s = Settings.load(Path.cwd())
