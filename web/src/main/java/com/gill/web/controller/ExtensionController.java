@@ -34,8 +34,16 @@ public class ExtensionController {
         if (!name.matches("[a-z0-9-]{2,32}"))
             return AuthController.err("EXT-8101", "扩展名需为 2-32 位小写字母数字连字符", 400);
         Object manifest = body.get("manifest");
-        if (!(manifest instanceof Map m) || !((List<?>) m.getOrDefault("tools", List.of())).stream().allMatch(t -> t instanceof Map tm && ((Map<?, ?>) t).get("url") != null))
-            return AuthController.err("EXT-8101", "manifest 非法：需 {tools:[{name,url,...}]}", 400);
+        String extType = String.valueOf(body.getOrDefault("extType", "http-tools"));
+        boolean valid;
+        if (manifest instanceof Map m && m.get("tools") instanceof List<?> tl && !tl.isEmpty()) {
+            valid = tl.stream().allMatch(t -> t instanceof Map tm &&
+                    ("script-tools".equals(extType) ? tm.get("code") != null : tm.get("url") != null));
+        } else if ("skill".equals(extType) && manifest instanceof Map ms && ms.get("skill") != null) {
+            valid = true;
+        } else valid = false;
+        if (!valid)
+            return AuthController.err("EXT-8101", "manifest 非法（http 需 url / script 需 code / skill 需 skill）", 400);
         String manifestJson;
         try { manifestJson = om.writeValueAsString(manifest); }
         catch (Exception e) { return AuthController.err("EXT-8101", "manifest 序列化失败", 400); }
@@ -45,8 +53,8 @@ public class ExtensionController {
             return AuthController.err("EXT-8103", "同名扩展已存在", 409);
         String id = UUID.randomUUID().toString();
         db.update("INSERT INTO extensions(id, user_id, space_id, visibility, name, version, type, manifest, status) " +
-                        "VALUES (?::uuid,?,?::uuid,'private',?,'1.0','http-tools',?::jsonb,'enabled')",
-                id, uid, sid, name, manifestJson);
+                        "VALUES (?::uuid,?,?::uuid,'private',?,'1.0',?,?::jsonb,'enabled')",
+                id, uid, sid, name, extType, manifestJson);
         return ResponseEntity.ok(Map.of("id", id, "name", name));
     }
 
