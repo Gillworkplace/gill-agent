@@ -158,7 +158,31 @@ class SessionRuntime:
             self.stop_requested = False
             await self.ensure_sandbox()
 
+            # ---- 持久化收集器（messages / command_audit / llm_usage）----
+            import time as _time
+            audit_rows: list[dict] = []
+            tool_msgs: list[dict] = []
+            usage_acc = {"prompt": 0, "completion": 0}
+            cur_cmd: dict | None = None
+
             async def emit(type_, payload):
+                nonlocal cur_cmd
+                if type_ == "tool_call":
+                    t, a = payload.get("tool"), payload.get("args")
+                    tool_msgs.append({"tool": t, "args": a})
+                    if t == "shell":
+                        cur_cmd = {"command": a.get("command", ""), "t0": _time.time()}
+                elif type_ == "tool_result":
+                    ec = payload.get("exit_code", -1)
+                    if tool_msgs:
+                        tool_msgs[-1]["result"] = {"exit_code": ec, "denied": bool(payload.get("denied"))}
+                    if cur_cmd is not None:
+                        audit_rows.append({**cur_cmd, "exit_code": ec,
+                                           "duration_ms": int((_time.time() - cur_cmd["t0"]) * 1000)})
+                        cur_cmd = None
+                elif type_ == "usage":
+                    usage_acc["prompt"] += payload.get("prompt", 0)
+                    usage_acc["completion"] += payload.get("completion", 0)
                 await self._emit(type_, payload, actor=actor)
 
             async def approve(command, rule):
@@ -189,6 +213,31 @@ class SessionRuntime:
                                     exts=await self.load_exts())
             await self._emit("done", {"status": result.status, "rounds": result.rounds,
                                       "tokens": result.tokens, "answer": result.answer})
+
+            # ---- 任务结束：批量落库（尽力而为，失败不阻断）----
+            try:
+                dsn = os.getenv("DATABASE_URL_DSN")
+                if dsn and actor:
+                    from gill_core.store import Store
+                    st = Store(dsn)
+                    meta = self.session_meta or {}
+                    sbx_id = getattr(self.sandbox, "sandbox_id", None)
+                    seq = await st.next_seq(self.sid)
+                    for tm in tool_msgs:
+                        await st.append_message(self.sid, seq, "tool", "", actor=actor,
+                                                tool_name=tm["tool"], tool_args=tm.get("args"),
+                                                tool_result=tm.get("result"))
+                        seq += 1
+                    if result.answer:
+                        await st.append_message(self.sid, seq, "assistant", result.answer, actor=actor)
+                    for ar in audit_rows:
+                        await st.audit_command(self.sid, meta.get("space_id"), actor, sbx_id,
+                                               ar["command"], ar["exit_code"], ar["duration_ms"])
+                    await st.record_usage(actor, self.sid, self.s.zhipu_model,
+                                          usage_acc["prompt"], usage_acc["completion"])
+                    await st.close()
+            except Exception:
+                log.exception("persist fail sid=%s", self.sid)
 
     async def loop(self):
         await self.bus.acquire_lease(self.sid, NODE)

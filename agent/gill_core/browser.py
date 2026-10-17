@@ -97,8 +97,12 @@ class BrowserSession:
                       "ts": int(time.time() * 1000)}
         await self.emit("screencast_meta", self._meta)
         await self.emit("screencast_frame", {"data": p["data"], "ts": self._meta["ts"]})
+        # 关键：ack 不能等待响应（reader 即派发者，等 future 会自锁 → 导航后卡死）
         try:
-            await self._send("Page.screencastFrameAck", {"sessionId": p["sessionId"]})
+            self._msg_id += 1
+            await self._ws.send_json({"id": self._msg_id,
+                                      "method": "Page.screencastFrameAck",
+                                      "params": {"sessionId": p["sessionId"]}})
         except Exception:
             pass
 

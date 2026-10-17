@@ -76,6 +76,10 @@ async def run_task(task_text: str, settings: Settings,
                     tool_calls = payload
                 elif kind == "usage":
                     usage = payload
+                    try:
+                        await emit("usage", payload)
+                    except Exception:
+                        pass
             if usage:
                 result.tokens = {"prompt": result.tokens.get("prompt", 0) + usage.get("prompt", 0),
                                  "completion": result.tokens.get("completion", 0) + usage.get("completion", 0)}
