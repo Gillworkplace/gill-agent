@@ -32,12 +32,12 @@ async def run_task(task_text: str, settings: Settings,
                    approve: Approver | None = None,
                    stop_flag: Callable[[], bool] | None = None,
                    llm: LLM | None = None, sandbox: BaseSandbox | None | object = None,
-                   kb=None, system_extra: str = "") -> TaskResult:
+                   kb=None, system_extra: str = "", always_ok_rules: set[str] | None = None) -> TaskResult:
     llm = llm or LLM(settings)
     sandbox = sandbox or make_sandbox(settings)
     messages = list(history or []) + [{"role": "user", "content": task_text}]
     result = TaskResult()
-    always_ok: set[str] = set()
+    always_ok: set[str] = always_ok_rules if always_ok_rules is not None else set()
     failures = 0
     captured: list[str] = []
     system = SYSTEM_PROMPT + system_extra
@@ -81,7 +81,7 @@ async def run_task(task_text: str, settings: Settings,
                     raise TaskStopped()
                 name = tc["function"]["name"]
                 args = json.loads(tc["function"]["arguments"] or "{}")
-                if settings.approval == "suggest" and name == "shell":
+                if approve is not None and name == "shell":   # 审批门：回调存在即启用（agentd 会话档位控制）
                     rule = risk.assess(args.get("command", ""))
                     if rule and rule.id not in always_ok:
                         await emit("approval_request", {

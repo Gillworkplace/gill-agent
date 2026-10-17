@@ -66,6 +66,16 @@ main{flex:1;display:flex;flex-direction:column;min-width:0}
 #purl{flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--bg2);color:var(--text1)}
 #banner{display:none;background:var(--warn);color:#fff;text-align:center;padding:6px;font-size:13px}
 #banner.on{display:block}
+.appr{align-self:flex-start;max-width:78%;border:1px solid var(--warn);border-radius:12px;padding:12px 14px;background:var(--bg1)}
+.appr .cmd{font-family:var(--mono);font-size:13px;background:var(--bg3);padding:6px 10px;border-radius:6px;margin:8px 0;word-break:break-all}
+.appr .risk{font-size:11px;padding:1px 8px;border-radius:4px;color:#fff}
+.appr .risk.high{background:var(--err)}.appr .risk.medium{background:var(--warn)}
+.appr .btns{display:flex;gap:8px}.appr .btns button{padding:6px 16px;border:none;border-radius:8px;font-size:13px}
+.appr .btns .y{background:var(--ok);color:#fff}.appr .btns .n{background:var(--bg3);color:var(--text2)}.appr .btns .a{background:var(--bg3);color:var(--accent);border:1px solid var(--accent)}
+.appr .cnt{font-size:11px;color:var(--text2);margin-left:auto;align-self:center}
+#modebar{position:fixed;bottom:8px;left:270px;z-index:40;font-size:12px;color:var(--text2);display:flex;gap:6px;align-items:center}
+#modebar button{border:1px solid var(--border);background:var(--bg1);border-radius:6px;padding:2px 10px;font-size:12px;color:var(--text2)}
+#modebar button.on{color:#fff;background:var(--accent);border-color:var(--accent)}
 .hint{align-self:center;font-size:12px;color:var(--text2);margin-top:auto}
 </style>
 </head>
@@ -103,6 +113,7 @@ main{flex:1;display:flex;flex-direction:column;min-width:0}
   <canvas id="pcv"></canvas>
 </div>
 
+<div id="modebar">审批档：<button id="mAuto" class="on" onclick="setMode('auto')">auto 全自动</button><button id="mSug" onclick="setMode('suggest')">suggest 需审批</button></div>
 <div id="kb">
   <div class="bar"><h2>📚 知识库</h2><input id="kbq" placeholder="搜索…" oninput="loadKb(this.value)">
     <button class="new" onclick="addKb()">＋ 添加</button>
@@ -226,6 +237,26 @@ async function pinKb(id, pinned) { await api('/knowledge/' + id, {pinned}, 'PATC
 
 function handle2(env) {
   switch (env.type) {
+    case 'approval_request':
+      aiBuf = null;
+      const a = document.createElement('div'); a.className = 'appr';
+      a.innerHTML = `<span class="risk ${p.riskLevel}">${p.riskLevel === 'high' ? '高危' : '中危'}</span>
+        <span style="font-size:12px;color:var(--text2)"> ${p.reason || ''}</span>
+        <div class="cmd">${escapeHtml(p.command || '')}</div>
+        <div class="btns"><button class="y">批准</button><button class="n">拒绝</button><button class="a">本会话总是允许</button>
+        <span class="cnt">${p.expiresIn || 120}s</span></div>`;
+      const cid = p.cid;
+      let left = p.expiresIn || 120;
+      const timer = setInterval(() => { left--; const c = a.querySelector('.cnt'); if (c) c.textContent = left + 's';
+        if (left <= 0) { clearInterval(timer); a.querySelectorAll('button').forEach(b => b.disabled = true); } }, 1000);
+      a.querySelectorAll('button').forEach((b, i) => b.onclick = () => {
+        clearInterval(timer); a.querySelectorAll('button').forEach(x => x.disabled = true);
+        const action = ['approve', 'deny', 'always_allow'][i];
+        wsSend({type: 'approval_response', payload: {cid, action}});
+        a.querySelector('.cnt').textContent = action === 'approve' ? '已批准' : action === 'always_allow' ? '本会话免批' : '已拒绝';
+      });
+      $('#stream').appendChild(a); scroll(); break;
+    case 'approval_timeout': sys('审批超时已自动拒绝'); break;
     case 'kb_captured': sys(`🧠 已记住：${(p.titles || []).join('、')}（查看请点左下 📚）`); break;
     case 'screencast_meta': pvMeta = env.payload; break;
     case 'screencast_frame': drawFrame(env.payload.data); break;
@@ -281,6 +312,14 @@ function sendOrStop() {
   connectWs();
   ws.onopen = () => ws.send(JSON.stringify({type: 'user_input', payload: {text}}));
   if (ws.readyState === 1) ws.send(JSON.stringify({type: 'user_input', payload: {text}}));
+}
+
+let approvalMode = 'auto';
+function setMode(m) {
+  approvalMode = m;
+  $('#mAuto').classList.toggle('on', m === 'auto');
+  $('#mSug').classList.toggle('on', m === 'suggest');
+  wsSend({type: 'set_approval', payload: {value: m}});
 }
 
 /* ---------- 入口 ---------- */

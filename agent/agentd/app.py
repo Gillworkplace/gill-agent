@@ -26,9 +26,12 @@ class SessionRuntime:
         self.browser: BrowserSession | None = None
         self.history: list[dict] = []
         self.session_meta: dict = {}
+        self.approval_mode: str = "auto"          # auto | suggest（会话级，FR-38）
+        self.pending_approvals: dict[str, dict] = {}   # cid -> {"event": Event, "result": None}
         self.running = asyncio.Lock()      # FR-37 同会话单任务
         self.stop_requested = False
         self.task: asyncio.Task | None = None
+        self.always_ok_rules: set[str] = set()
 
     async def handle_preview_start(self, env: dict):
         """FR-42：开启投屏（浏览器懒启动）。"""
@@ -106,17 +109,30 @@ class SessionRuntime:
                 await self._emit(type_, payload, actor=actor)
 
             async def approve(command, rule):
-                # CLI/简化审批：通过 cmd 流询问 web 侧（一期 agentd 内直接放行 auto 档；suggest 由 web 侧 ws 网关实现转发）
-                await self._emit("approval_request", {"cid": str(uuid.uuid4()), "command": command,
-                                                      "riskLevel": rule.level, "reason": rule.reason, "ruleId": rule.id})
-                # 单机阶段：web 未实现审批 UI 前默认拒绝高危（安全优先）
-                return False
+                """FR-38：真等待用户审批（cmd 流 approval_response，120s 超时拒绝）。"""
+                cid = str(uuid.uuid4())
+                ev = asyncio.Event()
+                self.pending_approvals[cid] = {"event": ev, "result": None}
+                await self._emit("approval_request", {"cid": cid, "command": command,
+                                                      "riskLevel": rule.level, "reason": rule.reason,
+                                                      "ruleId": rule.id, "expiresIn": 120})
+                try:
+                    await asyncio.wait_for(ev.wait(), timeout=120)
+                    r = self.pending_approvals.pop(cid, {}).get("result") or "deny"
+                except asyncio.TimeoutError:
+                    self.pending_approvals.pop(cid, None)
+                    await self._emit("approval_timeout", {"cid": cid})
+                    r = "deny"
+                if r == "always_allow":
+                    self.always_ok_rules.add(rule.id)
+                return r in ("approve", "always_allow")
 
             result = await run_task(text, self.s, emit, self.history,
-                                    approve=approve if self.s.approval == "suggest" else None,
+                                    approve=approve if self.approval_mode == "suggest" else None,
                                     stop_flag=lambda: self.stop_requested,
                                     sandbox=self.sandbox, kb=kb,
-                                    system_extra=self.custom_instructions())
+                                    system_extra=self.custom_instructions(),
+                                    always_ok_rules=self.always_ok_rules)
             await self._emit("done", {"status": result.status, "rounds": result.rounds,
                                       "tokens": result.tokens, "answer": result.answer})
 
@@ -143,6 +159,15 @@ class SessionRuntime:
                         await self._emit("error", {"code": "SYS-9001", "message": "任务执行异常，请重试"})
                 elif t == "stop":
                     self.stop_requested = True
+                elif t == "approval_response":
+                    p = env.get("payload", {})
+                    slot = self.pending_approvals.get(p.get("cid"))
+                    if slot:
+                        slot["result"] = p.get("action", "deny")
+                        slot["event"].set()
+                elif t == "set_approval":
+                    self.approval_mode = env.get("payload", {}).get("value", "auto")
+                    await self._emit("session_status", {"status": "approval_mode", "mode": self.approval_mode})
                 elif t == "preview_start":
                     await self.handle_preview_start(env)
                 elif t == "preview_stop":
@@ -208,9 +233,23 @@ class AgentDaemon:
 
         @app.post("/internal/sessions/{sid}/cmd")
         async def push_cmd(sid: str, body: dict):
-            await self.bus.push_cmd(sid, body["type"], body.get("payload", {}),
+            t = body["type"]
+            # 快速通道：审批响应/档位切换 直接作用于 runtime（避免被任务循环阻塞造成死锁）
+            if t in ("approval_response", "set_approval"):
+                rt = self.runtimes.get(sid)
+                if rt:
+                    if t == "approval_response":
+                        p = body.get("payload", {})
+                        slot = rt.pending_approvals.get(p.get("cid"))
+                        if slot:
+                            slot["result"] = p.get("action", "deny")
+                            slot["event"].set()
+                    else:
+                        rt.approval_mode = body.get("payload", {}).get("value", "auto")
+                    return {"ok": True}
+            await self.bus.push_cmd(sid, t, body.get("payload", {}),
                                     cid=body.get("cid"), actor=body.get("actor"))
-            if body["type"] == "user_input":
+            if t == "user_input":
                 self.get_runtime(sid)
             return {"ok": True}
 
