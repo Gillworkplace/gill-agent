@@ -44,6 +44,16 @@ main{flex:1;display:flex;flex-direction:column;min-width:0}
 #send.stop{background:var(--err)}
 #term{height:180px;border-top:1px solid var(--border);background:#0c0e12;color:#9fe8b5;font-family:var(--mono);font-size:12px;padding:10px 16px;overflow:auto;white-space:pre-wrap;display:none}
 #term.on{display:block}
+#fpanel{display:none;position:fixed;right:16px;top:16px;bottom:16px;width:400px;background:var(--bg1);border:1px solid var(--border);border-radius:12px;flex-direction:column;z-index:55;box-shadow:0 10px 40px rgba(0,0,0,.15)}
+#fpanel.on{display:flex}
+#fpanel .bar{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;font-size:13px}
+#flist{flex:1;overflow:auto;padding:10px}
+.frow{display:flex;gap:8px;align-items:center;padding:8px 10px;border-radius:8px;font-size:13px}
+.frow:hover{background:var(--bg2)}
+.frow .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.frow .sz{color:var(--text2);font-size:12px}
+.frow button{border:1px solid var(--border);background:none;border-radius:6px;padding:2px 8px;font-size:12px;color:var(--text2)}
+.hint2{font-size:12px;color:var(--text2);text-align:center;padding:20px}
 #kb{display:none;position:fixed;inset:0;background:var(--bg1);z-index:60;flex-direction:column}
 #kb.on{display:flex}
 #kb .bar{padding:14px 24px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:center}
@@ -114,6 +124,13 @@ main{flex:1;display:flex;flex-direction:column;min-width:0}
 </div>
 
 <div id="modebar">审批档：<button id="mAuto" class="on" onclick="setMode('auto')">auto 全自动</button><button id="mSug" onclick="setMode('suggest')">suggest 需审批</button></div>
+<div id="fpanel">
+  <div class="bar"><b>📁 文件</b><span class="sp" style="flex:1"></span>
+    <button onclick="pickUpload()">⬆ 上传</button><button onclick="wsSend({type:'file_list',payload:{}})">⟳ 工作区</button>
+    <button onclick="$('#fpanel').classList.remove('on')">✕</button></div>
+  <div id="flist"><div class="hint2">上传件经 MinIO 直传；「同步」送入沙箱工作区</div></div>
+</div>
+
 <div id="kb">
   <div class="bar"><h2>📚 知识库</h2><input id="kbq" placeholder="搜索…" oninput="loadKb(this.value)">
     <button class="new" onclick="addKb()">＋ 添加</button>
@@ -235,8 +252,59 @@ async function addKb() {
 async function delKb(id) { if (!confirm('删除该条知识？')) return; await api('/knowledge/' + id, null, 'DELETE'); loadKb($('#kbq').value); }
 async function pinKb(id, pinned) { await api('/knowledge/' + id, {pinned}, 'PATCH'); loadKb($('#kbq').value); }
 
+/* ---------- 文件面板（FR-61~64）---------- */
+let curSpaceId = null, fileKeys = {};
+function toggleFiles() {
+  const f = $('#fpanel'); f.classList.toggle('on');
+  if (f.classList.contains('on')) loadFiles();
+}
+async function ensureSpace() {
+  if (!curSpaceId) { const sp = await api('/spaces'); curSpaceId = sp.find(s => s.type === 'personal')?.id; }
+  return curSpaceId;
+}
+function pickUpload() {
+  const inp = document.createElement('input'); inp.type = 'file';
+  inp.onchange = async () => {
+    const file = inp.files[0]; if (!file || !cur) return;
+    const r = await api('/files/uploads', {filename: file.name, size: file.size, sessionId: cur});
+    fileKeys[r.uploadId] = r.objectKey;
+    await fetch(r.url, {method: 'PUT', body: file});
+    await api(`/files/uploads/${r.uploadId}/complete`, {});
+    sys(`📎 已上传 ${file.name}（${(file.size/1024).toFixed(0)}KB）`);
+    loadFiles();
+  };
+  inp.click();
+}
+async function loadFiles() {
+  const sp = await ensureSpace(); if (!sp) return;
+  const items = await api(`/spaces/${sp}/files`);
+  $('#flist').innerHTML = items.map(f => `
+    <div class="frow"><span class="nm">${escapeHtml(f.filename)}</span><span class="sz">${(f.size_bytes/1024).toFixed(0)}KB·${f.status}</span>
+      ${f.direction === 'upload' ? `<button onclick="syncFile('${f.id}','${escapeHtml(f.filename)}')">同步到沙箱</button>` : ''}
+      <button onclick="dlFile('${f.id}')">下载</button></div>`).join('') ||
+    '<div class="hint2">暂无文件</div>';
+}
+function syncFile(id, name) {
+  if (!cur) { sys('请先选择会话'); return; }
+  wsSend({type: 'file_sync_in', payload: {objectKey: fileKeys[id] || '', filename: name}});
+  sys(`⏳ 同步 ${name} → 沙箱 /home/user/uploads/`);
+}
+async function dlFile(id) {
+  const r = await api(`/files/${id}/download-url`, {});
+  const a = document.createElement('a'); a.href = r.url; a.download = r.filename; a.click();
+}
+
 function handle2(env) {
   switch (env.type) {
+    case 'file_synced': sys(`✅ 已同步到沙箱：${env.payload.dest}`); break;
+    case 'file_exported': sys(`📤 已导出：${env.payload.path}`); break;
+    case 'file_tree':
+      $('#fpanel').classList.add('on');
+      $('#flist').innerHTML = (env.payload.out || '').split('---SIZES---')[0].trim().split('
+')
+        .filter(Boolean).map(l => `<div class="frow"><span class="nm">${escapeHtml(l)}</span>
+          <button onclick="wsSend({type:'file_export',payload:{path:'/home/user/${l}'}})">导出</button></div>`).join('') || '<div class="hint2">工作区为空</div>';
+      break;
     case 'approval_request':
       aiBuf = null;
       const a = document.createElement('div'); a.className = 'appr';

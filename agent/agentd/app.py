@@ -33,6 +33,46 @@ class SessionRuntime:
         self.task: asyncio.Task | None = None
         self.always_ok_rules: set[str] = set()
 
+    async def handle_file_sync_in(self, env: dict):
+        """FR-62：MinIO 上传件 → 沙箱工作区。"""
+        try:
+            from gill_core import files as gfiles
+            await self.ensure_sandbox()
+            p = env.get("payload", {})
+            import uuid as _u
+            name = p.get("filename", "file.bin")
+            dest = p.get("destPath") or f"/home/user/uploads/{name}"
+            await gfiles.sync_in(self.sandbox, p["objectKey"], dest, emit=self._emit)
+        except Exception as e:
+            log.exception("file sync fail")
+            await self._emit("error", {"code": "FILE-5005", "message": f"同步失败：{e}"})
+
+    async def handle_file_export(self, env: dict):
+        """FR-63：沙箱文件 → MinIO exports/。"""
+        try:
+            from gill_core import files as gfiles
+            import uuid as _u, shlex
+            await self.ensure_sandbox()
+            path = env["payload"]["path"]
+            key = f"exports/{self.sid}/{_u.uuid4()}-{path.rsplit('/', 1)[-1]}"
+            await gfiles.export_out(self.sandbox, path, key, emit=self._emit)
+        except Exception as e:
+            log.exception("file export fail")
+            await self._emit("error", {"code": "FILE-5005", "message": f"导出失败：{e}"})
+
+    async def handle_file_list(self, env: dict):
+        """FR-64：沙箱工作区文件树（/home/user 两层）。"""
+        try:
+            await self.ensure_sandbox()
+            p = env.get("payload", {})
+            base = p.get("path", "/home/user")
+            import shlex
+            r = await self.sandbox.run(
+                f"cd {shlex.quote(base)} && find . -maxdepth 2 -mindepth 1 2>/dev/null | head -100 | sed 's|^\\./||' && echo ---SIZES--- && du -sh ./* 2>/dev/null | head -50", timeout=15)
+            await self._emit("file_tree", {"path": base, "out": r.stdout[:4000]})
+        except Exception as e:
+            await self._emit("error", {"code": "FILE-5005", "message": f"列目录失败：{e}"})
+
     async def handle_preview_start(self, env: dict):
         """FR-42：开启投屏（浏览器懒启动）。"""
         try:
@@ -182,6 +222,12 @@ class SessionRuntime:
                 elif t == "browser_navigate":
                     if self.browser:
                         await self.browser.navigate(env["payload"].get("url", "about:blank"))
+                elif t == "file_sync_in":
+                    await self.handle_file_sync_in(env)
+                elif t == "file_export":
+                    await self.handle_file_export(env)
+                elif t == "file_list":
+                    await self.handle_file_list(env)
                 elif t == "session_close":
                     break
         finally:

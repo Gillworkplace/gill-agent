@@ -14,6 +14,19 @@ services:
   redis:
     image: redis:7-alpine
     command: redis-server --appendonly yes
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: gilladmin
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-gillminio123}
+    volumes: [miniodata:/data]
+    ports: ["127.0.0.1:9001:9001"]
+  minio-init:
+    image: minio/mc
+    depends_on: [minio]
+    entrypoint: >
+      sh -c "sleep 6; mc alias set g http://minio:9000 gilladmin ${MINIO_ROOT_PASSWORD:-gillminio123} && mc mb -p g/gill-files; exit 0"
   agentd:
     build:
       context: ../agent
@@ -27,6 +40,9 @@ services:
       - CUBE_API_URL=${CUBE_API_URL:-http://host.docker.internal:13000}
       - CUBE_PROXY_NODE_IP=${CUBE_PROXY_NODE_IP:-host.docker.internal}
       - CUBE_PUBLIC_HOST=host.docker.internal
+      - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_ROOT_USER=gilladmin
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-gillminio123}
       - DATABASE_URL_DSN=postgresql://gill:${POSTGRES_PASSWORD:-gillpass123}@postgres:5432/gill
       - CUBE_TEMPLATE_ID=${CUBE_TEMPLATE_ID:-tpl-4264d9c2e5d6432e8a55cf4e}
       - E2B_API_KEY=${E2B_API_KEY:-e2b_00000000000000000000000000000}
@@ -46,6 +62,9 @@ services:
       - INIT_ADMIN_USERNAME=${INIT_ADMIN_USERNAME:-admin}
       - INIT_ADMIN_PASSWORD=${INIT_ADMIN_PASSWORD:-}
       - AGENTD_URL=http://agentd:8000
+      - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_ROOT_USER=gilladmin
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-gillminio123}
       - HTTP_PROXY=${HTTP_PROXY:-http://host.docker.internal:7890}
       - NO_PROXY=localhost,127.0.0.1,postgres,redis,minio,agentd,web,host.docker.internal
     extra_hosts:
@@ -55,3 +74,4 @@ services:
       agentd: {condition: service_started}
 volumes:
   pgdata:
+  miniodata:

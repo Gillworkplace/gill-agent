@@ -8,7 +8,7 @@ spring:
     username: gill
     password: ${POSTGRES_PASSWORD:gill}
     hikari:
-      maximum-pool-size: 16
+      maximum-pool-size: 40
   flyway:
     locations: classpath:migration
   threads:
