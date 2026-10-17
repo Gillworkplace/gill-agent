@@ -66,4 +66,43 @@ public class KnowledgeController {
                 "WHERE k.id=?::uuid AND sm.user_id=? AND sm.role IN ('admin','owner')))", id, uid, id, uid);
         return Map.of("ok", n > 0);
     }
+
+    /** FR-98 导出：全量条目 JSON。 */
+    @GetMapping("/spaces/{sid}/knowledge/export")
+    public List<Map<String, Object>> exportAll(@RequestAttribute("uid") Long uid, @PathVariable String sid) {
+        return db.queryForList(
+                "SELECT type, scope, title, content, array_to_string(tags, ',') AS tags, source FROM knowledge_items " +
+                "WHERE (user_id=? OR space_id=?::uuid) AND status='active' ORDER BY created_at", uid, sid);
+    }
+
+    /** FR-98 导入：{items:[{type,scope,title,content,tags}], merge: overwrite|skip}。 */
+    @PostMapping("/spaces/{sid}/knowledge/import")
+    public Map<String, Object> importAll(@RequestAttribute("uid") Long uid, @PathVariable String sid,
+                                         @RequestBody Map<String, Object> body) {
+        var items = (java.util.List<Map<String, Object>>) body.getOrDefault("items", java.util.List.of());
+        String merge = String.valueOf(body.getOrDefault("merge", "skip"));
+        int inserted = 0, skipped = 0;
+        for (var it : items) {
+            String title = String.valueOf(it.get("title"));
+            Integer exists = db.queryForObject(
+                    "SELECT COUNT(*) FROM knowledge_items WHERE (user_id=? OR space_id=?::uuid) AND lower(title)=lower(?)",
+                    Integer.class, uid, sid, title);
+            if (exists != null && exists > 0) {
+                if ("overwrite".equals(merge)) {
+                    db.update("UPDATE knowledge_items SET content=?, type=?, updated_at=now(), version=version+1 " +
+                            "WHERE (user_id=? OR space_id=?::uuid) AND lower(title)=lower(?)",
+                            it.get("content"), it.getOrDefault("type", "fact"), uid, sid, title);
+                    inserted++;
+                } else skipped++;
+            } else {
+                db.update("INSERT INTO knowledge_items(id, user_id, space_id, scope, type, title, content, tags, source, confidence) " +
+                                "VALUES (?::uuid,?,?::uuid,?,?,?,?,?,'explicit',1.0)",
+                        UUID.randomUUID(), uid, sid, it.getOrDefault("scope", "user"),
+                        it.getOrDefault("type", "fact"), title, it.get("content"),
+                        null);
+                inserted++;
+            }
+        }
+        return Map.of("imported", inserted, "skipped", skipped);
+    }
 }

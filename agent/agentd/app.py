@@ -120,7 +120,7 @@ class SessionRuntime:
         return f"\n\n[用户个人指令]\n{ci}" if ci else ""
 
     async def load_exts(self):
-        """FR-10x：加载用户/空间启用的 http-tools 扩展。"""
+        """FR-10x：加载 http-tools 扩展 + skill 技能（注入 system）。"""
         dsn = os.getenv("DATABASE_URL_DSN")
         if not dsn:
             return None
@@ -132,6 +132,33 @@ class SessionRuntime:
             log.warning("exts load fail: %s", e)
             return None
 
+    async def load_skills(self) -> str:
+        """FR-103 最小版：启用中的 skill 扩展 → system 注入块。"""
+        dsn = os.getenv("DATABASE_URL_DSN")
+        meta = self.session_meta or {}
+        if not dsn or not meta.get("user_id"):
+            return ""
+        try:
+            import asyncpg, json as _json
+            conn = await asyncpg.connect(dsn)
+            try:
+                rows = await conn.fetch(
+                    "SELECT name, manifest FROM extensions WHERE status='enabled' AND type='skill' "
+                    "AND (user_id=$1 OR (visibility='space' AND space_id=$2::uuid))",
+                    meta["user_id"], meta.get("space_id"))
+            finally:
+                await conn.close()
+            blocks = []
+            for r in rows:
+                m = _json.loads(r["manifest"]) if isinstance(r["manifest"], str) else r["manifest"]
+                sk = m.get("skill") or {}
+                if sk.get("body_md"):
+                    blocks.append(f"[技能：{r['name']}] {sk.get('description','')}\n{sk['body_md'][:1500]}")
+            return ("\n\n".join(blocks))[:4000]
+        except Exception as e:
+            log.warning("skills load fail: %s", e)
+            return ""
+
     async def handle_user_input(self, env: dict):
         text = env["payload"].get("text", "")
         actor = env.get("actor")
@@ -142,14 +169,37 @@ class SessionRuntime:
         kb = self.kb()
         if kb is not None:
             from gill_core.kb import REMEMBER_RE, FORGET_RE
-            m = REMEMBER_RE.match(text.strip())
+            stripped = text.strip()
+            if stripped == "/handoff" or stripped.startswith("交接") and len(stripped) < 10:
+                # FR-140：交接摘要（LLM 基于 history 总结 → group/user 知识 + 会话消息）
+                await self.ensure_sandbox() if False else None
+                summary_prompt = ("基于以下对话历史，生成交接摘要：当前目标/已完成/待办/风险/关键文件路径，"
+                                  "300 字以内中文。\n\n" + "\n".join(
+                                      f"{m['role']}: {str(m.get('content'))[:200]}" for m in self.history[-12:]))
+                try:
+                    from gill_core.llm import LLM, SYSTEM_PROMPT
+                    import time as _t
+                    llm = LLM(self.s)
+                    parts = []
+                    async for kind, payload in llm.stream([{"role": "user", "content": summary_prompt}]):
+                        if kind == "delta":
+                            parts.append(payload)
+                    summary = "".join(parts) or "（无摘要）"
+                    await kb.save(title=f"交接·{_t.strftime('%m-%d %H:%M')}", content=summary,
+                                  ktype="project", source="explicit", confidence=1.0)
+                    await self._emit("kb_captured", {"titles": ["交接摘要"]})
+                    await self._emit("done", {"status": "done", "rounds": 0, "answer": f"交接摘要已生成并存入知识库：\n{summary[:400]}", "tokens": {}})
+                except Exception as e:
+                    await self._emit("done", {"status": "failed", "rounds": 0, "answer": f"交接失败：{e}", "tokens": {}})
+                return
+            m = REMEMBER_RE.match(stripped)
             if m:
                 r = await kb.save(title=m.group(1)[:30], content=m.group(1).strip(),
                                   ktype="fact", source="explicit", confidence=1.0)
                 await self._emit("kb_captured", {"ids": [r["id"]], "titles": [m.group(1)[:30]]})
                 await self._emit("done", {"status": "done", "rounds": 0, "answer": "已记住。", "tokens": {}})
                 return
-            m = FORGET_RE.match(text.strip())
+            m = FORGET_RE.match(stripped)
             if m:
                 deleted = await kb.delete_matching(m.group(1).strip())
                 names = "、".join(d["title"] for d in deleted) if deleted else "（无匹配）"
@@ -210,9 +260,9 @@ class SessionRuntime:
                                     approve=approve if self.approval_mode == "suggest" else None,
                                     stop_flag=lambda: self.stop_requested,
                                     sandbox=self.sandbox, kb=kb,
-                                    system_extra=self.custom_instructions(),
                                     always_ok_rules=self.always_ok_rules,
-                                    exts=await self.load_exts())
+                                    exts=await self.load_exts(),
+                                    system_extra=(self.custom_instructions() + "\n\n" + await self.load_skills()).strip())
             await self._emit("done", {"status": result.status, "rounds": result.rounds,
                                       "tokens": result.tokens, "answer": result.answer})
 
