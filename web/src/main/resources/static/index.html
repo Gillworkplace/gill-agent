@@ -44,6 +44,14 @@ main{flex:1;display:flex;flex-direction:column;min-width:0}
 #send.stop{background:var(--err)}
 #term{height:180px;border-top:1px solid var(--border);background:#0c0e12;color:#9fe8b5;font-family:var(--mono);font-size:12px;padding:10px 16px;overflow:auto;white-space:pre-wrap;display:none}
 #term.on{display:block}
+#preview{display:none;position:fixed;right:16px;top:16px;bottom:210px;width:440px;background:var(--bg1);border:1px solid var(--border);border-radius:12px;flex-direction:column;z-index:50;box-shadow:0 10px 40px rgba(0,0,0,.15)}
+#preview.on{display:flex}
+#preview .bar{padding:8px 12px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;font-size:12px;color:var(--text2)}
+#preview .bar b{color:var(--text1);font-size:13px}
+#preview .bar .sp{flex:1}
+#preview .bar button{border:1px solid var(--border);background:none;border-radius:6px;padding:2px 8px;font-size:12px;color:var(--text2)}
+#pcv{flex:1;width:100%;cursor:crosshair;background:#000}
+#purl{flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--bg2);color:var(--text1)}
 #banner{display:none;background:var(--warn);color:#fff;text-align:center;padding:6px;font-size:13px}
 #banner.on{display:block}
 .hint{align-self:center;font-size:12px;color:var(--text2);margin-top:auto}
@@ -67,7 +75,7 @@ main{flex:1;display:flex;flex-direction:column;min-width:0}
   <aside>
     <div class="top">会话 <button class="new" onclick="newSession()">＋新建</button></div>
     <div id="sessions"></div>
-    <div class="bottom"><span id="whoami"></span><button class="new" onclick="toggleTheme()">🌗</button><button class="new" onclick="logout()">退出</button></div>
+    <div class="bottom"><span id="whoami"></span><button class="new" onclick="togglePreview()">🌐 预览</button><button class="new" onclick="toggleTheme()">🌗</button><button class="new" onclick="logout()">退出</button></div>
   </aside>
   <main>
     <div id="stream"><div class="hint">选择或新建一个会话开始 · Enter 发送 / Shift+Enter 换行 / Esc 停止 · Ctrl+` 终端</div></div>
@@ -75,6 +83,12 @@ main{flex:1;display:flex;flex-direction:column;min-width:0}
     <div id="inputbar" style="border-top:none;padding-top:0"><textarea id="input" rows="1" placeholder="描述任务，例如：写一个脚本并在沙箱运行验证…（Enter 发送）"></textarea><button id="send" onclick="sendOrStop()">发送</button></div>
     <div id="term"></div>
   </main>
+</div>
+
+<div id="preview">
+  <div class="bar"><b>🌐 浏览器预览</b><input id="purl" placeholder="输入网址回车导航"><span class="sp"></span>
+    <span id="pfps"></span><button onclick="wsSend({type:'preview_stop',payload:{}});$('#preview').classList.remove('on')">关闭</button></div>
+  <canvas id="pcv"></canvas>
 </div>
 
 <script>
@@ -128,6 +142,48 @@ function connectWs() {
   ws.onmessage = ev => handle(JSON.parse(ev.data));
 }
 
+/* ---------- 投屏预览（FR-42~46）---------- */
+let pvMeta = null, frameCount = 0, frameT0 = 0;
+const cv = () => $('#pcv');
+function wsSend(o) { if (ws && ws.readyState === 1) ws.send(JSON.stringify(o)); }
+function togglePreview() {
+  const p = $('#preview');
+  if (p.classList.contains('on')) { p.classList.remove('on'); wsSend({type:'preview_stop',payload:{}}); return; }
+  p.classList.add('on'); frameT0 = performance.now(); frameCount = 0;
+  wsSend({type:'preview_start', payload:{quality:'mid'}});
+}
+async function drawFrame(b64) {
+  const img = new Image();
+  img.src = 'data:image/jpeg;base64,' + b64;
+  await img.decode().catch(()=>{});
+  const c = cv(); const ctx = c.getContext('2d');
+  if (c.width !== img.width) { c.width = img.width; c.height = img.height; }
+  ctx.drawImage(img, 0, 0);
+  frameCount++;
+  const dt = (performance.now() - frameT0) / 1000;
+  if (dt > 1) { $('#pfps').textContent = (frameCount / dt).toFixed(1) + ' fps'; frameT0 = performance.now(); frameCount = 0; }
+}
+cv()?.addEventListener('mousedown', e => {
+  const r = e.target.getBoundingClientRect();
+  const x = (e.clientX - r.left) * (e.target.width / r.width);
+  const y = (e.clientY - r.top) * (e.target.height / r.height);
+  wsSend({type:'input_event', payload:{kind:'mouse_click', x, y, button:'left'}});
+  setTimeout(() => wsSend({type:'input_event', payload:{kind:'mouse_up', x, y, button:'left'}}), 60);
+});
+$('#purl')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.value.trim()) {
+    let u = e.target.value.trim(); if (!/^https?:/.test(u)) u = 'https://' + u;
+    wsSend({type:'browser_navigate', payload:{url: u}});
+  }
+});
+
+function handle2(env) {
+  switch (env.type) {
+    case 'screencast_meta': pvMeta = env.payload; break;
+    case 'screencast_frame': drawFrame(env.payload.data); break;
+  }
+}
+
 /* ---------- 事件渲染 ---------- */
 let aiBuf = null;
 function addAI() { if (!aiBuf) { aiBuf = document.createElement('div'); aiBuf.className = 'msg ai'; $('#stream').appendChild(aiBuf); } return aiBuf; }
@@ -154,6 +210,7 @@ function handle(env) {
     case 'approval_request': sys(`⚠ 需要审批（${p.riskLevel}）：${p.command}`); break;
     case 'error': sys('错误：' + (p.message || '')); break;
   }
+  handle2(env);
 }
 function sys(t) { const d = document.createElement('div'); d.className = 'msg sys'; d.textContent = t; $('#stream').appendChild(d); scroll(); }
 function scroll() { const s = $('#stream'); s.scrollTop = s.scrollHeight; }

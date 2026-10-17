@@ -9,6 +9,7 @@ from gill_core.bus import Bus
 from gill_core.config import Settings
 from gill_core.loop import run_task
 from gill_core.sandbox import BaseSandbox, make_sandbox
+from gill_core.browser import BrowserSession
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 log = logging.getLogger("agentd")
@@ -22,10 +23,28 @@ class SessionRuntime:
     def __init__(self, bus: Bus, settings: Settings, sid: str):
         self.bus, self.s, self.sid = bus, settings, sid
         self.sandbox: BaseSandbox | None = None
+        self.browser: BrowserSession | None = None
         self.history: list[dict] = []
         self.running = asyncio.Lock()      # FR-37 同会话单任务
         self.stop_requested = False
         self.task: asyncio.Task | None = None
+
+    async def handle_preview_start(self, env: dict):
+        """FR-42：开启投屏（浏览器懒启动）。"""
+        try:
+            await self.ensure_sandbox()
+            r = await self.sandbox.run("start-chromium.sh", timeout=30)   # 幂等：已运行则跳过
+            if r.exit_code != 0:
+                await self._emit("error", {"code": "CDP-6001", "message": "Chromium 启动失败：" + r.stderr[:200]})
+                return
+            if self.browser is None:
+                self.browser = BrowserSession(self.sandbox, self._emit,
+                                              quality=env.get("payload", {}).get("quality", "mid"))
+                await self.browser.connect()
+            await self.browser.start_screencast(env.get("payload", {}).get("quality"))
+        except Exception as e:
+            log.exception("preview start fail")
+            await self._emit("error", {"code": "CDP-6001", "message": f"浏览器服务不可用：{e}"})
 
     async def ensure_sandbox(self):
         if self.sandbox is None:
@@ -87,9 +106,28 @@ class SessionRuntime:
                         await self._emit("error", {"code": "SYS-9001", "message": "任务执行异常，请重试"})
                 elif t == "stop":
                     self.stop_requested = True
+                elif t == "preview_start":
+                    await self.handle_preview_start(env)
+                elif t == "preview_stop":
+                    if self.browser:
+                        await self.browser.stop_screencast()
+                elif t == "input_event":
+                    if self.browser:
+                        try:
+                            await self.browser.input_event(env.get("payload", {}))
+                        except Exception as e:
+                            log.warning("input_event err: %s", e)
+                elif t == "browser_navigate":
+                    if self.browser:
+                        await self.browser.navigate(env["payload"].get("url", "about:blank"))
                 elif t == "session_close":
                     break
         finally:
+            if self.browser:
+                try:
+                    await self.browser.close()
+                except Exception:
+                    pass
             if self.sandbox:
                 try:
                     await self.sandbox.kill()

@@ -26,6 +26,7 @@ services:
       # 沙箱机通路：经宿主机 SSH 隧道（host.docker.internal）或直连（39.107.34.109）
       - CUBE_API_URL=${CUBE_API_URL:-http://host.docker.internal:13000}
       - CUBE_PROXY_NODE_IP=${CUBE_PROXY_NODE_IP:-host.docker.internal}
+      - CUBE_PUBLIC_HOST=host.docker.internal
       - CUBE_TEMPLATE_ID=${CUBE_TEMPLATE_ID:-tpl-4264d9c2e5d6432e8a55cf4e}
       - E2B_API_KEY=${E2B_API_KEY:-e2b_00000000000000000000000000000}
       - HTTP_PROXY=${HTTP_PROXY:-http://host.docker.internal:7890}
