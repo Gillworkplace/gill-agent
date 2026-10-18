@@ -50,9 +50,15 @@ class KnowledgeBase:
             await self._pool.close()
 
     # ---------- 沉淀（FR-91/95：去重=同 scope+type 内 title 相似则更新） ----------
+    task_saves: int = 0   # FR-91 单任务自动沉淀上限
+
     async def save(self, title: str, content: str, ktype: str = "fact", tags: list[str] | None = None,
                    scope: str = "user", source: str = "auto", confidence: float = 0.8,
                    source_msg_id: int | None = None) -> dict:
+        if source == "auto":
+            self.task_saves += 1
+            if self.task_saves > 5:
+                return {"id": None, "updated": False, "skipped": "单任务沉淀上限 5 条"}
         pool = await self.pool()
         tags = tags or []
         sid = self.session_id if scope == "session" else None
@@ -115,7 +121,7 @@ class KnowledgeBase:
                                  WHERE content ILIKE '%' || w || '%'
                                     OR title ILIKE '%' || w || '%')::float AS sim
                        FROM knowledge_items
-                       WHERE status='active' AND user_id=$2
+                       WHERE status='active' AND user_id=$2 AND (pinned OR last_used_at IS NULL OR last_used_at > now() - interval '90 days')
                          AND (scope='user' OR (scope='session' AND session_id=$3::uuid)
                               OR (scope='project' AND project_tag=$4)
                               OR (scope='group' AND space_id=$5::uuid))

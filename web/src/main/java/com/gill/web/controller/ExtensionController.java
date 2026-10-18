@@ -41,11 +41,14 @@ public class ExtensionController {
                     ("script-tools".equals(extType) ? tm.get("code") != null : tm.get("url") != null));
         } else if ("skill".equals(extType) && manifest instanceof Map ms && ms.get("skill") != null) {
             valid = true;
+        } else if ("mcp".equals(extType) && manifest instanceof Map mm && mm.get("mcp") instanceof Map mc
+                && mc.get("url") != null) {
+            valid = true;
         } else valid = false;
         if (!valid)
             return AuthController.err("EXT-8101", "manifest 非法（http 需 url / script 需 code / skill 需 skill）", 400);
         String manifestJson;
-        try { manifestJson = om.writeValueAsString(manifest); }
+        try { manifestJson = om.writeValueAsString(encryptSecrets(manifest)); }
         catch (Exception e) { return AuthController.err("EXT-8101", "manifest 序列化失败", 400); }
         Integer n = db.queryForObject(
                 "SELECT COUNT(*) FROM extensions WHERE space_id=?::uuid AND lower(name)=lower(?)", Integer.class, sid, name);
@@ -56,6 +59,37 @@ public class ExtensionController {
                         "VALUES (?::uuid,?,?::uuid,'private',?,'1.0',?,?::jsonb,'enabled')",
                 id, uid, sid, name, extType, manifestJson);
         return ResponseEntity.ok(Map.of("id", id, "name", name));
+    }
+
+    /** FR-107：manifest 内敏感值（auth.value / headers.Authorization）AES-GCM 加密为 gsec: 自包含密文。 */
+    @SuppressWarnings("unchecked")
+    static Object encryptSecrets(Object node) {
+        if (node instanceof Map<?, ?> m) {
+            var out = new java.util.HashMap<String, Object>();
+            for (var e : m.entrySet()) {
+                Object v = e.getValue();
+                if (v instanceof String sv && (e.getKey().equals("value") || e.getKey().equals("Authorization") || e.getKey().equals("X-Api-Key")) && !sv.startsWith("gsec:")) {
+                    out.put((String) e.getKey(), encrypt(sv));
+                } else out.put((String) e.getKey(), encryptSecrets(v));
+            }
+            return out;
+        }
+        if (node instanceof List<?> l) return l.stream().map(ExtensionController::encryptSecrets).toList();
+        return node;
+    }
+
+    static String encrypt(String plain) {
+        try {
+            String hex = System.getenv().getOrDefault("EXT_SECRET", "0".repeat(64));
+            if (hex.length() < 64) hex = hex + "0".repeat(64 - hex.length());
+            var key = new javax.crypto.spec.SecretKeySpec(java.util.HexFormat.of().parseHex(hex), "AES");
+            var cipher = javax.crypto.Cipher.getInstance("AES/GCM/NoPadding");
+            cipher.init(javax.crypto.Cipher.ENCRYPT_MODE, key);
+            byte[] ct = cipher.doFinal(plain.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            byte[] nonce = cipher.getIV();
+            return "gsec:" + java.util.Base64.getEncoder().encodeToString(nonce)
+                    + ":" + java.util.Base64.getEncoder().encodeToString(ct);
+        } catch (Exception e) { throw new RuntimeException(e); }
     }
 
     @GetMapping("/extensions/{id}/tools")

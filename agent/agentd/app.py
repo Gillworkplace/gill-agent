@@ -28,6 +28,7 @@ class SessionRuntime:
         self.session_meta: dict = {}
         self.approval_mode: str = "auto"          # auto | suggest（会话级，FR-38）
         self.pending_approvals: dict[str, dict] = {}   # cid -> {"event": Event, "result": None}
+        self.present: dict = {}                    # FR-138 在线感知 uid -> 连接数
         self.op_mode: str = "free"                # free | relay（FR-135）
         self.op_holder: int | None = None
         self.running = asyncio.Lock()      # FR-37 同会话单任务
@@ -405,10 +406,54 @@ class AgentDaemon:
             rt.session_meta = meta
         return rt
 
+    async def sweep(self):
+        """孤儿沙箱清扫（FR-23 兜底）：每 5 分钟对照 PG 会话表，直接经 Cube API kill
+        无主/已关闭/超时空闲的沙箱——不依赖 cmd 流（泄漏根治）。"""
+        import httpx, asyncpg, datetime
+        dsn = os.getenv("DATABASE_URL_DSN")
+        while True:
+            await asyncio.sleep(300)
+            try:
+                s = Settings()
+                api, key = s.cube_api_url, s.e2b_api_key
+                async with httpx.AsyncClient(trust_env=False, timeout=20) as c:
+                    r = await c.get(api + "/sandboxes", headers={"X-API-Key": key})
+                    r.raise_for_status()
+                    sandboxes = r.json()
+                if not sandboxes or not dsn:
+                    continue
+                conn = await asyncpg.connect(dsn)
+                try:
+                    rows = await conn.fetch(
+                        "SELECT id::text, status, last_active_at FROM sessions WHERE sandbox_id IS NOT NULL")
+                finally:
+                    await conn.close()
+                by_sid = {r_["id"]: r_ for r_ in rows}
+                killed = 0
+                async with httpx.AsyncClient(trust_env=False, timeout=20) as c:
+                    for sb in sandboxes:
+                        sid = sb.get("sandboxID")
+                        row = by_sid.get(sid)
+                        orphan = row is None
+                        closed = row is not None and row["status"] in ("closed", "closing", "archived")
+                        idle = row is not None and row["last_active_at"] is not None and \
+                               (datetime.datetime.now(datetime.timezone.utc) - row["last_active_at"]).total_seconds() > 1800
+                        if orphan or closed or idle:
+                            try:
+                                await c.delete(f"{api}/sandboxes/{sid}", headers={"X-API-Key": key})
+                                killed += 1
+                            except Exception:
+                                pass
+                if killed:
+                    log.info("sweep: killed %d orphan/closed/idle sandboxes", killed)
+            except Exception as e:
+                log.warning("sweep fail: %s", e)
+
     async def main(self):
         from fastapi import FastAPI
         import uvicorn
 
+        asyncio.create_task(self.sweep())
         app = FastAPI(title="gill-agentd")
 
         @app.get("/healthz")
@@ -424,7 +469,7 @@ class AgentDaemon:
         async def push_cmd(sid: str, body: dict):
             t = body["type"]
             # 快速通道：审批响应/档位切换 直接作用于 runtime（避免被任务循环阻塞造成死锁）
-            if t in ("approval_response", "set_approval"):
+            if t in ("approval_response", "set_approval", "presence_join", "presence_leave"):
                 rt = self.runtimes.get(sid)
                 if rt:
                     if t == "approval_response":
@@ -433,8 +478,19 @@ class AgentDaemon:
                         if slot:
                             slot["result"] = p.get("action", "deny")
                             slot["event"].set()
-                    else:
+                    elif t == "set_approval":
                         rt.approval_mode = body.get("payload", {}).get("value", "auto")
+                        await rt.bus.publish_evt(sid, "session_status", {"status": "approval_mode", "mode": rt.approval_mode})
+                    else:   # presence_join / presence_leave
+                        p = body.get("payload", {})
+                        uid = p.get("userId")
+                        if t == "presence_join" and uid is not None:
+                            rt.present[uid] = rt.present.get(uid, 0) + 1
+                        elif t == "presence_leave" and uid is not None:
+                            rt.present[uid] = max(0, rt.present.get(uid, 0) - 1)
+                            if rt.present[uid] == 0:
+                                rt.present.pop(uid, None)
+                        await rt.bus.publish_evt(sid, "presence_update", {"members": list(rt.present.keys())})
                     return {"ok": True}
             await self.bus.push_cmd(sid, t, body.get("payload", {}),
                                     cid=body.get("cid"), actor=body.get("actor"))

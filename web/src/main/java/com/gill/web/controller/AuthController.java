@@ -67,6 +67,16 @@ public class AuthController {
                 "SELECT id, username, role, status, created_at FROM users WHERE id=?", uid));
     }
 
+    /** FR-105 个人指令（≤2000 字符，随会话注入 system）。 */
+    @PatchMapping("/me/instructions")
+    public ResponseEntity<?> instructions(@RequestAttribute("uid") Long uid,
+                                          @RequestBody Map<String, String> body) {
+        String ci = body.getOrDefault("custom_instructions", "");
+        if (ci.length() > 2000) return err("AUTH-1007", "个人指令超长（≤2000）", 400);
+        db.update("UPDATE users SET custom_instructions=? WHERE id=?", ci, uid);
+        return ResponseEntity.ok(Map.of("ok", true));
+    }
+
     static ResponseEntity<?> err(String code, String msg, int status) {
         return ResponseEntity.status(status).body(Map.of("error", Map.of("code", code, "message", msg)));
     }

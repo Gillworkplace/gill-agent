@@ -43,6 +43,7 @@ services:
       - MINIO_ENDPOINT=http://minio:9000
       - MINIO_ROOT_USER=gilladmin
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-gillminio123}
+      - EXT_SECRET=3f8a9c2b7d1e4f6a8b0c3d5e7f9a1b2c4d6e8f0a2b4c6d8e0f2a4b6c8d0e2f4a
       - DATABASE_URL_DSN=postgresql://gill:${POSTGRES_PASSWORD:-gillpass123}@postgres:5432/gill
       - CUBE_TEMPLATE_ID=${CUBE_TEMPLATE_ID:-tpl-4a99e9f82894474babaddf04}
       - E2B_API_KEY=${E2B_API_KEY:-e2b_00000000000000000000000000000}
@@ -61,6 +62,7 @@ services:
       - JWT_SECRET=${JWT_SECRET:-dev-only-secret-please-change-32b!}
       - INIT_ADMIN_USERNAME=${INIT_ADMIN_USERNAME:-admin}
       - INIT_ADMIN_PASSWORD=${INIT_ADMIN_PASSWORD:-}
+      - EXT_SECRET=3f8a9c2b7d1e4f6a8b0c3d5e7f9a1b2c4d6e8f0a2b4c6d8e0f2a4b6c8d0e2f4a
       - AGENTD_URL=http://agentd:8000
       - MINIO_ENDPOINT=http://minio:9000
       - MINIO_ROOT_USER=gilladmin

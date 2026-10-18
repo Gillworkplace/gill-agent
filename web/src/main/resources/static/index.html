@@ -118,7 +118,7 @@ main{flex:1;display:flex;flex-direction:column;min-width:0}
   <aside>
     <div class="top"><select id="spaceSel" onchange="switchSpace(this.value)" style="max-width:120px;font:inherit;border:1px solid var(--border);border-radius:6px;background:var(--bg2);color:var(--text1);padding:2px"></select>
   <button class="new" onclick="newSession()">＋</button></div>
-<div style="padding:4px 12px;border-bottom:1px solid var(--border);font-size:11px"><a href="javascript:void(0)" onclick="spaceMgr()" style="color:var(--text2)">空间管理 / 邀请成员</a></div>
+<div style="padding:4px 12px;border-bottom:1px solid var(--border);font-size:11px;display:flex;justify-content:space-between"><a href="javascript:void(0)" onclick="spaceMgr()" style="color:var(--text2)">空间管理</a><span id="presence" style="color:var(--text2)"></span></div>
     <div id="sessions"></div>
     <div class="bottom"><span id="whoami"></span><button class="new" onclick="togglePreview()">🌐 预览</button><button class="new" onclick="toggleTheme()">🌗</button><button class="new" onclick="logout()">退出</button></div>
   </aside>
@@ -226,8 +226,9 @@ function connectWs() {
   if (ws) ws.close();
   wsSid = cur;
   ws = new WebSocket(`ws://${location.host}/ws/agent?sessionId=${cur}&token=${TOKEN}`);
-  ws.onopen = () => { $('#banner').classList.remove('on'); reconnectAttempts = 0; };
-  ws.onclose = () => { if (cur === wsSid && TOKEN) { $('#banner').classList.add('on'); setTimeout(connectWs, Math.min(30000, 1000 * Math.pow(2, reconnectAttempts++))); } };
+  ws.onopen = () => { $('#banner').classList.remove('on'); reconnectAttempts = 0;
+    ws.send(JSON.stringify({type:'presence_join', payload:{userId: MYUID}})); };
+  ws.onclose = () => { if (cur === wsSid && TOKEN) { navigator.sendBeacon && false;  $('#banner').classList.add('on'); setTimeout(connectWs, Math.min(30000, 1000 * Math.pow(2, reconnectAttempts++))); } };
   ws.onmessage = ev => handle(JSON.parse(ev.data));
 }
 
@@ -284,6 +285,22 @@ function sendChat() {
 }
 function toggleChat() { $('#chat').classList.toggle('on'); }
 
+async function undoKb(id) { await api('/knowledge/' + id, null, 'DELETE'); sys('已撤销该条记忆'); }
+async function previewFile(id, name) {
+  const r = await api(`/files/${id}/preview`);
+  if (r.type === 'text') {
+    const w = open('', '_blank'); w.document.write(`<pre style="padding:20px;font:13px/1.6 monospace;white-space:pre-wrap">${(r.content||'').replace(/</g,'&lt;')}</pre>`); w.document.title = name;
+  } else if (r.type === 'image') { open(r.url, '_blank'); }
+  else sys(`${name}：二进制文件，请下载查看`);
+}
+async function editInstructions() {
+  const cur = (await api('/auth/me')).custom_instructions || '';
+  const v = prompt('个人指令（每次任务注入，≤2000 字）', cur);
+  if (v === null) return;
+  await api('/me/instructions', {custom_instructions: v}, 'PATCH');
+  sys('🧭 个人指令已保存，下次任务生效');
+}
+
 /* ---------- 空间切换/管理（FR-131/132）---------- */
 let allSpaces = [];
 async function loadSpaceSel(sel) {
@@ -321,12 +338,27 @@ async function loadExts() {
 async function toggleExt(id, status) { await api('/extensions/' + id, {status}, 'PATCH'); loadExts(); }
 async function delExt(id) { if (!confirm('删除扩展？')) return; await api('/extensions/' + id, null, 'DELETE'); loadExts(); }
 async function addExt() {
-  const name = prompt('扩展名（小写字母数字-）'); if (!name) return;
-  const url = prompt('工具 URL 模板（如 https://api.corp.com/tickets/{id}）'); if (!url) return;
-  const host = new URL(url.replace('{id}', 'x')).hostname;
-  const manifest = {tools: [{name: 'call', desc: `调用 ${name} API`, method: 'GET', url, params: {}, network: [host]}]};
-  try { await api(`/spaces/${await ensureSpace()}/extensions`, {name, manifest}); loadExts(); }
-  catch (e) { alert('创建失败：' + e.message); }
+  const kind = prompt('类型：1=HTTP工具 2=脚本工具 3=MCP服务器 4=技能', '1');
+  const name = prompt('名称（小写字母数字-）'); if (!name) return;
+  try {
+    if (kind === '3') {
+      const url = prompt('MCP 端点（Streamable HTTP，如 http://host/mcp）');
+      const auth = prompt('鉴权头（可空，如 Bearer xxx）');
+      const headers = auth ? {Authorization: auth} : {};
+      await api(`/spaces/${await ensureSpace()}/extensions`, {name, extType: 'mcp', manifest: {mcp: {url, headers}}});
+    } else if (kind === '4') {
+      const desc = prompt('技能描述'); const body = prompt('技能指导正文（何时用/怎么做）');
+      await api(`/spaces/${await ensureSpace()}/extensions`, {name, extType: 'skill', manifest: {skill: {description: desc, body_md: body}}});
+    } else if (kind === '2') {
+      const code = prompt('Python 源码（def 内逻辑，参数经 JSON argv[1]）');
+      await api(`/spaces/${await ensureSpace()}/extensions`, {name, extType: 'script-tools', manifest: {tools: [{name: 'run', desc: name, code, params: {}}]}});
+    } else {
+      const url = prompt('工具 URL（如 https://api.corp.com/tickets/{id}）');
+      const host = new URL(url.replace('{id}', 'x')).hostname;
+      await api(`/spaces/${await ensureSpace()}/extensions`, {name, manifest: {tools: [{name: 'call', desc: `调用 ${name}`, method: 'GET', url, params: {}, network: [host]}]}});
+    }
+    loadExts();
+  } catch (e) { alert('创建失败：' + e.message); }
 }
 /* ---------- 管理后台（FR-7x 简化）---------- */
 async function openAdm() {
@@ -398,7 +430,7 @@ async function loadFiles() {
   $('#flist').innerHTML = items.map(f => `
     <div class="frow"><span class="nm">${escapeHtml(f.filename)}</span><span class="sz">${(f.size_bytes/1024).toFixed(0)}KB·${f.status}</span>
       ${f.direction === 'upload' ? `<button onclick="syncFile('${f.id}','${escapeHtml(f.filename)}')">同步到沙箱</button>` : ''}
-      <button onclick="dlFile('${f.id}')">下载</button></div>`).join('') ||
+      <button onclick="previewFile('${f.id}','${escapeHtml(f.filename)}')">预览</button><button onclick="dlFile('${f.id}')">下载</button></div>`).join('') ||
     '<div class="hint2">暂无文件</div>';
 }
 function syncFile(id, name) {
@@ -442,6 +474,14 @@ function handle2(env) {
       });
       $('#stream').appendChild(a); scroll(); break;
     case 'approval_timeout': sys('审批超时已自动拒绝'); break;
+    case 'presence_update': $('#presence').textContent = `👤 ${p.members.length} 在线`; break;
+    case 'kb_captured': {
+      const id = (p.ids || [])[0];
+      sys(`🧠 已记住：${(p.titles || []).join('、')}`);
+      if (id) { const d = document.createElement('div'); d.className = 'msg sys';
+        d.innerHTML = `<span style="cursor:pointer;text-decoration:underline" onclick="undoKb('${id}')">不该记？点击撤销</span>`;
+        $('#stream').appendChild(d); }
+      break; }
     case 'nav_follow':
       if (!demoMode) { $('#preview').classList.add('on'); $('#purl').value = p.url || ''; sys(`跟随演示导航：${p.url}`); }
       break;
@@ -449,7 +489,6 @@ function handle2(env) {
     case 'space_chat_msg': $('#chat').classList.add('on');
       $('#chatmsgs').insertAdjacentHTML('beforeend', `<div class="m"><b>用户${p.userId}</b> ${escapeHtml(p.text)}</div>`);
       $('#chatmsgs').scrollTop = 1e9; break;
-    case 'kb_captured': sys(`🧠 已记住：${(p.titles || []).join('、')}（查看请点左下 📚）`); break;
     case 'screencast_meta': pvMeta = env.payload; break;
     case 'screencast_frame': drawFrame(env.payload.data); break;
   }
@@ -543,8 +582,10 @@ function initTerm() {
 const _origHandle = handle;
 // 清理重复的 input 元素（构建期容错）
 document.querySelectorAll('#input').forEach((el, i, all) => { if (i < all.length - 1) el.remove(); });
+let MYUID = null;
 async function enter() {
   initTerm();
+  try { MYUID = (await api('/auth/me')).id; } catch(e) {}
   $('#login').style.display = 'none'; $('#app').classList.add('on');
   $('#whoami').textContent = USER;
   await loadSessions();

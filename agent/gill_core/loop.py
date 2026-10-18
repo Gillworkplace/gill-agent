@@ -112,12 +112,16 @@ async def run_task(task_text: str, settings: Settings,
                             always_ok.add(rule.id)
                 await emit("agent_tool", {"round": rnd, "tool": name})
                 if name.startswith("ext_") and exts:
-                    from .exts import execute_http, execute_script
+                    from .exts import execute_http, execute_script, execute_mcp
                     await emit("tool_call", {"tool": name, "args": args})
                     is_script = any(
                         any(f"ext_{en}_{t['name']}" == name for t in (m.get("tools") or []) if t.get("code"))
                         for en, m in exts)
-                    out = await (execute_script if is_script else execute_http)(sandbox, exts, name, args, emit=emit)
+                    is_mcp = any(
+                        any(f"ext_{en}_{t['name']}" == name for t in (m.get("tools") or []) if t.get("_mcp_src"))
+                        for en, m in exts)
+                    fn = execute_script if is_script else (execute_mcp if is_mcp else execute_http)
+                    out = await fn(sandbox, exts, name, args, emit=emit)
                     result.tools.append({"name": name, "ok": '"error"' not in out[:60]})
                     messages.append({"role": "tool", "tool_call_id": tc["id"], "content": out[:4000]})
                     continue
