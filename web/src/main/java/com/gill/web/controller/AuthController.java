@@ -64,7 +64,7 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<?> me(@RequestAttribute("uid") Long uid) {
         return ResponseEntity.ok(db.queryForMap(
-                "SELECT id, username, role, status, created_at FROM users WHERE id=?", uid));
+                "SELECT id, username, role, status, custom_instructions, created_at FROM users WHERE id=?", uid));
     }
 
     /** FR-105 个人指令（≤2000 字符，随会话注入 system）。 */
