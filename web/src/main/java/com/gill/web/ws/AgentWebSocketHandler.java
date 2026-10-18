@@ -24,8 +24,15 @@ public class AgentWebSocketHandler extends TextWebSocketHandler {
     private final ObjectMapper om = new ObjectMapper();
     private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
     private final String agentdBase = System.getenv().getOrDefault("AGENTD_URL", "http://agentd:8000");
-    private final Map<String, ScheduledExecutorService> pumps = new ConcurrentHashMap<>();
+    /** 会话 → SSE 泵。必须保证一会话一活泵：僵尸泵与新泵并存会把每条事件 N 倍投递。
+     *  关键：sendAsync 的 future 在响应头到达即完成，cancel 它杀不死 body 流；必须持有 Stream 引用显式 close。 */
+    private record Pump(CompletableFuture<HttpResponse<java.util.stream.Stream<String>>> future,
+                        java.util.concurrent.atomic.AtomicReference<java.util.stream.Stream<String>> body) {}
+    private final Map<String, Pump> pumps = new ConcurrentHashMap<>();
     private final Map<String, Set<WebSocketSession>> conns = new ConcurrentHashMap<>();
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+        Thread t = new Thread(r, "ws-pump-respawn"); t.setDaemon(true); return t;
+    });
 
     public AgentWebSocketHandler(JdbcTemplate db) { this.db = db; }
 
@@ -37,13 +44,39 @@ public class AgentWebSocketHandler extends TextWebSocketHandler {
         Long uid = auth(token);
         if (uid == null || sid == null || !owns(uid, sid)) { ws.close(CloseStatus.POLICY_VIOLATION); return; }
         conns.computeIfAbsent(sid, k -> ConcurrentHashMap.newKeySet()).add(ws);
-        if (pumps.containsKey(sid)) return;   // 已有泵：多端复用
         // 启动 agentd 会话运行时（携带元数据：用户/空间/项目标签/个人指令——知识库与注入依赖）+ 事件泵（SSE → WS）
         post("/internal/sessions/" + sid + "/start", metaJson(uid, sid));
-        ScheduledExecutorService ex = Executors.newSingleThreadScheduledExecutor();
-        pumps.put(sid, ex);
-        final String sseUrl = agentdBase + "/internal/sessions/" + sid + "/events";
-        ex.submit(() -> pumpSse(sseUrl, sid));
+        startPump(sid);
+    }
+
+    private void startPump(String sid) {
+        if (pumps.containsKey(sid)) return;   // 已有泵：多端复用
+        var req = HttpRequest.newBuilder(URI.create(agentdBase + "/internal/sessions/" + sid + "/events")).GET().build();
+        var f = http.sendAsync(req, HttpResponse.BodyHandlers.ofLines());
+        var bodyRef = new java.util.concurrent.atomic.AtomicReference<java.util.stream.Stream<String>>();
+        var pump = new Pump(f, bodyRef);
+        var prev = pumps.putIfAbsent(sid, pump);
+        if (prev != null) { f.cancel(true); return; }
+        f.thenAccept(resp -> {
+                    bodyRef.set(resp.body());
+                    try (var lines = resp.body()) {
+                        lines.forEach(line -> { if (line.startsWith("data: ")) send(sid, line.substring(6)); });
+                    } catch (Exception ignored) { }
+                })
+                .exceptionally(e -> null)
+                .thenRun(() -> {   // 泵结束：无连接则回收；仍有连接则 2s 后重启（agentd 重启/网络抖动自愈）
+                    pumps.remove(sid, pump);
+                    var set = conns.get(sid);
+                    if (set != null && !set.isEmpty()) scheduler.schedule(() -> startPump(sid), 2, TimeUnit.SECONDS);
+                });
+    }
+
+    private void stopPump(String sid) {
+        var pump = pumps.remove(sid);
+        if (pump == null) return;
+        pump.future().cancel(true);
+        var lines = pump.body().get();
+        if (lines != null) try { lines.close(); } catch (Exception ignored) { }   // 关闭 body 流才会真正断开 SSE 连接
     }
 
     private String metaJson(Long uid, String sid) {
@@ -59,18 +92,6 @@ public class AgentWebSocketHandler extends TextWebSocketHandler {
         } catch (Exception e) {
             return "{\"meta\":{}}";
         }
-    }
-
-    private void pumpSse(String url, String sid) {
-        try {
-            java.net.http.HttpRequest req = HttpRequest.newBuilder(URI.create(url)).GET().build();
-            var body = http.send(req, HttpResponse.BodyHandlers.ofLines());
-            body.body().forEach(line -> {
-                if (line.startsWith("data: ")) {
-                    send(sid, line.substring(6));
-                }
-            });
-        } catch (Exception ignored) { /* 断开由清理任务回收 */ }
     }
 
     @Override
@@ -97,9 +118,8 @@ public class AgentWebSocketHandler extends TextWebSocketHandler {
         if (sid != null) {
             var set = conns.get(sid);
             if (set != null) set.remove(ws);
-            if (set == null || set.isEmpty()) {          // 最后一端断开才停泵
-                var ex = pumps.remove(sid);
-                if (ex != null) ex.shutdownNow();
+            if (set == null || set.isEmpty()) {          // 最后一端断开才停泵（关 body 流真正断开 SSE，杜绝僵尸泵 N 倍投递）
+                stopPump(sid);
                 conns.remove(sid);
             }
         }

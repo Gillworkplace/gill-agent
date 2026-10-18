@@ -72,11 +72,13 @@ public class JwtFilter extends OncePerRequestFilter {
             if (!"ACTIVE".equals(status)) { deny(res, "AUTH-1005", 401); return; }
             req.setAttribute("uid", uid);
             req.setAttribute("role", role);
-            chain.doFilter(req, res);
         } catch (Exception e) {
+            // 仅认证环节异常才判 401；下游控制器异常在 filter 外抛出，交 Spring 返回 500，不得伪装成登录失效
             System.err.println("[JWT] parse fail " + path + " : " + e);
             deny(res, "AUTH-1004", 401);
+            return;
         }
+        chain.doFilter(req, res);
     }
 
     /** 每用户滑动窗口限流（单副本内存实现）。 */

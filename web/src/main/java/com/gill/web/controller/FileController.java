@@ -31,6 +31,15 @@ public class FileController {
                 .build();
     }
 
+    /** 预签名 URL 出口改公网地址：浏览器直传/下载必须可达（容器内网名 minio:9000 外部不可解析）。 */
+    private String presign(io.minio.http.Method m, String key, int minutes) throws Exception {
+        String url = minio.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
+                .method(m).bucket(BUCKET).object(key).expiry(minutes, java.util.concurrent.TimeUnit.MINUTES).build());
+        String internal = env("MINIO_ENDPOINT", "http://minio:9000");
+        String external = env("MINIO_PUBLIC_ENDPOINT", "");
+        return external.isBlank() || internal.isBlank() ? url : url.replaceFirst("^" + java.util.regex.Pattern.quote(internal), external);
+    }
+
     private static String env(String k, String d) { return System.getenv(k) == null ? d : System.getenv(k); }
 
     // ---- BD-2 文件类型管控：黑名单扩展名 + 魔数检测（PE/ELF/OLE2/脚本 shebang）----
@@ -47,9 +56,10 @@ public class FileController {
     }
 
     private String spaceOf(long uid, String sid) {
-        return db.queryForObject(
+        var rows = db.queryForList(
                 "SELECT s.space_id::text FROM sessions s JOIN space_members sm ON sm.space_id=s.space_id AND sm.user_id=? WHERE s.id=?::uuid",
-                String.class, uid, sid);
+                uid, sid);
+        return rows.isEmpty() ? null : (String) rows.get(0).get("space_id");
     }
 
     public record UploadReq(String filename, long size, String sessionId) {}
@@ -59,15 +69,17 @@ public class FileController {
         String name = sanitize(req.filename());
         if (name == null || req.size() > 500 * 1024 * 1024)
             return AuthController.err("FILE-4004", "文件名非法或超过 500MB", 400);
+        if (req.sessionId() == null || !req.sessionId().matches("^[0-9a-fA-F-]{36}$"))
+            return AuthController.err("FILE-4006", "缺少合法的 sessionId", 400);
         int dot = name.lastIndexOf('.');
         String ext = dot >= 0 ? name.substring(dot + 1).toLowerCase() : "";
         if (EXT_BLACKLIST.contains(ext))
             return AuthController.err("FILE-4002", "文件类型不允许：" + ext + "（黑名单管控）", 403);
         String spaceId = spaceOf(uid, req.sessionId());
+        if (spaceId == null)
+            return AuthController.err("FILE-4006", "会话不存在或无权访问", 404);
         String objectKey = "uploads/" + spaceId + "/" + UUID.randomUUID() + "/" + name;
-        String url = minio.getPresignedObjectUrl(
-                GetPresignedObjectUrlArgs.builder().method(io.minio.http.Method.PUT).bucket(BUCKET)
-                        .object(objectKey).expiry(15, java.util.concurrent.TimeUnit.MINUTES).build());
+        String url = presign(io.minio.http.Method.PUT, objectKey, 15);
         String id = UUID.randomUUID().toString();
         db.update("INSERT INTO file_objects(id, space_id, user_id, session_id, direction, object_key, filename, size_bytes, status) " +
                         "VALUES (?::uuid,?::uuid,?,?::uuid,'upload',?,?,?,'pending')",
@@ -109,9 +121,7 @@ public class FileController {
         String key = (String) rows.get(0).get("object_key");
         String ext = name.contains(".") ? name.substring(name.lastIndexOf('.') + 1).toLowerCase() : "";
         if (java.util.Set.of("png", "jpg", "jpeg", "gif", "webp").contains(ext)) {
-            String url = minio.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
-                    .method(io.minio.http.Method.GET).bucket(BUCKET).object(key)
-                    .expiry(10, java.util.concurrent.TimeUnit.MINUTES).build());
+            String url = presign(io.minio.http.Method.GET, key, 10);
             return ResponseEntity.ok(Map.of("type", "image", "url", url));
         }
         if (java.util.Set.of("txt", "md", "csv", "json", "py", "js", "ts", "html", "css", "xml", "yaml", "yml", "sql", "log", "sh").contains(ext)
@@ -135,9 +145,7 @@ public class FileController {
     public ResponseEntity<?> downloadUrl(@RequestAttribute("uid") Long uid, @PathVariable String id) throws Exception {
         var rows = db.queryForList("SELECT object_key, filename FROM file_objects WHERE id=?::uuid AND user_id=?", id, uid);
         if (rows.isEmpty()) return AuthController.err("FILE-4005", "文件不存在", 404);
-        String url = minio.getPresignedObjectUrl(
-                GetPresignedObjectUrlArgs.builder().method(io.minio.http.Method.GET).bucket(BUCKET)
-                        .object((String) rows.get(0).get("object_key")).expiry(30, java.util.concurrent.TimeUnit.MINUTES).build());
+        String url = presign(io.minio.http.Method.GET, (String) rows.get(0).get("object_key"), 30);
         return ResponseEntity.ok(Map.of("url", url, "filename", rows.get(0).get("filename")));
     }
 

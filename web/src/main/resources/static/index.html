@@ -28,7 +28,11 @@ aside .new{font-size:12px;padding:4px 10px;border:1px solid var(--border);border
 .sess{padding:10px 12px;border-radius:8px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center}
 .sess:hover{background:var(--bg2)}.sess.on{background:var(--bg3)}
 .sess .dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
-aside .bottom{padding:12px 16px;border-top:1px solid var(--border);font-size:12px;color:var(--text2);display:flex;justify-content:space-between;align-items:center}
+aside .bottom{padding:12px 16px;border-top:1px solid var(--border);font-size:12px;color:var(--text2);display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap}
+aside .tools{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px;border-top:1px solid var(--border)}
+aside .tools button{border:1px solid var(--border);background:var(--bg2);border-radius:8px;padding:8px 4px;font-size:12px;color:var(--text1)}
+aside .tools button:hover{border-color:var(--accent);color:var(--accent)}
+#mtop{display:none}
 main{flex:1;display:flex;flex-direction:column;min-width:0}
 #stream{flex:1;overflow:auto;padding:24px 32px;display:flex;flex-direction:column;gap:14px}
 .msg{max-width:78%;padding:10px 14px;border-radius:12px;font-size:14px;line-height:1.65;white-space:pre-wrap;word-break:break-word}
@@ -83,7 +87,7 @@ main{flex:1;display:flex;flex-direction:column;min-width:0}
 .appr .btns{display:flex;gap:8px}.appr .btns button{padding:6px 16px;border:none;border-radius:8px;font-size:13px}
 .appr .btns .y{background:var(--ok);color:#fff}.appr .btns .n{background:var(--bg3);color:var(--text2)}.appr .btns .a{background:var(--bg3);color:var(--accent);border:1px solid var(--accent)}
 .appr .cnt{font-size:11px;color:var(--text2);margin-left:auto;align-self:center}
-#modebar{position:fixed;bottom:8px;left:270px;z-index:40;font-size:12px;color:var(--text2);display:flex;gap:6px;align-items:center}
+#modebar{padding:6px 16px;border-top:1px solid var(--border);background:var(--bg1);font-size:12px;color:var(--text2);display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 #modebar button{border:1px solid var(--border);background:var(--bg1);border-radius:6px;padding:2px 10px;font-size:12px;color:var(--text2)}
 #modebar button.on{color:#fff;background:var(--accent);border-color:var(--accent)}
 #chat{display:none;position:fixed;left:276px;bottom:196px;width:320px;height:240px;background:var(--bg1);border:1px solid var(--border);border-radius:12px;flex-direction:column;z-index:45}
@@ -95,6 +99,34 @@ main{flex:1;display:flex;flex-direction:column;min-width:0}
 #chat .inp input{flex:1;border:none;background:var(--bg2);color:var(--text1);padding:8px 12px;font:inherit;font-size:13px;border-radius:0 0 0 12px}
 #chat .inp button{border:none;background:var(--accent);color:#fff;padding:0 14px;border-radius:0 0 12px 0}
 .hint{align-self:center;font-size:12px;color:var(--text2);margin-top:auto}
+#pvov{display:none;position:fixed;inset:0;z-index:75;background:var(--bg1);flex-direction:column}
+#pvov .bar{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;font-size:13px}
+#pvov .bar button{border:1px solid var(--border);background:var(--bg2);border-radius:6px;padding:4px 10px}
+#pvbody{flex:1;overflow:auto;margin:0;padding:16px;font:13px/1.6 var(--mono);white-space:pre-wrap;word-break:break-word}
+/* ---------- 移动端适配（≤768px）：抽屉侧栏 + 全屏面板 ---------- */
+@media (max-width:768px){
+  body{height:100dvh}
+  #app{position:relative}
+  aside{position:fixed;left:0;top:0;bottom:0;z-index:70;width:78vw;max-width:320px;transform:translateX(-102%);transition:transform .25s ease;box-shadow:0 0 40px rgba(0,0,0,.25)}
+  aside.open{transform:none}
+  #mtop{display:flex;gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--border);background:var(--bg1);font-size:15px}
+  #mtop .sp{flex:1}
+  #menuBtn{border:1px solid var(--border);background:var(--bg2);border-radius:8px;padding:6px 10px;font-size:16px}
+  #stream{padding:12px}
+  .msg{max-width:92%}
+  .tool{max-width:92%}
+  .appr{max-width:92%}
+  #inputbar{padding:8px 12px}
+  #term{height:150px}
+  #modebar{padding:6px 12px}
+  #fpanel{left:8px;right:8px;top:8px;bottom:8px;width:auto}
+  #preview{left:8px;right:8px;top:8px;bottom:8px;width:auto}
+  #chat{left:8px;right:8px;bottom:8px;width:auto;height:52vh}
+  #kb .bar{flex-wrap:wrap;gap:8px;padding:10px 12px}
+  #kb .bar input{width:100%;order:5}
+  #kblist{padding:12px;grid-template-columns:1fr}
+  .card{width:auto;margin:0 16px}
+}
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css">
 <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
@@ -120,12 +152,21 @@ main{flex:1;display:flex;flex-direction:column;min-width:0}
   <button class="new" onclick="newSession()">＋</button></div>
 <div style="padding:4px 12px;border-bottom:1px solid var(--border);font-size:11px;display:flex;justify-content:space-between"><a href="javascript:void(0)" onclick="spaceMgr()" style="color:var(--text2)">空间管理</a><span id="presence" style="color:var(--text2)"></span></div>
     <div id="sessions"></div>
+    <div class="tools">
+      <button onclick="toggleFiles()" title="文件">📁 文件</button>
+      <button onclick="openKb()" title="知识库">🧠 知识库</button>
+      <button onclick="openEx()" title="扩展中心">🔌 扩展</button>
+      <button onclick="toggleChat()" title="成员聊天">💬 聊天</button>
+      <button onclick="editInstructions()" title="个人指令">🧭 指令</button>
+      <button onclick="openAdm()" title="管理后台（仅管理员）">⚙️ 管理</button>
+    </div>
     <div class="bottom"><span id="whoami"></span><button class="new" onclick="togglePreview()">🌐 预览</button><button class="new" onclick="toggleTheme()">🌗</button><button class="new" onclick="logout()">退出</button></div>
   </aside>
   <main>
-    <div id="stream"><div class="hint">选择或新建一个会话开始 · Enter 发送 / Shift+Enter 换行 / Esc 停止 · Ctrl+` 终端</div></div>
-    <textarea id="input" rows="1" placeholder="描述任务，例如：写一个爬虫脚本并运行验证…"></textarea>
-    <div id="inputbar" style="border-top:none;padding-top:0"><textarea id="input" rows="1" placeholder="描述任务，例如：写一个脚本并在沙箱运行验证…（Enter 发送）"></textarea><button id="send" onclick="sendOrStop()">发送</button></div>
+    <div id="mtop"><button id="menuBtn" onclick="toggleAside()">☰</button><b>Gill Agent</b><span class="sp"></span><span id="whoami2" style="font-size:12px;color:var(--text2)"></span></div>
+    <div id="stream"><div class="hint">选择或新建一个会话开始 · Enter 发送 / Shift+Enter 换行 · Esc 停止 · Ctrl+` 终端</div></div>
+    <div id="modebar">审批档：<button id="mAuto" class="on" onclick="setMode('auto')">auto 全自动</button><button id="mSug" onclick="setMode('suggest')">suggest 需审批</button></div>
+    <div id="inputbar"><textarea id="input" rows="1" placeholder="描述任务，例如：写一个脚本并在沙箱运行验证…（Enter 发送）"></textarea><button id="send" onclick="sendOrStop()">发送</button></div>
     <div id="term"></div>
   </main>
 </div>
@@ -141,7 +182,6 @@ main{flex:1;display:flex;flex-direction:column;min-width:0}
   <div id="chatmsgs"></div>
   <div class="inp"><input id="chatin" placeholder="说点什么… / @agent 帮我…"><button onclick="sendChat()">送</button></div>
 </div>
-<div id="modebar">审批档：<button id="mAuto" class="on" onclick="setMode('auto')">auto 全自动</button><button id="mSug" onclick="setMode('suggest')">suggest 需审批</button></div>
 <div id="fpanel">
   <div class="bar"><b>📁 文件</b><span class="sp" style="flex:1"></span>
     <button onclick="pickUpload()">⬆ 上传</button><button onclick="wsSend({type:'file_list',payload:{}})">⟳ 工作区</button>
@@ -201,24 +241,31 @@ async function doRegister() { try { await api('/auth/register', {username: $('#l
 function logout() { localStorage.clear(); TOKEN=''; location.reload(); }
 
 /* ---------- 会话 ---------- */
+let curSpaceId = null;
+async function currentSpaceId() {
+  if (curSpaceId) return curSpaceId;
+  const sp = await api('/spaces');
+  const saved = localStorage.getItem('gill_space');
+  curSpaceId = (saved && sp.some(x => x.id === saved)) ? saved : (sp.find(s => s.type === 'personal') || sp[0])?.id;
+  return curSpaceId;
+}
 async function loadSessions() {
-  const spaces = await api('/spaces');
-  const sid = spaces.find(s => s.type === 'personal')?.id || spaces[0]?.id;
+  const sid = await currentSpaceId();
   if (!sid) return;
   sessions = await api('/spaces/' + sid + '/sessions');
   renderSessions();
 }
 async function newSession() {
-  const spaces = await api('/spaces');
-  const sid = spaces.find(s => s.type === 'personal')?.id;
+  const sid = await currentSpaceId();
+  if (!sid) return;
   const s = await api('/spaces/' + sid + '/sessions', {title: '新会话 ' + (sessions.length + 1)});
-  await loadSpaceSel(); await loadSessions(); openSession(s.id);
+  await loadSpaceSel(sid); await loadSessions(); openSession(s.id);
 }
 function renderSessions() {
   $('#sessions').innerHTML = sessions.map(s =>
     `<div class="sess ${s.id === cur ? 'on' : ''}" onclick="openSession('${s.id}')">${s.title || '会话'}<span class="dot"></span></div>`).join('');
 }
-function openSession(id) { cur = id; renderSessions(); $('#stream').innerHTML = ''; hist(id); connectWs(); }
+function openSession(id) { cur = id; renderSessions(); $('#stream').innerHTML = ''; hist(id); connectWs(); document.querySelector('aside').classList.remove('open'); }
 
 /* ---------- WS ---------- */
 function connectWs() {
@@ -289,7 +336,16 @@ async function undoKb(id) { await api('/knowledge/' + id, null, 'DELETE'); sys('
 async function previewFile(id, name) {
   const r = await api(`/files/${id}/preview`);
   if (r.type === 'text') {
-    const w = open('', '_blank'); w.document.write(`<pre style="padding:20px;font:13px/1.6 monospace;white-space:pre-wrap">${(r.content||'').replace(/</g,'&lt;')}</pre>`); w.document.title = name;
+    // 页内预览层：window.open('') 在内嵌浏览器/移动端不可靠（会被当作导航）
+    let ov = $('#pvov');
+    if (!ov) {
+      ov = document.createElement('div'); ov.id = 'pvov';
+      ov.innerHTML = `<div class="bar"><b id="pvname"></b><span style="flex:1"></span><button onclick="document.getElementById('pvov').style.display='none'">✕ 关闭</button></div><pre id="pvbody"></pre>`;
+      document.body.appendChild(ov);
+    }
+    $('#pvname').textContent = name || '预览';
+    $('#pvbody').textContent = r.content || '';
+    ov.style.display = 'flex';
   } else if (r.type === 'image') { open(r.url, '_blank'); }
   else sys(`${name}：二进制文件，请下载查看`);
 }
@@ -307,7 +363,11 @@ async function loadSpaceSel(sel) {
   allSpaces = await api('/spaces');
   $('#spaceSel').innerHTML = allSpaces.map(x => `<option value="${x.id}" ${x.id === sel ? 'selected' : ''}>${x.type === 'personal' ? '🏠' : '👥'} ${escapeHtml(x.name)}</option>`).join('');
 }
-async function switchSpace(id) { kbSpace = id; curSpaceId = id; await loadSessions(); }
+async function switchSpace(id) {
+  curSpaceId = id; kbSpace = id;
+  localStorage.setItem('gill_space', id);
+  await loadSessions();
+}
 async function spaceMgr() {
   $('#sp').style.display = 'flex';
   const m = await api(`/spaces/${$('#spaceSel').value}/members`);
@@ -316,6 +376,7 @@ async function spaceMgr() {
 async function createSpace() {
   const name = $('#spName').value.trim(); if (!name) return;
   const r = await api('/spaces', {name});
+  curSpaceId = r.id; kbSpace = r.id; localStorage.setItem('gill_space', r.id);
   await loadSpaceSel(r.id); await loadSessions(); $('#sp').style.display = 'none';
 }
 async function inviteUser() {
@@ -377,7 +438,7 @@ async function admToggle(id, status) { await api('/admin/users/' + id, {status},
 let kbSpace = null;
 async function openKb() {
   $('#kb').classList.add('on');
-  if (!kbSpace) { const spaces = await api('/spaces'); kbSpace = spaces.find(s => s.type === 'personal')?.id; }
+  kbSpace = await currentSpaceId();
   loadKb('');
 }
 async function loadKb(q) {
@@ -402,14 +463,13 @@ async function delKb(id) { if (!confirm('删除该条知识？')) return; await 
 async function pinKb(id, pinned) { await api('/knowledge/' + id, {pinned}, 'PATCH'); loadKb($('#kbq').value); }
 
 /* ---------- 文件面板（FR-61~64）---------- */
-let curSpaceId = null, fileKeys = {};
+let fileKeys = {};
 function toggleFiles() {
   const f = $('#fpanel'); f.classList.toggle('on');
   if (f.classList.contains('on')) loadFiles();
 }
 async function ensureSpace() {
-  if (!curSpaceId) { const sp = await api('/spaces'); curSpaceId = sp.find(s => s.type === 'personal')?.id; }
-  return curSpaceId;
+  return await currentSpaceId();
 }
 function pickUpload() {
   const inp = document.createElement('input'); inp.type = 'file';
@@ -463,6 +523,7 @@ function handle2(env) {
         <div class="btns"><button class="y">批准</button><button class="n">拒绝</button><button class="a">本会话总是允许</button>
         <span class="cnt">${p.expiresIn || 120}s</span></div>`;
       const cid = p.cid;
+      a.dataset.cid = cid;
       let left = p.expiresIn || 120;
       const timer = setInterval(() => { left--; const c = a.querySelector('.cnt'); if (c) c.textContent = left + 's';
         if (left <= 0) { clearInterval(timer); a.querySelectorAll('button').forEach(b => b.disabled = true); } }, 1000);
@@ -473,7 +534,15 @@ function handle2(env) {
         a.querySelector('.cnt').textContent = action === 'approve' ? '已批准' : action === 'always_allow' ? '本会话免批' : '已拒绝';
       });
       $('#stream').appendChild(a); scroll(); break;
-    case 'approval_timeout': sys('审批超时已自动拒绝'); break;
+    case 'approval_timeout': {
+      sys('审批超时已自动拒绝');
+      document.querySelectorAll('.appr').forEach(c => {
+        if (c.dataset.cid === p.cid) {
+          const cnt = c.querySelector('.cnt'); if (cnt) cnt.textContent = '已拒绝（超时）';
+          c.querySelectorAll('button').forEach(b => b.disabled = true);
+        }
+      });
+      break; }
     case 'presence_update': $('#presence').textContent = `👤 ${p.members.length} 在线`; break;
     case 'kb_captured': {
       const id = (p.ids || [])[0];
@@ -487,6 +556,7 @@ function handle2(env) {
       break;
     case 'op_lock_changed': sys(p.holder ? `🔒 接力模式：操作权 → 用户${p.holder}` : (p.mode === 'relay' ? '接力模式：操作权空闲（点「接力」旁按钮申请）' : '已切回自由模式')); break;
     case 'space_chat_msg': $('#chat').classList.add('on');
+      if (Number(p.userId) === MYUID) break;   // 自己的本地已 echo，避免双显
       $('#chatmsgs').insertAdjacentHTML('beforeend', `<div class="m"><b>用户${p.userId}</b> ${escapeHtml(p.text)}</div>`);
       $('#chatmsgs').scrollTop = 1e9; break;
     case 'screencast_meta': pvMeta = env.payload; break;
@@ -543,8 +613,9 @@ function sendOrStop() {
   $('#input').value = ''; scroll();
   taskRunning = true; $('#send').textContent = '停止'; $('#send').classList.add('stop');
   connectWs();
-  ws.onopen = () => ws.send(JSON.stringify({type: 'user_input', payload: {text}}));
-  if (ws.readyState === 1) ws.send(JSON.stringify({type: 'user_input', payload: {text}}));
+  // 不得覆盖 connectWs 的 onopen（会丢失 presence_join/重连横幅逻辑），改用一次性监听
+  const send = () => ws.send(JSON.stringify({type: 'user_input', payload: {text}}));
+  if (ws.readyState === 1) send(); else ws.addEventListener('open', send, {once: true});
 }
 
 let approvalMode = 'auto';
@@ -577,14 +648,14 @@ function initTerm() {
 }
 // terminal 事件改写 xterm
 const _origHandle = handle;
-// 清理重复的 input 元素（构建期容错）
-document.querySelectorAll('#input').forEach((el, i, all) => { if (i < all.length - 1) el.remove(); });
+function toggleAside() { document.querySelector('aside').classList.toggle('open'); }
 let MYUID = null;
 async function enter() {
   initTerm();
   try { MYUID = (await api('/auth/me')).id; } catch(e) {}
   $('#login').style.display = 'none'; $('#app').classList.add('on');
-  $('#whoami').textContent = USER;
+  $('#whoami').textContent = USER; $('#whoami2').textContent = USER;
+  await loadSpaceSel(await currentSpaceId());
   await loadSessions();
   if (sessions.length) openSession(sessions[0].id); else newSession();
 }

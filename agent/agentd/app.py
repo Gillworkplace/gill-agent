@@ -233,6 +233,11 @@ class SessionRuntime:
                         audit_rows.append({**cur_cmd, "exit_code": ec,
                                            "duration_ms": int((_time.time() - cur_cmd["t0"]) * 1000)})
                         cur_cmd = None
+                    elif payload.get("denied") and payload.get("command"):
+                        # 被审批拦截的命令没有 tool_call 前置（cur_cmd 为空）：合规上必须留痕
+                        audit_rows.append({"command": payload["command"], "t0": _time.time(),
+                                           "exit_code": ec, "duration_ms": 0,
+                                           "risk_level": payload.get("risk"), "decision": "denied"})
                 elif type_ == "usage":
                     usage_acc["prompt"] += payload.get("prompt", 0)
                     usage_acc["completion"] += payload.get("completion", 0)
@@ -285,7 +290,8 @@ class SessionRuntime:
                         await st.append_message(self.sid, seq, "assistant", result.answer, actor=actor)
                     for ar in audit_rows:
                         await st.audit_command(self.sid, meta.get("space_id"), actor, sbx_id,
-                                               ar["command"], ar["exit_code"], ar["duration_ms"])
+                                               ar["command"], ar["exit_code"], ar["duration_ms"],
+                                               risk_level=ar.get("risk_level"), decision=ar.get("decision"))
                     await st.record_usage(actor, self.sid, self.s.zhipu_model,
                                           usage_acc["prompt"], usage_acc["completion"])
                     await st.close()

@@ -21,7 +21,7 @@ services:
       MINIO_ROOT_USER: gilladmin
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-gillminio123}
     volumes: [miniodata:/data]
-    ports: ["127.0.0.1:9001:9001"]
+    ports: ["127.0.0.1:9000:9000", "127.0.0.1:9001:9001"]
   minio-init:
     image: minio/mc
     depends_on: [minio]
@@ -65,6 +65,7 @@ services:
       - EXT_SECRET=3f8a9c2b7d1e4f6a8b0c3d5e7f9a1b2c4d6e8f0a2b4c6d8e0f2a4b6c8d0e2f4a
       - AGENTD_URL=http://agentd:8000
       - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_PUBLIC_ENDPOINT=${MINIO_PUBLIC_ENDPOINT:-http://localhost:9000}
       - MINIO_ROOT_USER=gilladmin
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-gillminio123}
       - HTTP_PROXY=${HTTP_PROXY:-http://host.docker.internal:7890}

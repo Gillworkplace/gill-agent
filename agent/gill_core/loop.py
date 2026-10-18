@@ -97,16 +97,17 @@ async def run_task(task_text: str, settings: Settings,
                 if approve is not None and name == "shell":   # 审批门：回调存在即启用（agentd 会话档位控制）
                     rule = risk.assess(args.get("command", ""))
                     if rule and rule.id not in always_ok:
-                        await emit("approval_request", {
-                            "cid": tc["id"], "command": args.get("command", ""),
-                            "riskLevel": rule.level, "reason": rule.reason, "ruleId": rule.id})
+                        # approval_request 仅由 agentd 的 approve() 发出（携带可响应的 uuid cid）；
+                        # 此处若再发一张（cid=tool_call_id）前端会双卡，且首卡点击服务端匹配不到、静默丢弃
                         ok = (await approve(args["command"], rule)) if approve else False
                         if not ok:
                             messages.append({"role": "assistant", "content": None,
                                              "tool_calls": [tc]})
                             messages.append({"role": "tool", "tool_call_id": tc["id"],
                                              "content": "用户拒绝了该命令的执行（或超时自动拒绝）。请改用安全方式或询问用户。"})
-                            await emit("tool_result", {"tool": name, "exit_code": -2, "denied": True})
+                            await emit("tool_result", {"tool": name, "exit_code": -2, "denied": True,
+                                                       "command": args.get("command", ""),
+                                                       "risk": rule.level})
                             continue
                         if approve is not None and getattr(approve, "always", False):
                             always_ok.add(rule.id)
