@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+import time
 import uuid
 
 from gill_core.bus import Bus
@@ -23,6 +24,7 @@ class SessionRuntime:
     def __init__(self, bus: Bus, settings: Settings, sid: str):
         self.bus, self.s, self.sid = bus, settings, sid
         self.sandbox: BaseSandbox | None = None
+        self._sandbox_used: float = 0.0
         self.browser: BrowserSession | None = None
         self.history: list[dict] = []
         self.session_meta: dict = {}
@@ -94,11 +96,19 @@ class SessionRuntime:
             await self._emit("error", {"code": "CDP-6001", "message": f"浏览器服务不可用：{e}"})
 
     async def ensure_sandbox(self):
+        # 空闲超过 4 分钟的旧沙箱可能已被远端回收（envd 404），先探活，失败即重建
+        if self.sandbox is not None and time.time() - self._sandbox_used > 240:
+            try:
+                await self.sandbox.run("true", timeout=10)
+            except Exception:
+                log.warning("沙箱已失效（可能被回收），重建 sid=%s", self.sid)
+                self.sandbox = None
         if self.sandbox is None:
             await self._emit("session_status", {"status": "sandbox_creating"})
             self.sandbox = make_sandbox(self.s)
             await self._emit("session_status", {"status": "active", "sandboxId": self.sandbox.sandbox_id
                                                 if hasattr(self.sandbox, "sandbox_id") else "mock"})
+        self._sandbox_used = time.time()
 
     async def _emit(self, type_: str, payload: dict, **kw):
         await self.bus.publish_evt(self.sid, type_, payload, **kw)

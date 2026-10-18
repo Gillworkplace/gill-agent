@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Gill Agent — 协作开发工作台</title>
+  <script>
+    // 主题在 CSS 加载前应用，避免暗色用户看到白屏闪烁
+    document.documentElement.dataset.theme = localStorage.getItem('gill_theme') || ''
+  </script>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
