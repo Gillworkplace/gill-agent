@@ -444,13 +444,13 @@ async function dlFile(id) {
 }
 
 function handle2(env) {
+  const p = env.payload || {};
   switch (env.type) {
     case 'file_synced': sys(`✅ 已同步到沙箱：${env.payload.dest}`); break;
     case 'file_exported': sys(`📤 已导出：${env.payload.path}`); break;
     case 'file_tree':
       $('#fpanel').classList.add('on');
-      $('#flist').innerHTML = (env.payload.out || '').split('---SIZES---')[0].trim().split('
-')
+      $('#flist').innerHTML = (env.payload.out || '').split('---SIZES---')[0].trim().split('\n')
         .filter(Boolean).map(l => `<div class="frow"><span class="nm">${escapeHtml(l)}</span>
           <button onclick="wsSend({type:'file_export',payload:{path:'/home/user/${l}'}})">导出</button></div>`).join('') || '<div class="hint2">工作区为空</div>';
       break;
@@ -510,10 +510,7 @@ function handle(env) {
     case 'terminal':
       const term = $('#term'); term.classList.add('on');
       const txt = (p.stream === 'stderr' ? '[31m' : '') + (p.data || '');
-      if (xterm) { xterm.write(txt.replace(/
-/g, '
-
-')); }
+      if (xterm) { xterm.write(txt.replace(/\n/g, '\n\n')); }
       else { term.textContent += txt; term.scrollTop = term.scrollHeight; }
       break;
     case 'session_status':
