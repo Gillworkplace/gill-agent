@@ -525,10 +525,12 @@ function handle2(env) {
       const cid = p.cid;
       a.dataset.cid = cid;
       let left = p.expiresIn || 120;
-      const timer = setInterval(() => { left--; const c = a.querySelector('.cnt'); if (c) c.textContent = left + 's';
+      const timer = setInterval(() => { left--; const c = a.querySelector('.cnt');
+        if (a.dataset.done || !c) { clearInterval(timer); return; }
+        c.textContent = left + 's';
         if (left <= 0) { clearInterval(timer); a.querySelectorAll('button').forEach(b => b.disabled = true); } }, 1000);
       a.querySelectorAll('button').forEach((b, i) => b.onclick = () => {
-        clearInterval(timer); a.querySelectorAll('button').forEach(x => x.disabled = true);
+        clearInterval(timer); a.dataset.done = '1'; a.querySelectorAll('button').forEach(x => x.disabled = true);
         const action = ['approve', 'deny', 'always_allow'][i];
         wsSend({type: 'approval_response', payload: {cid, action}});
         a.querySelector('.cnt').textContent = action === 'approve' ? '已批准' : action === 'always_allow' ? '本会话免批' : '已拒绝';
@@ -538,6 +540,7 @@ function handle2(env) {
       sys('审批超时已自动拒绝');
       document.querySelectorAll('.appr').forEach(c => {
         if (c.dataset.cid === p.cid) {
+          c.dataset.done = '1';
           const cnt = c.querySelector('.cnt'); if (cnt) cnt.textContent = '已拒绝（超时）';
           c.querySelectorAll('button').forEach(b => b.disabled = true);
         }
