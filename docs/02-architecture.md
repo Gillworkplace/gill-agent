@@ -2,10 +2,10 @@
 
 | 项 | 内容 |
 |---|---|
-| 文档版本 | v1.1（待评审） |
-| 编写日期 | 2026-10-16 |
-| 关联文档 | 《01-需求澄清》《03-测试用例设计》 |
-| 变更说明 | v1.1：应用层全面无状态化（Redis 事件总线，支撑多节点横向扩展）；新增 MinIO 文件链路、RBAC 管理后台、可观测性、配额治理；中间件按 D5 单机部署 |
+| 文档版本 | v1.3 |
+| 编写日期 | 2026-10-16（v1.3 修订 2026-10-18） |
+| 关联文档 | 《01-需求澄清 v1.5》《03-测试用例设计 v1.2》《04-LLD v1.1》 |
+| 变更说明 | v1.1：应用层全面无状态化（Redis 事件总线）；新增 MinIO 文件链路、RBAC 管理后台、可观测性、配额治理。v1.2：浏览器全量 E2E 修复固化（WS SSE 泵生命周期、审批单发射器、拦截审计、预签名公网出口、沙箱探活重建）。v1.3：前端重构为 Vue 3 + TS + Vite + Pinia 正规工程（web/frontend/），三阶段镜像构建，移动端 ≤768px 适配 |
 
 ---
 
@@ -211,14 +211,16 @@ agent/
 
 ### 4.3 管理后台前端
 
-路由 `/admin`（ADMIN 可见）：用户管理（搜索/禁用/重置密码/配额编辑）、会话治理（筛选/终止）、审计检索（时间/用户/类型/关键词 + CSV 导出）、总览仪表（在线、活跃沙箱、今日 token 与费用、存储用量、节点列表）。实现为同一 React 应用的 admin 区块（复用鉴权与请求层）。
+路由 `/admin`（ADMIN 可见）：用户管理（搜索/禁用/重置密码/配额编辑）、会话治理（筛选/终止）、审计检索（时间/用户/类型/关键词 + CSV 导出）、总览仪表。**实际实现（v1.3）**：同一 Vue 应用的 `AdminPanel` 组件（复用 api.ts 鉴权请求层）；一期落地用户列表/禁用启用 + 最近命令审计。
 
 ### 4.4 工作台前端（用户侧）
 
-在 v1.0 布局（会话列表/对话流/终端/浏览器预览）上新增**文件区**（右侧或底部 Tab）：
-- 上传：选择文件 → 申请预签名 → 浏览器 `PUT` 直传 MinIO（进度条用 XHR upload progress）→ complete → 列表刷新；
-- 文件树：上传件 + 沙箱工作区目录（file_tree）统一展示；同步/导出/删除按钮；导出完成弹下载链接；
+在 v1.0 布局（会话列表/对话流/终端/浏览器预览）上新增**文件区**（右侧面板）：
+- 上传：选择文件 → 申请预签名（URL 出口 `MINIO_PUBLIC_ENDPOINT` 公网可达）→ 浏览器 `PUT` 直传 MinIO → complete（魔数复核）→ 列表刷新；
+- 文件树：上传件 + 沙箱工作区目录（file_tree 事件）切换展示；同步/导出/预览/下载按钮；文本预览为页内层（`window.open('')` 在内嵌浏览器/移动端不可靠）；
 - 下载走预签名 GET（浏览器直下）。
+
+**实际实现（v1.3，详见 04 §9）**：Vue 3 + TypeScript + Vite + Pinia（`web/frontend/`），14 组件 + 3 store；xterm 由 npm 静态导入；移动端 ≤768px 抽屉侧栏 + 面板全屏化；构建产物经 Docker 三阶段（node→maven→jre）打入 jar 静态目录。
 
 ### 4.5 沙箱层（CubeSandbox @ 39.107.34.109，4C/7.1G/69G）
 
@@ -379,9 +381,9 @@ agentd 发布 `gill:frame:{sid}`（meta+JPEG 单消息）→ 各持有订阅者�
 ```
 gill-agent/
  ├─ docs/                     # 三份文档
- ├─ web/                      # Java 服务(pom + src + Dockerfile)
+ ├─ web/                      # Java 服务(pom + src + Dockerfile 三阶段: node前端→maven→jre)
+ │   └─ frontend/             # Vue3+TS+Vite+Pinia → 构建产物输出至 web 静态目录(不入库)
  ├─ agent/                    # gill_core/agentd/cli + Dockerfile
- ├─ frontend/                 # React(工作台+admin) → 产物拷入 web 静态目录
  ├─ deploy/
  │   ├─ docker-compose.yml    # web/agentd/pg/redis/minio(+edge/obs profile)
  │   ├─ .env.example

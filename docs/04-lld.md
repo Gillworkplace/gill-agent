@@ -2,9 +2,9 @@
 
 | 项 | 内容 |
 |---|---|
-| 文档版本 | v1.0（对应需求 v1.4 / 架构 v1.2 同步版） |
-| 编写日期 | 2026-10-17 |
-| 上游文档 | 《01-需求澄清 v1.4》《02-总体架构与模块设计》《03-测试用例设计》 |
+| 文档版本 | v1.1（对应需求 v1.5 / 架构 v1.3；对齐浏览器全量 E2E 修复 + 前端 Vue 重构后的实际代码） |
+| 编写日期 | 2026-10-17（v1.1 修订 2026-10-18） |
+| 上游文档 | 《01-需求澄清 v1.5》《02-总体架构与模块设计 v1.3》《03-测试用例设计 v1.2》 |
 | 读者/用途 | 开发实施唯一编码依据：目录结构、DDL、API/事件 Schema、模块内部设计、时序与错误矩阵 |
 
 ---
@@ -13,26 +13,26 @@
 
 ```
 gill-agent/
- ├─ docs/                       # 01 需求 / 02 架构 / 03 测试 / 04 本文档
+ ├─ docs/                       # 01 需求 / 02 架构 / 03 测试 / 04 本文档 / 05 部署
  ├─ web/                        # Java 21 + Spring Boot 3.3（Maven 单模块）
  │   ├─ pom.xml
- │   ├─ src/main/java/com/gill/web/{controller,ws,bus,security,service,repo,entity,config}
- │   ├─ src/main/resources/{application.yml,migration/}    # Flyway DDL
- │   └─ src/test/java/...
+ │   ├─ Dockerfile              # 三阶段：node:20 前端构建 → maven 打 jar → JRE 21 运行
+ │   ├─ frontend/               # Vue 3 + TypeScript + Vite 5 + Pinia（详见 §9）
+ │   │   ├─ package.json / package-lock.json / vite.config.ts / tsconfig*.json / index.html
+ │   │   └─ src/{main.ts, App.vue, api.ts, types.ts, styles.css, views/, components/, stores/}
+ │   └─ src/main/java/com/gill/web/{controller, ws, security, config}
+ │       └─ src/main/resources/{application.yml, migration/}    # Flyway DDL；static/ 为前端构建产物（gitignore）
  ├─ agent/                      # Python 3.12（uv 管理）
- │   ├─ pyproject.toml          # deps: fastapi uvicorn openai e2b redis asyncpg minio
- │   │                          #       websockets typer rich structlog prometheus-client mcp
- │   ├─ gill_core/{llm,loop,kb,exts,risk,tools,sandbox,browser,files,bus,store}.py
- │   ├─ agentd/{app.py,health.py,leases.py,runtime.py}
- │   └─ gill_cli/{__main__.py,commands/,render.py,config.py,cred.py}
- ├─ frontend/                   # React 18 + Vite + TS + Ant Design 5 + zustand + xterm.js
- │   └─ src/{pages,components,stores,api,ws,theme/}
+ │   ├─ pyproject.toml          # deps: fastapi uvicorn openai e2b(cubesandbox SDK) redis asyncpg minio httpx typer
+ │   ├─ gill_core/{config,llm,loop,kb,exts,risk,tools,sandbox,remote_sandbox,browser,files,bus,store}.py
+ │   ├─ agentd/app.py           # FastAPI 网关 + SessionRuntime + sweep 孤儿清扫（§6 设计的单文件落地）
+ │   ├─ gill_cli/main.py        # typer：chat/run/login/whoami/knowledge/doctor/version
+ │   └─ *_e2e.py / *_test.py    # API 级 E2E（remote_smoke_final/file_e2e/perf_test/scale_test/regression_test/four_task_e2e）
  ├─ deploy/
- │   ├─ docker-compose.yml  .env.example
- │   ├─ obs/                 # prometheus/grafana（二期启用）
- │   └─ cube/                # gill-agent-sandbox 模板 Dockerfile + ECS 部署记录
- ├─ scripts/                  # backup.sh / smoke.py / bench.py / collab-test.py
- └─ skills-official/          # 内置 5 技能源（CSV 分析/网页采集/PDF 摘要/正则/API 对接）
+ │   ├─ docker-compose.yml  .env
+ │   └─ cube/                   # install-cube.sh（沙箱机一键）/ build-template.sh / gill-agent-sandbox 模板 Dockerfile
+ ├─ gui-test-screenshots/       # 浏览器黑盒 E2E 证据（t01-t16 首轮 / r1-r8 回归 / v1-v7 Vue 版）
+ └─ scripts/backup.sh           # pg_dump → MinIO gill-backup
 ```
 
 ## 2. 数据库 DDL（Flyway V1__init.sql，完整版）
@@ -201,33 +201,38 @@ CREATE INDEX ON llm_usage (user_id, created_at DESC);
 | S→C | nav_follow | {fileTreePath?, previewUrl?, termScroll?}（演示跟随端） |
 | S→C | space_chat_msg | {id, userId, name, content, isAgentMention}（侧栏实时） |
 
-## 5. web 模块详细设计（Java）
+## 5. web 模块详细设计（Java，v1.1 对齐实际实现）
 
-### 5.1 线程模型
+### 5.1 线程模型与 WS 网关（AgentWebSocketHandler）
 
-- Tomcat 虚拟线程处理 REST/WS 升级；每 WS 会话注册到 `FanoutRegistry`（sessionId→Set<Session>，副本本地）；
-- `BusConsumer`（每会话一个虚拟线程，仅本地有订阅者时启动）：XREADGROUP evt 流 → FanoutRegistry 扇出（事件队列 256/帧队列 2 丢旧，同 02 §3.3）；
-- `FrameSubscriber`：Redis Pub/Sub 订阅有本地订阅者的 `gill:frame:{sid}`，拆 meta/JPEG 分发；
-- 定时任务（虚拟线程池 4）：空闲会话关闭、file_objects 过期、space_chat 30d、解散宽限清理、邀请过期。
+- Tomcat 处理 REST；`AgentWebSocketHandler`（TextWebSocketHandler）承担 WS 网关：
+  - `conns: Map<sid, Set<WebSocketSession>>` 同会话多端扇出（发送按 session 串行化）；
+  - **SSE 泵生命周期（关键设计，浏览器 E2E 事故固化）**：一会话一泵。泵 = `HttpClient.sendAsync` + `BodyHandlers.ofLines()` 读 agentd `/internal/sessions/{sid}/events`，逐行 `data: ` 前缀转 WS 下发。末连接断开时**必须 `Stream.close()` 关闭 body 流**——`cancel(future)` 无效（future 在响应头到达即完成）；不关流则僵尸泵与新泵并存，agentd SSE 对每个读者全量广播 → 每条事件被 N 倍投递（历史"双审批卡/重复消息"根因）。泵异常结束且仍有连接时 2s 后自愈重启；
+  - 上行 WS 消息补 `actor=uid` 后直转 agentd `/internal/sessions/{sid}/cmd`；`user_input` 先落 messages 表。
+- `JwtFilter`：认证段（token 解析/PAT 比对/限流/状态校验）独立 try/catch 返回 401；`chain.doFilter` 移出 try——**控制器异常不得伪装成 AUTH-1004 登录过期**（错误掩蔽事故）。
 
-### 5.2 关键服务
+### 5.2 控制器（实际实现：JdbcTemplate 直查，服务层拆分留待多副本期）
 
-| 类 | 职责要点 |
+| 控制器 | 职责要点 |
 |---|---|
-| SpaceService | 创建空间（个人随注册）、成员/邀请校验链（@SpaceRole AOP）、解散状态机（dissolving→只读 7d→清理，可取消）；权限判定统一入口 `require(spaceId, userId, minRole)` |
-| OpLockService | `SET gill:oplock:{sid} <uid> NX`（relay）；acquire/release/模式切换广播 op_lock_changed；无操作 2min/掉线 30s 释放（presence 回调+定时扫描兜底）；input_event 网关在此校验持有者 |
-| KnowledgeService | CRUD/置顶/导入导出；**检索代理**：组包 {query, scopes, spaceIds} → agentd 内部 HTTP `/internal/kb/search`（agentd 持 pgvector+embedding 逻辑），web 不实现向量检索 |
-| ExtensionService | manifest JSON Schema 校验（附录 C 规则）→ 落库；publish=复制 visibility=space 记录+ADMIN 审批位；test=经 cmd 总线请求 agentd 试跑（cid 应答，30s 超时）；密钥：SecretVault（AES-GCM），只存 cipher |
-| SessionService | 会话状态机（01 §11.3.4）；创建时绑定 space；关闭=cmd 总线 session_close + 沙箱销毁指令 |
-| PresenceService | 双层键：`presence:{spaceId}:{sessionId}` hash（uid→nodeId，TTL 30s 心跳 10s）；供在线头像/ADMIN 总览/OpLock 掉线判定 |
-| QuotaService | 存储配额（space 维度汇总 file_objects）、token 日配额预检 |
-| FileService | 预签名/对象键（uploads/{spaceId}/{uuid}/{safe}、exports/{sessionId}/{uuid}-{safe}）；complete 魔数复核（前 512B，黑名单表驱动） |
+| AuthController | 登录/注册（BCrypt）、/auth/me、个人指令 PATCH（FR-D11） |
+| SpaceController | 空间/成员/邀请 CRUD；会话 CRUD（`requireSessionAccess` 校验成员资格）；消息历史 GET |
+| FileController | 预签名直传（**URL 出口经 `MINIO_PUBLIC_ENDPOINT` 替换内网 `minio:9000`，浏览器必须可达**；sessionId 强校验，缺失返回 400 FILE-4006）；complete 魔数复核（前 512B：MZ/ELF/OLE2/shebang）；列表/下载链接/文本与图片预览 |
+| KnowledgeController | 知识 CRUD/置顶/搜索（q 关键词，pgvector 检索在 agentd 侧）；export/import |
+| ExtensionController | 五型扩展 manifest 落库；密钥 AES-GCM 加密（EXT_SECRET，Java 无 AAD ↔ Python decrypt 传 None）；mcp 类型保存时拉取工具列表 |
+| PatController | PAT 签发（sha256 哈希存储）/吊销 |
+| AdminController | 用户列表/禁用启用；命令审计最近 N 条 |
 
 ### 5.3 鉴权链
 
 JwtFilter（REST）→ @AdminOnly / @SpaceRole 注解（HandlerInterceptor 解析 spaceId 参数注入上下文）→ WsHandshakeAuth（token 或 PAT → user + 校验 space 成员资格）。PAT=sha256 哈希比对，命中更新 last_used_at。
 
-## 6. agentd 模块详细设计（Python）
+## 6. agentd 模块详细设计（Python，v1.1 补关键约束）
+
+> **v1.1 固化的三条硬约束（浏览器 E2E 事故教训）：**
+> 1. **审批单发射器**：`approval_request` 事件**仅由 `SessionRuntime.approve()` 发射**（uuid cid，注册进 `pending_approvals` 可被 `approval_response` 应答）。`loop.py` 审批门只调用回调、不得再 emit——曾因双发射（loop.py 用 tool_call_id 作 cid）导致前端双卡且首卡点击服务端匹配不到、静默丢弃。
+> 2. **拦截命令审计留痕**：拒绝/超时的命令必须写 `command_audit`（`decision='denied'`、`risk_level` 取规则级别）。实现：denied 分支的 `tool_result` 事件携带 `{command, risk}`，agentd 收集器在无前置 `tool_call`（cur_cmd 为空）时据载荷补审计行。已执行命令的 risk/decision 由审批回调侧补全。
+> 3. **沙箱探活重建**：`ensure_sandbox` 对空闲 >240s 的沙箱先 `run("true")` 探活，envd 404（远端已回收）即置空重建——否则 runtime 持死引用，后续任务全部失败且模型可能谎报结果。
 
 ### 6.1 loop.py 主流程（含新核心）
 
@@ -291,13 +296,20 @@ async def run_task(ctx, task_text, emit):
 | config | 本地 toml | env>项目>全局合并 |
 | doctor | 逐项探测：/actuator/health、PAT whoami、沙箱 create+kill、代理 | ✔/✘+建议 |
 
-## 9. 前端设计（frontend/src）
+## 9. 前端设计（web/frontend/，v1.1 对齐实际实现：Vue 3 + TS + Vite + Pinia）
 
-- 路由：/login /register /app/s/:id /app/knowledge /app/extensions /app/settings /admin/*（懒加载）；
-- stores（zustand）：authStore/spaceStore（含切换器）/sessionStore/chatStore（消息流+合并渲染）/previewStore（帧+指示灯）/kbStore/extStore/collabStore（在线/操作权/演示态）；
-- ws/SocketClient：单例，指数退避重连，Last-Event-Seq 增量，事件→store dispatch 总表；帧走独立二进制处理（createImageBitmap）；
-- theme/tokens.css：01 §11.14.1 全 token CSS 变量 + antd ConfigProvider 主题映射（亮/暗/系统三态）；
-- 关键组件：SessionSidebar（空间切换+会话列表）、ChatStream（消息/工具卡/审批卡/知识提示条）、TerminalPanel、PreviewPanel（操作条+oplock 蒙灰）、FilePanel（库/工作区双层）、KnowledgePage、ExtensionCenter、MemberChat（侧栏）、SpaceSettings。
+**技术栈**：Vue 3.4 `<script setup lang="ts">`（strict）+ Vite 5 + Pinia + xterm/xterm-addon-fit（npm 静态导入，去 CDN）。构建产物输出至 `web/src/main/resources/static/`（gitignore，由 Docker 三阶段在构建期生成）；开发模式 `npm run dev`（5173 端口，`/api`、`/ws` 代理至 8080）。`vue-tsc --noEmit` 零错误为准入。
+
+**状态层（Pinia 三 store）**：
+- `auth`：token/user/myUid/role；login/register/me/saveInstructions/logout（localStorage 键 `gill_token/gill_user`）；
+- `workspace`：spaces/curSpaceId/sessions/cur。**会话列表严格跟随当前选中空间**（`currentSpaceId` 统一入口 + `gill_space` 持久化）——禁止回退硬编码 personal 空间（多标签内容不一致的根因）；
+- `events`：WS 生命周期（`connect(sessionId)`：同会话复用、断线指数退避重连+横幅、open 时 presence_join）、消息流状态机（StreamItem 联合类型：user/ai/sys/tool/appr）、`sendTask`（open 未就绪时一次性监听发送，**不覆盖 onopen**）、审批应答、聊天（自消息按 MYUID 去重）、审批档位。高频帧/终端数据不经 store：`termSink`/`frameSink` 由面板组件注册直收。
+
+**组件（14 个）**：Sidebar（空间切换/会话列表/六面板入口 📁🧠🔌💬🧭⚙️）、ChatStream（消息/工具/审批卡/知识撤销条渲染）、ApprovalCard（倒计时+四态：pending/approved/denied/timeout/always；超时文案防倒计时回写覆盖）、InputBar（Enter 发送/Esc 停止 + 审批档）、TerminalPanel（xterm 挂载即初始化，`\n` 双写保持行距，降级纯文本）、PreviewPanel（CDP 帧渲染 canvas + fps + 点击回注 + 演示/接力）、FilesPanel（上传预签名直传→complete→列表/同步/预览/下载；⟳ 工作区树 file_tree 事件）、TextPreview（页内文本预览层，替代 window.open——内嵌浏览器/移动端弹窗不可靠）、KbPanel、ExtPanel、SpaceManager、AdminPanel、MemberChat。
+
+**移动端适配（≤768px）**：抽屉式侧栏（汉堡 #mtop 顶栏，选会话自动收起）、文件/预览/聊天面板全屏化、`100dvh`、消息宽度 92%、无横向滚动。
+
+**历史一致（多标签）**：登录即 `loadSpaces`（校验 `gill_space` 存活）→ `loadSessions` → 打开首个或新建；打开会话时 `hist()` 拉取持久化消息（user/assistant）后连 WS。
 
 ## 10. 关键时序
 
