@@ -4,6 +4,12 @@
 
 独立于 compose 生命周期的运维脚本。当前仅 `backup.sh`（数据库备份），后续扩恢复/巡检脚本时在此登记。
 
+## line_limit.py
+
+- 做什么：D16 行数硬限检查门——单方法/函数（去空行注释）≤100 行、单文件 ≤1000 行；扫描 .py/.java/.ts/.vue（Python 函数级 ast 精确测量，Java/TS 方法级括号深度粗测）。
+- 用法：`python scripts/line_limit.py [路径...]`（默认 agent/ web/src/ web/frontend/src/）；退出码 0=合规 / 1=超限，可作 CI 门禁。
+- 约定：超限清单在根 AGENTS.md §2.5 维护，修复后从欠账清单删除。
+
 ## backup.sh
 
 - 做什么：`pg_dump`（gill 库）→ 压缩 → 上传 MinIO `gill-backup` 桶（30 天生命周期）。
