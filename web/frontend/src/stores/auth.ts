@@ -1,21 +1,25 @@
 import { defineStore } from 'pinia'
-import { api, token } from '../api'
+import { api } from '../api'
 import type { MeInfo } from '../types'
 
 export const useAuth = defineStore('auth', {
   state: () => ({
     user: localStorage.getItem('gill_user') || '',
     myUid: null as number | null,
-    role: '' as string
+    role: '',
+    // token 的响应式镜像：loggedIn 若直接读 localStorage（非响应式），computed 零依赖永不失效，
+    // 登录成功后视图会卡在登录页（登录按钮"无反应"）
+    tok: localStorage.getItem('gill_token') || ''
   }),
   getters: {
-    loggedIn: () => !!token()
+    loggedIn: (s) => !!s.tok
   },
   actions: {
     async login(username: string, password: string) {
       const d = await api<{ token: string; role: string }>('/auth/login', { username, password })
       localStorage.setItem('gill_token', d.token)
       localStorage.setItem('gill_user', username)
+      this.tok = d.token
       this.user = username
     },
     async register(username: string, password: string) {
@@ -34,6 +38,7 @@ export const useAuth = defineStore('auth', {
     logout() {
       localStorage.removeItem('gill_token')
       localStorage.removeItem('gill_user')
+      this.tok = ''
       location.reload()
     }
   }

@@ -7,6 +7,7 @@ import { api } from '../api'
 defineProps<{ drawerOpen: boolean }>()
 const emit = defineEmits<{
   (e: 'toggle-drawer'): void
+  (e: 'close-drawer'): void
   (e: 'open-session', id: string): void
   (e: 'new-session'): void
   (e: 'open-panel', which: 'files' | 'kb' | 'ext' | 'space' | 'adm'): void
@@ -53,7 +54,7 @@ async function editInstructions() {
       <button @click="emit('open-panel', 'files')">📁 文件</button>
       <button @click="emit('open-panel', 'kb')">🧠 知识库</button>
       <button @click="emit('open-panel', 'ext')">🔌 扩展</button>
-      <button @click="ev.chatOpen = !ev.chatOpen">💬 聊天</button>
+      <button @click="ev.chatOpen = !ev.chatOpen; emit('close-drawer')">💬 聊天</button>
       <button @click="editInstructions">🧭 指令</button>
       <button @click="emit('open-panel', 'adm')">⚙️ 管理</button>
     </div>

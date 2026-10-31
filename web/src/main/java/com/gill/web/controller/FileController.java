@@ -21,6 +21,9 @@ import java.util.UUID;
 public class FileController {
     private final JdbcTemplate db;
     private final MinioClient minio;
+    /** 预签名专用客户端：签名须按浏览器实际访问的 host（公网出口）计算，
+     *  对内网端点签名再字符串替换 host 会造成 SigV4 SignatureDoesNotMatch(403)。 */
+    private final MinioClient minioPub;
     private static final String BUCKET = "gill-files";
 
     public FileController(JdbcTemplate db) {
@@ -29,15 +32,17 @@ public class FileController {
         this.minio = MinioClient.builder().endpoint(ep)
                 .credentials(env("MINIO_ROOT_USER", "gilladmin"), env("MINIO_ROOT_PASSWORD", "gillminio123"))
                 .build();
+        String pub = env("MINIO_PUBLIC_ENDPOINT", "");
+        this.minioPub = MinioClient.builder().endpoint(pub.isBlank() ? ep : pub)
+                .credentials(env("MINIO_ROOT_USER", "gilladmin"), env("MINIO_ROOT_PASSWORD", "gillminio123"))
+                .region("us-east-1")   // 固定 region：跳过预签名前的 location 网络查询（公网端点容器内不可达）
+                .build();
     }
 
-    /** 预签名 URL 出口改公网地址：浏览器直传/下载必须可达（容器内网名 minio:9000 外部不可解析）。 */
+    /** 预签名 URL：直接以公网端点客户端生成（签名 host = 实际访问 host）。 */
     private String presign(io.minio.http.Method m, String key, int minutes) throws Exception {
-        String url = minio.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
+        return minioPub.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
                 .method(m).bucket(BUCKET).object(key).expiry(minutes, java.util.concurrent.TimeUnit.MINUTES).build());
-        String internal = env("MINIO_ENDPOINT", "http://minio:9000");
-        String external = env("MINIO_PUBLIC_ENDPOINT", "");
-        return external.isBlank() || internal.isBlank() ? url : url.replaceFirst("^" + java.util.regex.Pattern.quote(internal), external);
     }
 
     private static String env(String k, String d) { return System.getenv(k) == null ? d : System.getenv(k); }

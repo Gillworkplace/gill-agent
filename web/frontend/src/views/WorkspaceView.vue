@@ -35,6 +35,12 @@ function openPanel(which: 'files' | 'kb' | 'ext' | 'space' | 'adm') {
   showExt.value = which === 'ext'
   showSpaceMgr.value = which === 'space'
   showAdm.value = which === 'adm'
+  drawerOpen.value = false   // 移动端：从抽屉打开面板后须收起抽屉，否则关面板时抽屉仍遮挡内容
+}
+
+function togglePreview() {
+  ev.previewOpen = !ev.previewOpen
+  drawerOpen.value = false
 }
 
 async function openSession(id: string) {
@@ -90,7 +96,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
       @open-session="openSession"
       @new-session="createAndOpen"
       @open-panel="openPanel"
-      @toggle-preview="ev.previewOpen = !ev.previewOpen"
+      @close-drawer="drawerOpen = false"
+      @toggle-preview="togglePreview"
       @toggle-theme="toggleTheme"
     />
     <main>

@@ -31,8 +31,9 @@ export const useEvents = defineStore('events', {
   actions: {
     // ---------- WS 生命周期 ----------
     connect(sessionId: string) {
-      if ((this as any)._ws && (this as any)._wsSid === sessionId) return
       const old = (this as any)._ws as WebSocket | undefined
+      // 仅 CONNECTING/OPEN 才复用：CLOSED 也早退会让断线重连永远空转（横幅常亮）
+      if (old && (this as any)._wsSid === sessionId && old.readyState <= 1) return
       if (old) old.close()
       ;(this as any)._wsSid = sessionId
       const ws = new WebSocket(`ws://${location.host}/ws/agent?sessionId=${sessionId}&token=${token()}`)
@@ -44,6 +45,7 @@ export const useEvents = defineStore('events', {
         this.send({ type: 'presence_join', payload: { userId: auth.myUid } })
       }
       ws.onclose = () => {
+        if ((this as any)._ws !== ws) return   // 切换会话时旧连接迟到的 close：忽略，否则误亮横幅
         const cur = useWorkspace().cur
         if (cur === (this as any)._wsSid && token()) {
           this.banner = true
