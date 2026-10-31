@@ -211,7 +211,9 @@ CREATE INDEX ON llm_usage (user_id, created_at DESC);
   - 上行 WS 消息补 `actor=uid` 后直转 agentd `/internal/sessions/{sid}/cmd`；`user_input` 先落 messages 表。
 - `JwtFilter`：认证段（token 解析/PAT 比对/限流/状态校验）独立 try/catch 返回 401；`chain.doFilter` 移出 try——**控制器异常不得伪装成 AUTH-1004 登录过期**（错误掩蔽事故）。
 
-### 5.2 控制器（实际实现：JdbcTemplate 直查，服务层拆分留待多副本期）
+### 5.2 分层与数据访问（v1.2 按 D14 调整：Controller → Service → Repository）
+
+> **D14（2026-10-31）**：三层强制；ORM 统一 MyBatis 体系——简单单表 CRUD 走 MyBatis-Plus（BaseMapper/LambdaQueryWrapper），多条件/JOIN/聚合/动态 SQL 走 MyBatis XML 手写 SQL（`resources/mapper/`），禁止 Wrapper 硬拼复杂查询；新增代码零 JdbcTemplate，存量随迭代迁移。下表为控制器职责划分（SQL 收敛至 Service/Mapper 后保持不变）
 
 | 控制器 | 职责要点 |
 |---|---|
