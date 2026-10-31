@@ -30,6 +30,7 @@
 | D14 | **web 分层与 ORM 规范**：Controller→Service→Repository(Mapper) 三层强制（Controller 零 SQL）；数据访问**弃用 JdbcTemplate，统一 MyBatis 体系**——简单单表 CRUD 用 MyBatis-Plus（BaseMapper/LambdaQueryWrapper），**多条件/关联（JOIN）/聚合/动态 SQL 务必用 MyBatis 原生手写 SQL（XML Mapper）**，禁止以 Wrapper 硬拼复杂查询；存量 JdbcTemplate 代码随迭代迁移 | 2026-10-31 委托方 |
 | D15 | **模块分层依赖铁律（Java 与 Python 全域）**：分层必须清晰，**只允许上层依赖下层，禁止下层依赖上层、禁止任何循环依赖**。Java：ws/controller→service→repo→entity（entity 纯数据不依赖业务层；security/config 为横切层）。Python：gill_cli/agentd（入口层）→gill_core（loop 编排层→基础能力层）；gill_core 不得 import 入口层，gill_core 内部基础模块不得 import loop；公共逻辑一律下沉而非互相 import。AGENTS.md 固化提交前 grep 自检命令（2026-10-31 实测现状合规） | 2026-10-31 委托方 |
 | D16 | **行数硬限（全域硬性规范）**：单方法/函数去掉空行注释后 ≤100 行；单文件去掉空行注释后 ≤1000 行；配套可执行门禁 `scripts/line_limit.py`（退出码即门禁结果，纳入提交前/回归前检查）；存量超限（agentd handle_user_input 127 行、loop.run_task 123 行）随迭代重构消除，新代码零容忍 | 2026-10-31 委托方 |
+| D17 | **同层引用规则（D15 细化）**：同层级模块/文件默认禁止互相引用；确需调用必须严格单向，同层不同文件间**禁止任何循环引用**（含延迟 import 与全限定名引用，import 扫描须覆盖后者）；消除循环的标准手段是抽取 base/公共模块下沉（落地：gill_core/sandbox_base.py 断开 sandbox↔remote_sandbox 环、security/Hashes.java 承接 PatController.sha256 消除 security→controller 反向引用，均于 2026-10-31 完成并运行时验证） | 2026-10-31 委托方 |
 
 ## 1. 项目背景与目标
 

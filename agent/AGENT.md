@@ -32,7 +32,7 @@ agent/
    agentd（入口层）───┴→ gill_core：loop.py（编排层）→ 基础能力层（config/llm/risk/kb/exts/tools/sandbox/remote_sandbox/browser/files/bus/store）
    ```
    - `gill_core` 不得 import `agentd`/`gill_cli`；`agentd` 与 `gill_cli` 互不依赖；
-   - `gill_core` 内部基础模块不得 import `loop`；模块间依赖保持单向，公共逻辑**下沉**而不是互相 import。
+   - `gill_core` 内部基础模块不得 import `loop`；同层默认不互相引用、确需调用必须**严格单向、禁循环**（含延迟 import）；公共逻辑**下沉**（如 sandbox_base.py 承载基类，断开 sandbox↔remote_sandbox 环——2026-10-31 已完成）。
    - 提交前自检（应无输出）：
      ```bash
      grep -rn "agentd\|gill_cli" agent/gill_core/ --include=*.py | grep import

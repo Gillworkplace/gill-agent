@@ -43,12 +43,12 @@ public class JwtFilter extends OncePerRequestFilter {
             if (token.startsWith("gpat_")) {                 // PAT：哈希比对（FR-16）
                 try (var conn = ds.getConnection()) {
                     var rows = conn.createStatement().executeQuery(
-                            "SELECT user_id FROM pats WHERE token_hash='" + com.gill.web.controller.PatController.sha256(token).replace("'", "") + "' AND revoked=false");
+                            "SELECT user_id FROM pats WHERE token_hash='" + Hashes.sha256(token).replace("'", "") + "' AND revoked=false");
                     if (rows.next()) {
                         uid = rows.getLong(1);
                         role = "USER";
                         try (var st = conn.prepareStatement("UPDATE pats SET last_used_at=now() WHERE token_hash=?")) {
-                            st.setString(1, com.gill.web.controller.PatController.sha256(token));
+                            st.setString(1, Hashes.sha256(token));
                             st.executeUpdate();
                         }
                     }

@@ -9,7 +9,8 @@ import uuid
 from gill_core.bus import Bus
 from gill_core.config import Settings
 from gill_core.loop import run_task
-from gill_core.sandbox import BaseSandbox, make_sandbox
+from gill_core.sandbox import make_sandbox
+from gill_core.sandbox_base import BaseSandbox
 from gill_core.browser import BrowserSession
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")

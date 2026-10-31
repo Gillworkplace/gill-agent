@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from typing import Awaitable, Callable
-from .sandbox import BaseSandbox
+from .sandbox_base import BaseSandbox
 
 TOOLS_SCHEMA = [
     {"type": "function", "function": {

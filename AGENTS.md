@@ -39,6 +39,8 @@ Gill Agent = 多人协作开发平台：Java web 网关 + Python agent 守护进
    ```
    - 禁止：repo import service/controller；service import controller/ws；entity 依赖任何业务层；
    - 跨业务域复用逻辑下沉到对应 Service 被上层调用，或抽公共支撑类，**不得以"互相调用"迁就实现**；
+   - **同层规则（D17）**：同层模块/文件之间**默认禁止互相引用**；确需调用必须**严格单向**（A→B 则 B 永不得→A），任何形式的循环引用（含延迟 import、全限定名引用）零容忍；同层共享逻辑一律**下沉**到更底层公共模块（如 security/Hashes、gill_core/sandbox_base），这是消除循环的标准手段；
+   - ⚠ 教训：`sandbox ↔ remote_sandbox` 曾靠基类/工厂互相 import 成环（已抽 sandbox_base 断开）；`JwtFilter` 曾以全限定名调 `PatController.sha256` 造成 security→controller 反向引用（已下沉 security/Hashes）——**import 扫描要包含全限定名用法**。
    - 提交前自检（应无输出）：
      ```bash
      grep -rn "import com.gill.web.controller\|com\.gill\.web\.ws" web/src/main/java/com/gill/web/{service,repo,entity}/
@@ -70,6 +72,7 @@ Gill Agent = 多人协作开发平台：Java web 网关 + Python agent 守护进
    ```
    - `gill_core` **不得** import `agentd` / `gill_cli`；`agentd` 与 `gill_cli` 互不依赖、互不感知；
    - `gill_core` 内部：基础能力模块**不得** import `loop`（只有 loop 编排它们）；基础模块之间按单向依赖（如 exts→sandbox、kb→store），新增 import 前先画方向；
+   - **同层规则（D17）**：同层模块默认不互相引用；确需调用必须单向（如 sandbox→remote_sandbox 是允许的工厂方向，remote_sandbox 只准依赖 sandbox_base）；成环即抽 base/公共模块下沉（参考 sandbox_base.py 的产生）；
    - 消除循环依赖的手段是下沉公共逻辑到更底层模块或抽 `common`，**不是**互相 import；
    - 提交前自检（应无输出）：
      ```bash

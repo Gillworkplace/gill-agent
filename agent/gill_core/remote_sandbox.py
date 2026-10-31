@@ -9,7 +9,7 @@ from __future__ import annotations
 import os
 import socket as _socket
 from .config import Settings
-from .sandbox import BaseSandbox, CmdResult
+from .sandbox_base import BaseSandbox, CmdResult
 
 
 class RemoteSandbox(BaseSandbox):

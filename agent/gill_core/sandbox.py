@@ -1,49 +1,13 @@
-"""沙箱抽象：RemoteSandbox(E2B/Cube) 与 MockSandbox(本地 docker) 同构（FR-51~55）。"""
+"""沙箱实现与工厂：MockSandbox（本地 docker）+ make_sandbox（D15 单向依赖铁律）。
+
+依赖方向：本模块 → sandbox_base（基类）/ remote_sandbox（远程实现，工厂内延迟导入）；
+remote_sandbox 只依赖 sandbox_base，不得反向 import 本模块。
+"""
 from __future__ import annotations
 import asyncio
 import os
-from dataclasses import dataclass
-from typing import Callable, Awaitable
 
-
-@dataclass
-class CmdResult:
-    exit_code: int
-    stdout: str
-    stderr: str
-    duration_ms: int
-
-
-class BaseSandbox:
-    """所有命令/文件操作均在沙箱内（web/agentd 容器零执行 —— 需求 FR-51）。"""
-
-    async def run(self, command: str, timeout: int = 60,
-                  on_stdout: Callable[[str], Awaitable[None]] | None = None,
-                  on_stderr: Callable[[str], Awaitable[None]] | None = None) -> CmdResult: ...
-    async def write_file(self, path: str, content: str) -> None: ...
-    async def read_file(self, path: str) -> str: ...
-    async def kill(self) -> None: ...
-
-
-class RemoteSandbox(BaseSandbox):
-    """E2B SDK → CubeSandbox（E2B_API_URL 指向沙箱机 3000）。"""
-
-    def __init__(self, settings):
-        from e2b import AsyncSandbox  # sandbox extra
-        self._sb = AsyncSandbox(template=settings.cube_template_id, timeout=300)
-
-    async def run(self, command, timeout=60, on_stdout=None, on_stderr=None):
-        r = await self._sb.commands.run(command, timeout=timeout)
-        return CmdResult(r.exit_code, r.stdout or "", r.stderr or "", int(r.duration * 1000))
-
-    async def write_file(self, path, content):
-        await self._sb.files.write(path, content)
-
-    async def read_file(self, path) -> str:
-        return await self._sb.files.read(path)
-
-    async def kill(self):
-        await self._sb.kill()
+from .sandbox_base import BaseSandbox, CmdResult  # noqa: F401  # CmdResult 供本模块与既有调用方使用
 
 
 class MockSandbox(BaseSandbox):

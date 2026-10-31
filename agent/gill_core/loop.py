@@ -6,7 +6,8 @@ from dataclasses import dataclass, field
 from typing import Awaitable, Callable
 from .config import Settings
 from .llm import LLM, SYSTEM_PROMPT
-from .sandbox import BaseSandbox, make_sandbox
+from .sandbox import make_sandbox
+from .sandbox_base import BaseSandbox
 from .tools import TOOLS_SCHEMA, ToolEvent, execute
 from . import risk
 

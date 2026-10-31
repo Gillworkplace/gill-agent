@@ -29,7 +29,7 @@ web/
 
 ## 关键约束（违反即事故）
 
-1. **分层依赖（D15 铁律）**：只允许上层依赖下层（ws/controller → service → repo → entity），**禁止下层 import 上层、禁止循环依赖**；security/config 为横切层，不得依赖业务层。提交前自检（应无输出）：
+1. **分层依赖（D15/D17 铁律）**：只允许上层依赖下层（ws/controller → service → repo → entity），**禁止下层 import 上层、禁止循环依赖**；同层默认不互相引用、确需调用必须严格单向；security/config 为横切层不得依赖业务层（公共哈希等工具下沉此处，如 security/Hashes——2026-10-31 已把 sha256 从 PatController 下沉）。提交前自检（应无输出）：
    ```bash
    grep -rn "com.gill.web.controller\|com.gill.web.ws" web/src/main/java/com/gill/web/{service,repo,entity}/
    grep -rn "com.gill.web.service" web/src/main/java/com/gill/web/repo/

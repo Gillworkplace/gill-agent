@@ -24,7 +24,7 @@ public class PatController {
         byte[] raw = new byte[24];
         RNG.nextBytes(raw);
         String token = "gpat_" + HexFormat.of().formatHex(raw);   // 明文仅此一次
-        String hash = sha256(token);
+        String hash = com.gill.web.security.Hashes.sha256(token);
         String name = body != null ? body.getOrDefault("name", "cli") : "cli";
         String id = UUID.randomUUID().toString();
         db.update("INSERT INTO pats(id, user_id, name, token_hash) VALUES (?::uuid,?,?,?)", id, uid, name, hash);
@@ -43,9 +43,4 @@ public class PatController {
         return Map.of("ok", n > 0);
     }
 
-    public static String sha256(String s) {
-        try {
-            return HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(s.getBytes()));
-        } catch (Exception e) { throw new RuntimeException(e); }
-    }
 }
