@@ -15,13 +15,17 @@ services:
     image: redis:7-alpine
     command: redis-server --appendonly yes
   minio:
-    image: minio/minio:latest
-    command: server /data --console-address ":9001"
+    # Docker Hub 官方 latest 已归档且国内镜像源缓存为 2018 陈旧版，改用本地构建镜像
+    # （deploy/重建方法：minio.linux-arm64.RELEASE.2025-04-22 二进制 + 经典构建器替换底座）
+    image: gill-minio:2025-04-22
+    pull_policy: never
+    # 新版 MinIO 已移除 --console-address：控制台与 S3 API 同端口(/minio/console)
+    command: server /data
     environment:
       MINIO_ROOT_USER: gilladmin
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-gillminio123}
     volumes: [miniodata:/data]
-    ports: ["127.0.0.1:9000:9000", "127.0.0.1:9001:9001"]
+    ports: ["127.0.0.1:9000:9000"]
   minio-init:
     image: minio/mc
     depends_on: [minio]
@@ -39,6 +43,7 @@ services:
       # 沙箱机通路：经宿主机 SSH 隧道（host.docker.internal）或直连（39.107.34.109）
       - CUBE_API_URL=${CUBE_API_URL:-http://host.docker.internal:13000}
       - CUBE_PROXY_NODE_IP=${CUBE_PROXY_NODE_IP:-host.docker.internal}
+      - CUBE_PROXY_PORT_HTTP=${CUBE_PROXY_PORT_HTTP:-80}
       - CUBE_PUBLIC_HOST=host.docker.internal
       - MINIO_ENDPOINT=http://minio:9000
       - MINIO_ROOT_USER=gilladmin

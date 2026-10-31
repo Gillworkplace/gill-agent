@@ -52,7 +52,9 @@ class RemoteSandbox(BaseSandbox):
         return (f"http://{self._api_host()}/sandbox/{self.sandbox_id}/{port}", "localhost")
 
     def _api_host(self) -> str:
-        return os.getenv("CUBE_PUBLIC_HOST", "39.107.34.109")
+        host = os.getenv("CUBE_PUBLIC_HOST", "39.107.34.109")
+        port = os.getenv("CUBE_PROXY_PORT_HTTP", "80")
+        return f"{host}:{port}"
 
 
 _DNS_PATCHED = False
