@@ -24,35 +24,67 @@ Gill Agent = 多人协作开发平台：Java web 网关 + Python agent 守护进
 
 ## 3. Java 开发规范（web/）
 
-1. **分层架构（强制，D14）**：Controller → Service → Repository 三层，职责清晰不得跨层：
+1. **分层架构（强制，D14/D15）**：Controller → Service → Repository 三层，职责清晰不得跨层：
    - **Controller**（`controller/`）：参数校验、鉴权上下文（uid/role）、统一错误包装（`AuthController.err` 结构）、结果序列化——**不写业务逻辑、不出现任何 SQL/数据访问**；
    - **Service**（`service/`）：业务逻辑与事务边界；一个业务域一个 Service（SpaceService/FileService/KnowledgeService/ExtensionService/…）；跨表写操作必须 `@Transactional`；
    - **Repository**（`repo/`，即 Mapper 层）：数据访问唯一入口，SQL 全部收敛于此。
-2. **ORM 选型（D14，禁止 JdbcTemplate）**：
+2. **分层依赖铁律（D15）**：**只允许上层依赖下层，禁止下层依赖上层、禁止任何循环依赖**：
+   ```
+   ws / controller（最上层）
+        ↓ 依赖
+      service
+        ↓ 依赖
+   repo(Mapper) → entity（纯数据载体，不依赖任何层）
+   security / config：横切层，被上层引用，自身不得依赖 controller/service/repo 业务层
+   ```
+   - 禁止：repo import service/controller；service import controller/ws；entity 依赖任何业务层；
+   - 跨业务域复用逻辑下沉到对应 Service 被上层调用，或抽公共支撑类，**不得以"互相调用"迁就实现**；
+   - 提交前自检（应无输出）：
+     ```bash
+     grep -rn "import com.gill.web.controller\|com\.gill\.web\.ws" web/src/main/java/com/gill/web/{service,repo,entity}/
+     grep -rn "import com.gill.web.service" web/src/main/java/com/gill/web/repo/
+     ```
+3. **ORM 选型（D14，禁止 JdbcTemplate）**：
    - **简单单表操作**（按主键查/增/改/删、单字段等值条件）→ **MyBatis-Plus**：BaseMapper + LambdaQueryWrapper；
    - **多条件、关联查询（JOIN）、聚合、动态 SQL、报表** → **MyBatis 原生 SQL**（XML Mapper 优先，简单场景可用 @Select 注解），**禁止**用 Wrapper 链硬拼复杂条件代替手写 SQL；
    - 存量 JdbcTemplate 代码随迭代逐步迁移至 Mapper，新代码零容忍 JdbcTemplate。
-3. **资源管理**：MyBatis/MyBatis-Plus 由 Spring 管理 SqlSession，禁手工获取 Connection；遗留 JdbcTemplate 在迁移前仍须 try-with-resources。
+4. **资源管理**：MyBatis/MyBatis-Plus 由 Spring 管理 SqlSession，禁手工获取 Connection；遗留 JdbcTemplate 在迁移前仍须 try-with-resources。
    ⚠ 教训：JwtFilter 曾只关 Statement 不关 Connection，每请求泄漏 PG 连接直至池耗尽。
-4. **异常边界**：认证逻辑与业务逻辑的 try/catch 必须分离；`chain.doFilter()` 不得放在认证 try 块内。
+5. **异常边界**：认证逻辑与业务逻辑的 try/catch 必须分离；`chain.doFilter()` 不得放在认证 try 块内。
    ⚠ 教训：控制器异常曾被 JWT 过滤器捕获后伪装成「登录已过期 401」，排查成本极高。
-5. **SQL 书写**（MyBatis 侧）：XML 中 `#{}` 预编译占位（禁 `${}` 拼接，动态排序等白名单场景除外并注释说明）；PG 强转写法 `#{id}::uuid`；`text[]` 聚合用 `array_to_string`；复杂查询必须带索引核对（对照 V1__init.sql）。
-6. **新增 REST 端点**：路径统一 `/api/v1` 前缀；错误返回 `{"error":{"code":"XXX-4001","message":"..."}}` 结构；入参校验前置（缺参返回 400，不得让异常穿透）。
-7. **WS 网关（AgentWebSocketHandler）**：SSE 泵一会话一泵；末连接断开必须 `Stream.close()` 关闭 body 流（`cancel(future)` 无效，future 在响应头到达即完成）。
+6. **SQL 书写**（MyBatis 侧）：XML 中 `#{}` 预编译占位（禁 `${}` 拼接，动态排序等白名单场景除外并注释说明）；PG 强转写法 `#{id}::uuid`；`text[]` 聚合用 `array_to_string`；复杂查询必须带索引核对（对照 V1__init.sql）。
+7. **新增 REST 端点**：路径统一 `/api/v1` 前缀；错误返回 `{"error":{"code":"XXX-4001","message":"..."}}` 结构；入参校验前置（缺参返回 400，不得让异常穿透）。
+8. **WS 网关（AgentWebSocketHandler）**：SSE 泵一会话一泵；末连接断开必须 `Stream.close()` 关闭 body 流（`cancel(future)` 无效，future 在响应头到达即完成）。
    ⚠ 教训：僵尸泵与新泵并存导致每条事件 N 倍投递（双审批卡/消息重复的根因）。
-8. **命名**：类 PascalCase（XxxController/XxxService/XxxMapper）、方法 camelCase、常量 UPPER_SNAKE；Mapper XML 与 Mapper 接口同名（XxxMapper.xml → resources/mapper/）；不使用 Lombok（现状手写 record/getter）。
+9. **命名**：类 PascalCase（XxxController/XxxService/XxxMapper）、方法 camelCase、常量 UPPER_SNAKE；Mapper XML 与 Mapper 接口同名（XxxMapper.xml → resources/mapper/）；不使用 Lombok（现状手写 record/getter）。
 
 ## 4. Python 开发规范（agent/）
 
 1. **类型注解**：所有函数签名带类型（`str | None` 新式联合）；模块顶部 `"""docstring"""` 一句话职责。
-2. **asyncio 铁律**：任务循环（run_task）内**禁止阻塞等待用户输入**——用户应答类消息（approval_response / presence / space_chat）必须走 FastAPI 端点 fast-path 直写 `pending_approvals`，否则死锁。
+2. **模块分层依赖铁律（D15）**：只允许上层依赖下层，禁止反向与循环依赖：
+   ```
+   gill_cli（CLI 入口，最上层）┐
+   agentd（守护进程入口）       ├─→ gill_core
+                              │     ├─ loop.py（编排层，gill_core 内最上层）
+                              │     └─ config/llm/risk/kb/exts/tools/sandbox/remote_sandbox/browser/files/bus/store（基础能力层）
+   ```
+   - `gill_core` **不得** import `agentd` / `gill_cli`；`agentd` 与 `gill_cli` 互不依赖、互不感知；
+   - `gill_core` 内部：基础能力模块**不得** import `loop`（只有 loop 编排它们）；基础模块之间按单向依赖（如 exts→sandbox、kb→store），新增 import 前先画方向；
+   - 消除循环依赖的手段是下沉公共逻辑到更底层模块或抽 `common`，**不是**互相 import；
+   - 提交前自检（应无输出）：
+     ```bash
+     grep -rn "agentd\|gill_cli" agent/gill_core/ --include=*.py | grep import
+     grep -rn "gill_cli" agent/agentd/ --include=*.py; grep -rn "agentd" agent/gill_cli/ --include=*.py
+     grep -rln "from .loop\|from gill_core.loop" agent/gill_core/ --include=*.py | grep -v "loop.py"
+     ```
+3. **asyncio 铁律**：任务循环（run_task）内**禁止阻塞等待用户输入**——用户应答类消息（approval_response / presence / space_chat）必须走 FastAPI 端点 fast-path 直写 `pending_approvals`，否则死锁。
    ⚠ 教训：审批等待曾放循环内消费 cmd 流，自身阻塞自身。
-3. **事件发射唯一性**：`approval_request` 仅由 `SessionRuntime.approve()` 发射（uuid cid）；`loop.py` 审批门只调用回调，不得再 emit。
+4. **事件发射唯一性**：`approval_request` 仅由 `SessionRuntime.approve()` 发射（uuid cid）；`loop.py` 审批门只调用回调，不得再 emit。
    ⚠ 教训：双发射（tool_call_id 作 cid）造成前端双卡且首卡点击静默失效。
-4. **外部 IO**：HTTP 一律 httpx/async（禁 requests）；DB 经 asyncpg pool（`store.py` 统一入口）；沙箱操作经 `remote_sandbox.py` 封装，不得绕过直连 SDK。
-5. **日志**：标准 logging，模块名作 logger；生产路径禁止 print；警告要带 sid 等上下文。
-6. **依赖**：新依赖先入 `pyproject.toml` 并说明用途；容器内需代理时用 `host.docker.internal:7890` 且更新 NO_PROXY 白名单。
-7. **CI 前**：`python -c "import ast; ast.parse(...)"` 全量语法检查（改动文件）后再提交镜像构建。
+5. **外部 IO**：HTTP 一律 httpx/async（禁 requests）；DB 经 asyncpg pool（`store.py` 统一入口）；沙箱操作经 `remote_sandbox.py` 封装，不得绕过直连 SDK。
+6. **日志**：标准 logging，模块名作 logger；生产路径禁止 print；警告要带 sid 等上下文。
+7. **依赖**：新依赖先入 `pyproject.toml` 并说明用途；容器内需代理时用 `host.docker.internal:7890` 且更新 NO_PROXY 白名单。
+8. **CI 前**：`python -c "import ast; ast.parse(...)"` 全量语法检查（改动文件）后再提交镜像构建。
 
 ## 5. 前端开发规范（web/frontend/）
 

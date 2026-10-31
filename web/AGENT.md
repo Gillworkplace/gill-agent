@@ -29,11 +29,16 @@ web/
 
 ## 关键约束（违反即事故）
 
-1. **ORM 分工（D14）**：简单单表 CRUD 用 MyBatis-Plus（BaseMapper/LambdaQueryWrapper）；**多条件、关联查询（JOIN）、聚合、动态 SQL 一律 MyBatis XML 手写 SQL**，禁止 Wrapper 硬拼复杂逻辑；**禁止新增 JdbcTemplate**（存量随迭代迁移）。
-2. **SSE 泵生命周期**：一会话一泵；末连接断开必须 `Stream.close()` 关 body 流（`cancel(future)` 无效——future 响应头到达即完成）。僵尸泵 = 事件 N 倍投递。
-3. **认证与业务异常分离**：`chain.doFilter` 不进认证 try 块；控制器异常不得伪装 401。
-4. **预签名 URL**：出口必须经 `MINIO_PUBLIC_ENDPOINT` 替换内网 `minio:9000`（浏览器直传/下载可达性）；uploads 强校验 sessionId。
-5. **SQL 书写**：XML 用 `#{}` 预编译（禁 `${}` 拼接，白名单动态排序除外并注释）；PG 强转 `#{x}::uuid`；`text[]` 聚合 `array_to_string`。
+1. **分层依赖（D15 铁律）**：只允许上层依赖下层（ws/controller → service → repo → entity），**禁止下层 import 上层、禁止循环依赖**；security/config 为横切层，不得依赖业务层。提交前自检（应无输出）：
+   ```bash
+   grep -rn "com.gill.web.controller\|com.gill.web.ws" web/src/main/java/com/gill/web/{service,repo,entity}/
+   grep -rn "com.gill.web.service" web/src/main/java/com/gill/web/repo/
+   ```
+2. **ORM 分工（D14）**：简单单表 CRUD 用 MyBatis-Plus（BaseMapper/LambdaQueryWrapper）；**多条件、关联查询（JOIN）、聚合、动态 SQL 一律 MyBatis XML 手写 SQL**，禁止 Wrapper 硬拼复杂逻辑；**禁止新增 JdbcTemplate**（存量随迭代迁移）。
+3. **SSE 泵生命周期**：一会话一泵；末连接断开必须 `Stream.close()` 关 body 流（`cancel(future)` 无效——future 响应头到达即完成）。僵尸泵 = 事件 N 倍投递。
+4. **认证与业务异常分离**：`chain.doFilter` 不进认证 try 块；控制器异常不得伪装 401。
+5. **预签名 URL**：出口必须经 `MINIO_PUBLIC_ENDPOINT` 替换内网 `minio:9000`（浏览器直传/下载可达性）；uploads 强校验 sessionId。
+6. **SQL 书写**：XML 用 `#{}` 预编译（禁 `${}` 拼接，白名单动态排序除外并注释）；PG 强转 `#{x}::uuid`；`text[]` 聚合 `array_to_string`。
 
 ## 常用命令
 

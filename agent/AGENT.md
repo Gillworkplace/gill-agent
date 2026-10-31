@@ -26,12 +26,26 @@ agent/
 
 ## 关键约束（违反即事故）
 
-1. **审批单发射器**：`approval_request` 仅由 `SessionRuntime.approve()` 发射（uuid cid 注册 pending_approvals）；`loop.py` 审批门只调回调不得 emit。
+1. **模块分层依赖（D15 铁律）**：只允许上层依赖下层，禁止反向与循环依赖：
+   ```
+   gill_cli（入口层）─┐
+   agentd（入口层）───┴→ gill_core：loop.py（编排层）→ 基础能力层（config/llm/risk/kb/exts/tools/sandbox/remote_sandbox/browser/files/bus/store）
+   ```
+   - `gill_core` 不得 import `agentd`/`gill_cli`；`agentd` 与 `gill_cli` 互不依赖；
+   - `gill_core` 内部基础模块不得 import `loop`；模块间依赖保持单向，公共逻辑**下沉**而不是互相 import。
+   - 提交前自检（应无输出）：
+     ```bash
+     grep -rn "agentd\|gill_cli" agent/gill_core/ --include=*.py | grep import
+     grep -rn "gill_cli" agent/agentd/ --include=*.py; grep -rn "agentd" agent/gill_cli/ --include=*.py
+     grep -rln "from .loop\|from gill_core.loop" agent/gill_core/ --include=*.py | grep -v "loop.py"
+     ```
+   （2026-10-31 实测现状：以上检查全部为空，现状合规。）
+2. **审批单发射器**：`approval_request` 仅由 `SessionRuntime.approve()` 发射（uuid cid 注册 pending_approvals）；`loop.py` 审批门只调回调不得 emit。
 2. **fast-path 铁律**：任务循环内不得消费等待用户应答类 cmd（approval_response/presence/space_chat）——必须由 FastAPI 端点直写，否则死锁。
-3. **拦截审计**：denied/超时命令必须落 `command_audit`（decision='denied'+risk_level）——tool_result 事件携带 `{command, risk}`，收集器无前置 tool_call 时补行。
-4. **沙箱探活**：空闲 >240s 先 `run("true")` 探活，envd 404（远端回收）即重建——不得持死引用继续用。
-5. **CDP Host 头**：DevTools DNS rebinding 防护必须 `Host: localhost`；ack 不等响应。
-6. **密钥**：`ZHIPU_API_KEY` 仅环境变量（deploy/.env），任何文件不得硬编码。
+4. **拦截审计**：denied/超时命令必须落 `command_audit`（decision='denied'+risk_level）——tool_result 事件携带 `{command, risk}`，收集器无前置 tool_call 时补行。
+5. **沙箱探活**：空闲 >240s 先 `run("true")` 探活，envd 404（远端回收）即重建——不得持死引用继续用。
+6. **CDP Host 头**：DevTools DNS rebinding 防护必须 `Host: localhost`；ack 不等响应。
+7. **密钥**：`ZHIPU_API_KEY` 仅环境变量（deploy/.env），任何文件不得硬编码。
 
 ## 常用命令
 
