@@ -101,3 +101,16 @@ cd web/frontend && npm install --registry=https://registry.npmmirror.com && npm 
 | 上传 PUT 报 DNS/网络错误 | 预签名 URL 出口未公网化：检查 `MINIO_PUBLIC_ENDPOINT` 与 minio 9000 端口映射 |
 | 隧道断（13000 不通、沙箱创建失败） | 出口 IP 变化或网络抖动：确认本机 IPv4 仍为安全组白名单值；用自动重连循环拉起隧道 |
 | 容器内命令含 `;` 产生 `web;C` 类目录 | Git Bash 分号未转义：命令加引号；删除垃圾目录 |
+
+## 5. 数字员工团队运行（v1.2，2026-11-17）
+
+新入口默认工作台，旧会话保留在 `#/legacy`。首次启动 web 自动执行 V2 新增迁移，不迁移旧会话数据。有效 API/表及状态见 [实现契约](features/digital-employee-team/implementation.md)。
+
+- web 与 agentd 配置同一份至少32字符的 `GILL_TEAM_WORKER_SECRET`；缺省时内部 Worker 禁用，不能把页面可打开当作执行器已运行。该值不入库、不进入浏览器、模型或沙箱。
+- agentd 的 `GILL_TEAM_WEB_URL=http://web:8080`、`GILL_TEAM_WORKER_SLOTS`（默认3，上限16）、`GILL_TEAM_BUNDLE_MAX_BYTES`（默认64MiB）分别控制网关、执行并发与单归档容量。需要覆盖默认值时在Compose传入环境。
+- 模型使用 `ZHIPU_API_KEY`、`ZHIPU_MODEL` 和可选 `ZHIPU_BASE_URL`。本平台需有适用的标准 API 资源，不能假定其他编程产品套餐余额可用；真实429余额不足时补资源或替换合法配置，历史失败/未知请求先核查后恢复。
+- MinIO凭据保留服务端；web的公网预签名端点必须可从浏览器访问，签名不通过事后替换host生成。版本操作默认仅推进平台内项目基线，不意味着远端推送。
+- 新团队沙箱独立创建，记录实际sandbox_id；清理器同时识别旧sessions和team_jobs归属。构建agentd使用/app/.venv，禁止把宿主.venv或node_modules复制进镜像。
+- web构建使用与本机相同的公开Maven镜像和BuildKit依赖缓存，只解析打包所需依赖；去掉全插件go-offline预下载，避免无关下载阻塞。
+
+运行 `cd deploy && docker compose up -d --build web agentd`。仅重建源代码镜像，PG/Redis/MinIO数据卷保留。检查web/agentd日志、V2迁移、内部认证和实际队列；未知外部动作在群聊“任务与执行核实”记录依据后明确恢复，不盲重试。模型、数据库及页面的已验证范围见 [验证记录](features/digital-employee-team/verification.md)。

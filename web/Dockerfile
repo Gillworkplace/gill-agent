@@ -9,10 +9,10 @@ RUN npm run build
 FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /src
 COPY pom.xml .
-RUN mvn -q dependency:go-offline
+COPY maven-settings.xml .
 COPY src ./src
 COPY --from=frontend /src/main/resources/static ./src/main/resources/static
-RUN mvn -q package -DskipTests
+RUN --mount=type=cache,target=/root/.m2 mvn -s maven-settings.xml -q package -DskipTests
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app

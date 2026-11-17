@@ -6,7 +6,7 @@
 
 | 模块路径 | 职责 | 技术栈 | AGENT.md |
 |---|---|---|---|
-| `web/` | Java Web 网关：REST API、JWT/PAT 鉴权、WS 网关（SSE→WS 扇出）、文件预签名、管理后台接口 | Java 21 / Spring Boot 3.3 / JdbcTemplate | [web/AGENT.md](web/AGENT.md) |
+| `web/` | Java Web 网关：REST API、JWT/PAT 鉴权、WS 网关（SSE→WS 扇出）、文件预签名、管理后台接口 | Java 21 / Spring Boot 3.3 / MyBatis（团队）/ 存量 JdbcTemplate | [web/AGENT.md](web/AGENT.md) |
 | `web/frontend/` | 前端工程：登录/工作台/审批/终端/预览/文件/知识库/扩展/协作/管理全部 UI | Vue 3 + TS(strict) + Vite 5 + Pinia | [web/frontend/AGENT.md](web/frontend/AGENT.md) |
 | `agent/` | Python Agent 侧：任务主循环、LLM 流式、沙箱执行、CDP 浏览器、知识库、扩展体系、风险审批、FastAPI 守护进程、CLI | Python 3.12 / asyncio / httpx / asyncpg | [agent/AGENT.md](agent/AGENT.md) |
 | `deploy/` | 部署与运维：docker-compose 全栈、沙箱机一键安装、模板镜像构建、SSH 隧道、本地 MinIO | Docker / Bash | [deploy/AGENT.md](deploy/AGENT.md) |
@@ -28,8 +28,8 @@
 |---|---|
 | `gui-test-screenshots/` | 浏览器黑盒 E2E 截图证据（t01-t16 / r1-r8 / v1-v7 三轮），只增不改 |
 | `web/src/main/resources/static/` | 前端构建产物（gitignore，由 Docker 三阶段构建生成） |
-| `web/src/main/resources/migration/` | Flyway DDL（V1__init.sql，14 张表） |
+| `web/src/main/resources/migration/` | Flyway DDL（V1__init.sql + V2__digital_teams.sql） |
 
 ## 数字员工团队设计入口（2026-11-17）
 
-通用团队的新架构草案见[系统设计](docs/features/digital-employee-team/system_design.md)，任务、整合责任和验证见[交付计划](docs/features/digital-employee-team/design_delivery_plan.md)。需求由[专题基线](docs/features/digital-employee-team/requirement_analysis.md)维护；设计仍待政策与技术前提闭环，不代表当前目录已实现这些能力。
+通用团队的新架构草案见[系统设计](docs/features/digital-employee-team/system_design.md)，任务、整合责任和验证见[交付计划](docs/features/digital-employee-team/design_delivery_plan.md)。需求由[专题基线](docs/features/digital-employee-team/requirement_analysis.md)维护；P01～06已批准，新运行实现及实际验证分别见同目录implementation.md、verification.md。

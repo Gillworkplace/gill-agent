@@ -15,7 +15,7 @@ server = [                    # agentd 常驻服务形态
     "redis>=5", "asyncpg>=0.29", "minio>=7.2", "websockets>=12",
     "structlog>=24", "prometheus-client>=0.20",
 ]
-sandbox = ["e2b>=2.24,<2.25"] # 真实 Cube 沙箱（协议锁定 <2.25）
+sandbox = ["cubesandbox==0.7.3"] # 与实际部署使用的 CubeSandbox SDK 一致
 [project.scripts]
 gill = "gill_cli.main:app"
 [build-system]

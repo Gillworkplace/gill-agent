@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gill.web.repo.TeamMapper">
+ <insert id="ensureWorkspace">INSERT INTO team_workspaces(owner_user_id) VALUES(#{uid}) ON CONFLICT DO NOTHING</insert>
+ <select id="lockWorkspace" resultType="map">SELECT document::text AS document,revision FROM team_workspaces WHERE owner_user_id=#{uid} FOR UPDATE</select>
+ <update id="saveWorkspace">UPDATE team_workspaces SET document=#{document}::jsonb,revision=revision+1,updated_at=now() WHERE owner_user_id=#{uid}</update>
+ <select id="request" resultType="map">SELECT request_hash,result::text AS result FROM team_requests WHERE owner_user_id=#{uid} AND request_key=#{key}</select>
+ <insert id="saveRequest">INSERT INTO team_requests(owner_user_id,request_key,request_hash,result) VALUES(#{uid},#{key},#{hash},#{result}::jsonb)</insert>
+ <insert id="event">INSERT INTO team_events(owner_user_id,team_id,revision,kind,payload) SELECT #{uid},NULLIF(#{team},'')::uuid,revision,#{kind},#{payload}::jsonb FROM team_workspaces WHERE owner_user_id=#{uid}</insert>
+ <select id="events" resultType="map">SELECT id,team_id::text,revision,kind,payload::text,created_at::text FROM team_events WHERE owner_user_id=#{uid} AND id&gt;#{after} ORDER BY id LIMIT 200</select>
+ <insert id="enqueue">INSERT INTO team_jobs(id,owner_user_id,team_id,payload) VALUES(#{id}::uuid,#{uid},NULLIF(#{team},'')::uuid,#{payload}::jsonb)</insert>
+ <select id="claim" resultType="map" affectData="true">
+ WITH picked AS (
+ SELECT j.id FROM team_jobs j WHERE
+ (j.state='queued' OR (j.state='running' AND j.lease_until&lt;now()
+ AND NOT EXISTS(SELECT 1 FROM team_actions a WHERE a.job_id=j.id AND a.state IN ('dispatched','unknown'))))
+ ORDER BY j.created_at FOR UPDATE SKIP LOCKED LIMIT 1
+ ) UPDATE team_jobs j SET state='running',worker_id=#{worker},fence=fence+1,
+ lease_until=now()+interval '40 seconds',updated_at=now()
+ FROM picked WHERE j.id=picked.id
+ RETURNING j.id::text,j.owner_user_id,j.team_id::text,j.payload::text,j.checkpoint::text,j.sandbox_id,j.fence
+ </select>
+ <select id="job" resultType="map">SELECT id::text,owner_user_id,team_id::text,payload::text,checkpoint::text,result::text,sandbox_id,state,worker_id,fence,lease_until&gt;now() AS lease_valid FROM team_jobs WHERE id=#{id}::uuid</select>
+ <update id="renew">UPDATE team_jobs SET lease_until=now()+interval '40 seconds' WHERE id=#{id}::uuid AND worker_id=#{worker} AND fence=#{fence} AND lease_until&gt;now() AND state='running'</update>
+ <update id="finish">UPDATE team_jobs SET state=#{state},result=#{result}::jsonb,updated_at=now() WHERE id=#{id}::uuid AND worker_id=#{worker} AND fence=#{fence} AND state='running'</update>
+ <update id="checkpoint">UPDATE team_jobs SET checkpoint=#{checkpoint}::jsonb,updated_at=now() WHERE id=#{id}::uuid</update>
+ <update id="sandbox">UPDATE team_jobs SET sandbox_id=#{sandbox},updated_at=now() WHERE id=#{id}::uuid</update>
+ <select id="actions" resultType="map">SELECT id::text,request_key,kind,input::text,state,result::text FROM team_actions WHERE job_id=#{job}::uuid ORDER BY created_at,id</select>
+ <select id="action" resultType="map">SELECT id::text,request_hash,kind,input::text,state,result::text FROM team_actions WHERE job_id=#{job}::uuid AND request_key=#{key}</select>
+ <insert id="startAction">INSERT INTO team_actions(id,job_id,request_key,request_hash,kind,input,state) VALUES(#{id}::uuid,#{job}::uuid,#{key},#{hash},#{kind},#{input}::jsonb,'dispatched')</insert>
+ <update id="endAction">UPDATE team_actions SET state=#{state},result=#{result}::jsonb,updated_at=now() WHERE id=#{id}::uuid</update>
+ <select id="running" resultType="long">SELECT count(*) FROM team_jobs WHERE owner_user_id=#{uid} AND payload-&gt;&gt;'runId'=#{run} AND state='running'</select>
+ <update id="reconcileExpired">UPDATE team_jobs j SET state='needs_reconciliation',updated_at=now() WHERE j.state='running' AND lease_until&lt;now() AND EXISTS(SELECT 1 FROM team_actions a WHERE a.job_id=j.id AND a.state IN ('dispatched','unknown'))</update>
+ <select id="jobStates" resultType="map">SELECT DISTINCT ON(payload-&gt;&gt;'taskId') id::text AS job_id,sandbox_id,payload-&gt;&gt;'taskId' AS task_id,state,lease_until&gt;now() AS lease_valid FROM team_jobs WHERE owner_user_id=#{uid} AND jsonb_exists(payload,'taskId') ORDER BY payload-&gt;&gt;'taskId',created_at DESC</select>
+ <update id="resumeJobs">UPDATE team_jobs SET state='queued',updated_at=now() WHERE owner_user_id=#{uid} AND payload-&gt;&gt;'runId'=#{run} AND state='paused'</update>
+ <select id="runningTask" resultType="long">SELECT count(*) FROM team_jobs WHERE owner_user_id=#{uid} AND payload-&gt;&gt;'taskId'=#{task} AND state='running'</select>
+ <update id="resolveJob">UPDATE team_jobs SET state='reconciled',fence=fence+1,lease_until=now(),updated_at=now() WHERE id=#{id}::uuid</update>
+ <select id="unresolvedTask" resultType="long">SELECT count(*) FROM team_actions a JOIN team_jobs j ON j.id=a.job_id WHERE j.owner_user_id=#{uid} AND j.payload-&gt;&gt;'taskId'=#{task} AND a.state IN ('dispatched','unknown')</select>
+</mapper>

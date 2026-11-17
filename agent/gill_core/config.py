@@ -41,7 +41,7 @@ def load_config(project_dir: Path | None = None) -> dict:
 class Settings:
     # LLM
     zhipu_api_key: str = field(default_factory=lambda: os.getenv("ZHIPU_API_KEY", ""))
-    zhipu_base_url: str = "https://open.bigmodel.cn/api/paas/v4"
+    zhipu_base_url: str = field(default_factory=lambda: os.getenv("ZHIPU_BASE_URL", "https://open.bigmodel.cn/api/paas/v4"))
     zhipu_model: str = os.getenv("ZHIPU_MODEL", "glm-4.6")
     embed_model: str = os.getenv("ZHIPU_EMBED_MODEL", "embedding-3")
     # 沙箱

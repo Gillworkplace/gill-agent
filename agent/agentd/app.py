@@ -442,14 +442,20 @@ class AgentDaemon:
                 conn = await asyncpg.connect(dsn)
                 try:
                     rows = await conn.fetch(
-                        "SELECT id::text, status, last_active_at FROM sessions WHERE sandbox_id IS NOT NULL")
+                        "SELECT id::text, sandbox_id, status, last_active_at FROM sessions WHERE sandbox_id IS NOT NULL")
+                    team_resources = await conn.fetch(
+                        "SELECT sandbox_id FROM team_jobs WHERE sandbox_id IS NOT NULL "
+                        "AND updated_at > now() - interval '30 minutes'")
                 finally:
                     await conn.close()
-                by_sid = {r_["id"]: r_ for r_ in rows}
+                by_sid = {r_["sandbox_id"]: r_ for r_ in rows}
+                team_ids = {r_["sandbox_id"] for r_ in team_resources}
                 killed = 0
                 async with httpx.AsyncClient(trust_env=False, timeout=20) as c:
                     for sb in sandboxes:
                         sid = sb.get("sandboxID")
+                        if sid in team_ids:
+                            continue
                         row = by_sid.get(sid)
                         orphan = row is None
                         closed = row is not None and row["status"] in ("closed", "closing", "archived")
@@ -471,6 +477,8 @@ class AgentDaemon:
         import uvicorn
 
         asyncio.create_task(self.sweep())
+        from gill_core.team_worker import run_team_workers
+        asyncio.create_task(run_team_workers(self.settings))
         app = FastAPI(title="gill-agentd")
 
         @app.get("/healthz")

@@ -1,0 +1,9 @@
+<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0">
+  <mirrors>
+    <mirror>
+      <id>public-mirror</id>
+      <mirrorOf>central</mirrorOf>
+      <url>https://maven.aliyun.com/nexus/content/groups/public/</url>
+    </mirror>
+  </mirrors>
+</settings>
