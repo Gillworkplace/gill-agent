@@ -29,3 +29,7 @@
 | `gui-test-screenshots/` | 浏览器黑盒 E2E 截图证据（t01-t16 / r1-r8 / v1-v7 三轮），只增不改 |
 | `web/src/main/resources/static/` | 前端构建产物（gitignore，由 Docker 三阶段构建生成） |
 | `web/src/main/resources/migration/` | Flyway DDL（V1__init.sql，14 张表） |
+
+## 数字员工团队设计入口（2026-11-17）
+
+通用团队的新架构草案见[系统设计](docs/features/digital-employee-team/system_design.md)，任务、整合责任和验证见[交付计划](docs/features/digital-employee-team/design_delivery_plan.md)。需求由[专题基线](docs/features/digital-employee-team/requirement_analysis.md)维护；设计仍待政策与技术前提闭环，不代表当前目录已实现这些能力。
