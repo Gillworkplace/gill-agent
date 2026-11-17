@@ -80,6 +80,9 @@ final class RuntimePolicy {
         if(p.path("escalate").asBoolean()&&!a.human()) {
             String parent=TaskAccess.parent(s,get(s,"tasks",text(d,"taskId")),a.id());list(d,"path").add(a.id());
             if(!parent.equals("user")&&!map(s,"employees").has(parent))parent="user";
+            for(JsonNode assessment:map(s,"tasks"))
+                if(text(assessment,"assessmentDecisionId").equals(text(d,"id"))&&text(assessment,"employeeId").equals(a.id())&&!Set.of("completed","cancelled").contains(text(assessment,"state")))
+                    ((ObjectNode)assessment).put("state","blocked").put("reason","已向上级升级，等待明确决定");
             d.put("handlerId",parent);deliverDecision(s,d,parent);return node("id",text(d,"id"),"state","open");
         }
         if(!p.path("resolved").asBoolean())return node("id",text(d,"id"),"state","open");
@@ -105,6 +108,9 @@ final class RuntimePolicy {
             map(run,"limits").put("maxSeconds",elapsed+Math.min(p.path("additionalSeconds").asInt(),86400));
             for(JsonNode task:map(s,"tasks"))if(text(task,"runId").equals(text(run,"id"))&&text(task,"reason").equals("运行调用上限已达"))((ObjectNode)task).put("state","queued").remove("reason");
         }
+        if(op.equals("resume")&&(p.path("additionalCalls").asInt()>0||p.path("additionalSeconds").asInt()>0))
+            for(JsonNode message:map(s,"messages"))if(text(message,"subjectId").equals(text(run,"id"))&&text(message,"kind").equals("attention"))
+                ((ObjectNode)message).put("status","responded");
         run.put("manualPaused",!op.equals("resume")).put("state",op.equals("resume")?"active":op.equals("stop")?"stop_requested":"pause_requested");
         run.put("controlRevision",run.path("controlRevision").asInt()+1);
         return node("id",text(run,"id"),"state",text(run,"state"));

@@ -38,6 +38,16 @@ class TeamEngineTest {
         assertEquals(id,state.path("deliveries").elements().next().path("messageId").asText());
         assertEquals(1,state.path("pending").size());
     }
+    @Test void explicitEmptyMentionsKeepAReplyAsNotificationOnly() {
+        String t=setup("研究"),a=employee(t),b=employee(t);
+        ObjectNode original=body("teamId",t,"text","核查已记录");original.putArray("mentions");
+        String message=engine.apply(state,new TeamActor("employee",b,t),"message.send",original).path("id").asText();
+        ObjectNode reply=body("teamId",t,"text","仅记录收到，不再派工","replyTo",message);reply.putArray("mentions");
+        var result=engine.apply(state,new TeamActor("employee",a,t),"message.send",reply);
+        assertEquals(0,result.path("recipientCount").asInt());
+        assertEquals(0,state.path("deliveries").size());
+        assertEquals(0,state.path("pending").size());
+    }
 
     @Test void crossTeamMentionRejectsAtomically() {
         String t=setup("甲"), a=employee(t), other=employee(setup("乙"));
@@ -78,6 +88,15 @@ class TeamEngineTest {
         assertEquals("根据事实工作",state.path("employees").path(a).path("prompt").asText());
         assertEquals(2,state.path("templates").path(tpl).path("revision").asInt());
     }
+    @Test void retryingTemplateGenerationClearsThePreviousFailure() {
+        String draft=call("template.generate",body("text","创建模板")).path("id").asText();
+        ObjectNode saved=(ObjectNode)state.path("drafts").path(draft);
+        saved.put("busy",false).put("error","previous provider rejection");
+        call("template.generate",body("id",draft,"text","资源已恢复，请继续"));
+        assertFalse(state.path("drafts").path(draft).has("error"));
+        assertTrue(state.path("drafts").path(draft).path("busy").asBoolean());
+        assertEquals(2,state.path("drafts").path(draft).path("messages").size());
+    }
 
     @Test void mountedEmployeeCanImproveTemplateWithoutCopyingKnowledge() {
         String t=setup("研究"),a=employee(t);
@@ -106,6 +125,20 @@ class TeamEngineTest {
         assertThrows(IllegalArgumentException.class,()->engine.apply(state,actor,"task.update",body("taskId",task,"state","queued")));
         assertEquals("blocked",state.path("tasks").path(task).path("state").asText());
     }
+    @Test void superiorEscalationWaitsWithoutContinuingModelWork() {
+        String t=setup("研究"),a=employee(t),superior=employee(t);
+        call("employee.update",body("id",a,"parentId",superior,"expectedRevision","1"));
+        String task=call("task.assign",body("employeeId",a,"goal","业务取舍")).path("id").asText();
+        String decision=engine.apply(state,new TeamActor("employee",a,t),"issue.escalate",body("taskId",task,"problem","缺少策略权重")).path("id").asText();
+        String assessment="";
+        for(var candidate:state.path("tasks"))if(candidate.path("assessmentDecisionId").asText().equals(decision))assessment=candidate.path("id").asText();
+        engine.apply(state,new TeamActor("employee",superior,t),"issue.escalate",body("taskId",assessment,"problem","我也无法决定，需用户取舍"));
+        assertEquals("user",state.path("decisions").path(decision).path("handlerId").asText());
+        assertEquals("blocked",state.path("tasks").path(assessment).path("state").asText());
+        call("decision.respond",body("decisionId",decision,"answer","联调中选择长期价值").put("resolved",true));
+        assertEquals("completed",state.path("tasks").path(assessment).path("state").asText());
+        assertEquals("queued",state.path("tasks").path(task).path("state").asText());
+    }
 
     @Test void unknownExternalActionPreventsCompletionEvenWithArtifact() {
         String t=setup("研究"),a=employee(t);
@@ -113,6 +146,17 @@ class TeamEngineTest {
         call("artifact.save",body("taskId",task,"title","结果","content","初步结果","unchecked","外部结果未知"));
         ((ObjectNode)state.path("tasks").path(task)).putArray("executedActions").add(body("state","unknown"));
         assertThrows(IllegalArgumentException.class,()->call("run.complete",body("taskId",task)));
+    }
+    @Test void explicitBudgetGrantResolvesOnlyTheRunsLimitAttention() {
+        String t=setup("研究"),a=employee(t);
+        String task=call("task.assign",body("employeeId",a,"goal","分析")).path("id").asText();
+        String run=state.path("tasks").path(task).path("runId").asText();
+        ObjectNode messages=(ObjectNode)state.path("messages");
+        messages.set("limit",body("kind","attention","subjectId",run,"status","needs-user"));
+        messages.set("unknown",body("kind","attention","subjectId",task,"status","needs-user"));
+        call("run.control",body("runId",run,"operation","resume").put("additionalCalls",3));
+        assertEquals("responded",state.path("messages").path("limit").path("status").asText());
+        assertEquals("needs-user",state.path("messages").path("unknown").path("status").asText());
     }
 
  @Test void treeBatchValidatesTheWholeRelationSetAtomically() {

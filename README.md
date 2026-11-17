@@ -17,4 +17,4 @@ cd deploy
 docker compose up -d --build web agentd
 ```
 
-打开 <http://localhost:8080>。凭据不入库。当前模型实测被供应商 429 余额不足阻断，不能把程序测试视为模型协作效果验收。
+打开 <http://localhost:8080>。凭据不入库。当前标准模型接口已恢复，两轮模板生成及三员工协作案例已完成实际续验，见[模型续验记录](docs/features/digital-employee-team/model_validation.md)。有限案例不代替完整业务或独立验收。

@@ -114,3 +114,7 @@ cd web/frontend && npm install --registry=https://registry.npmmirror.com && npm 
 - web构建使用与本机相同的公开Maven镜像和BuildKit依赖缓存，只解析打包所需依赖；去掉全插件go-offline预下载，避免无关下载阻塞。
 
 运行 `cd deploy && docker compose up -d --build web agentd`。仅重建源代码镜像，PG/Redis/MinIO数据卷保留。检查web/agentd日志、V2迁移、内部认证和实际队列；未知外部动作在群聊“任务与执行核实”记录依据后明确恢复，不盲重试。模型、数据库及页面的已验证范围见 [验证记录](features/digital-employee-team/verification.md)。
+
+### 5.1 Docker虚拟盘满导致PG退出（2026-11-17实测）
+
+症状：PG日志出现No space left on device并退出；应用连接失败不能当成模型429。先用docker system df及容器数据目录df检查，清理可重建的无用构建缓存（本次释放约15.08GB，未删除业务卷），再启动postgres并核实WAL恢复和数据库连接。最后核查未完成job/action/checkpoint，只有无未决外部动作的工作项才可重领，未知结果先核实。主机仍有空间不代表Docker虚拟盘有空间。本次虚拟盘59GB，恢复后约16GB可用。

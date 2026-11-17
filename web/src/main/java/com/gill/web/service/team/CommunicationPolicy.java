@@ -17,7 +17,7 @@ final class CommunicationPolicy {
         if(!reply.isBlank()) {
             original=get(s,"messages",reply);
             if(!tid.equals(text(original,"teamId")))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 原消息不在本团队");
-            if(targets.isEmpty()&&text(original,"senderType").equals("employee")&&!text(original,"senderId").equals(a.id()))
+            if(!p.has("mentions")&&targets.isEmpty()&&text(original,"senderType").equals("employee")&&!text(original,"senderId").equals(a.id()))
                 targets.add(text(original,"senderId"));
         }
         if(targets.isEmpty()&&a.human()&&reply.isEmpty()&&!text(t,"receiverId").isEmpty())targets.add(text(t,"receiverId"));

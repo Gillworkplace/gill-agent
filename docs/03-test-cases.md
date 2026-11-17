@@ -322,3 +322,7 @@
 ### 23.5 数字员工团队真实实现自验（v1.4，2026-11-17）
 
 新增Java领域与真实PG测试、Python协议/恢复测试和前端状态测试；实际隔离沙箱/Git/MinIO及桌面/手机页面分项证据见[专题验证记录](features/digital-employee-team/verification.md)。六条运行政策由D38确认。真实模型模板/员工试跑返回429资源不足，未完成语义与独立验收；旧用例全集也未因此视为重验通过。
+
+### 23.6 模型资源恢复后的真实续验（2026-11-17）
+
+使用glm-4.6完成两轮模板生成与三员工合成业务案例，实际run及4项任务均completed，含GUI人工决定、额度上限/显式追加及检查点恢复。现场干预、发现的缺陷、磁盘故障及未覆盖范围见[model_validation.md](features/digital-employee-team/model_validation.md)，不代表完整研发/任意业务或独立验收通过。

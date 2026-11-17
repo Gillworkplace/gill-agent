@@ -8,9 +8,9 @@
 
 当前目标与已批准政策：主需求v1.16（D18～D38）、专题requirement_analysis v0.9；系统设计v0.3、交付计划v0.3。
 
-有效运行契约为专题[implementation.md](features/digital-employee-team/implementation.md) v1.0，分项真实证据/局限为[verification.md](features/digital-employee-team/verification.md)。02架构v1.6、04LLDv1.4的§0已指向新实现；03测试v1.4增加本次自验记录，05部署v1.2补团队配置。历史正文保留旧会话语境。
+有效运行契约为专题[implementation.md](features/digital-employee-team/implementation.md) v1.1，分项真实证据/局限为[verification.md](features/digital-employee-team/verification.md)。02架构v1.6、04LLDv1.4的§0已指向新实现；03测试v1.4增加本次自验记录，05部署v1.2补团队配置。历史正文保留旧会话语境。
 
-产品探索稿v0.2、联合评审v0.1、候选附录v0.8与原型v0.7保留讨论来源，不作为另一套已实现契约。六项政策已经用户确认，不重复列为待批；独立测试、真实模型语义与生产规模验收仍未完成。
+产品探索稿v0.2、联合评审v0.1、候选附录v0.8与原型v0.7保留讨论来源，不作为另一套已实现契约。六项政策已经用户确认，不重复列为待批；有限模型案例已续验，见model_validation.md；独立测试、广泛模型语义与生产规模验收仍未完成。
 
 ## 维护规则
 

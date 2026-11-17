@@ -9,7 +9,7 @@ import httpx
 from .config import Settings
 from .team_client import TeamClient
 from .llm import LLM
-from .team_protocol import ACTION_NAMES, build_system, parse_calls, tool_schemas
+from .team_protocol import ACTION_NAMES, build_system, parse_calls, tool_schemas, search_sources
 from .team_sandbox import TeamSandbox
 
 log = logging.getLogger(__name__)
@@ -305,10 +305,7 @@ class TeamTurn:
         if name in ACTION_NAMES:
             return await self.command(ACTION_NAMES[name], args, call["id"])
         if name == "search_knowledge":
-            query = args["query"].lower()
-            hits = [s for s in self.context.get("knowledge", []) if query in
-                    (s.get("title", "") + " " + s.get("content", "")).lower()]
-            return {"sources": hits[:8], "mountedOnly": True}
+            return search_sources(self.context.get("knowledge", []), args["query"])
         key = self.key(call["id"])
         intent = await self.op("action", requestKey=key, kind=name, input=args)
         if intent["state"] in {"succeeded", "failed"}:

@@ -163,12 +163,14 @@ final class DefinitionPolicy {
         if(kind.equals("draft.generated")) {
             if(!a.type().equals("template"))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 非模板生成实例");
             ObjectNode d=get(s,"drafts",a.id());d.put("busy",false).put("name",required(p,"name")).put("prompt",required(p,"prompt"));
+            d.remove("error");
             d.set("skills",p.path("skills").deepCopy());list(d,"messages").add(node("role","assistant","content",text(p,"summary")));
             return node("id",a.id());
         }
         human(a);ObjectNode d=id.isBlank()?node("id",id()):get(s,"drafts",id);
         if(p.path("draft").isObject())for(String f:List.of("name","prompt","skills"))if(p.path("draft").has(f))d.set(f,p.path("draft").get(f).deepCopy());
         if(d.path("busy").asBoolean())throw new IllegalArgumentException("BUSY: 正在生成，请等待");
+        d.remove("error");
         list(d,"messages").add(node("role","user","content",required(p,"text")));d.put("busy",true);
         map(s,"drafts").set(text(d,"id"),d);enqueue(s,node("kind","template","draftId",text(d,"id")));
         return node("id",text(d,"id"));

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 from typing import Any
 
 ACTION_NAMES = {
@@ -49,7 +50,8 @@ def tool_schemas(template: bool = False) -> list[dict]:
          {"decisionId": string, "answer": string, "resolved": {"type": "boolean"},
           "escalate": {"type": "boolean"}}, ["decisionId", "answer", "resolved"]),
         ("record_artifact", "保存可取得的成果正文与未验证范围；修改已有产物需原revision。",
-         {"id": string, "expectedRevision": {"type": "integer"}, "title": string, "content": string,
+         {"id": {"type": "string", "description": "仅更新已存在的产物时填写服务端返回的真实ID；新建产物必须省略id，由服务端分配，不可自行编造。"},
+          "expectedRevision": {"type": "integer", "description": "更新现有产物时填写实际读取的revision；新建时省略。"}, "title": string, "content": string,
           "unchecked": string, "remaining": string}, ["title", "content", "unchecked"]),
         ("record_review", "对本队确定产物版本记录评估。模型意见与实际工具验证分开保存。",
          {"artifactId": string, "subjectRevision": {"type": "integer"}, "result": string,
@@ -74,6 +76,27 @@ def tool_schemas(template: bool = False) -> list[dict]:
          ["projectId", "expectedTarget", "sourceRef"]),
     ]
     return [_schema(*d) for d in definitions]
+
+
+def search_sources(sources: list[dict], query: str) -> dict:
+    """Search only the sources already authorized for this employee.
+
+    :param sources: Current explicitly mounted source dictionaries.
+    :param query: Free text query, including optional whitespace-separated terms.
+    :returns: Dictionary containing sources (list), mountedOnly (bool),
+        authorizedSourceCount (int) and state (str).
+    """
+    terms = re.findall(r"[^\s,，;；]+", query[:1000].casefold())[:32]
+    ranked = []
+    for source in sources:
+        body = " ".join(str(source.get(k, "")) for k in ("id", "title", "content")).casefold()
+        score = sum(term in body for term in terms)
+        if score or not terms:
+            ranked.append((score, source))
+    ranked.sort(key=lambda pair: pair[0], reverse=True)
+    hits = [source for _, source in ranked[:8]]
+    state = "no_mounted_sources" if not sources else "matched" if hits else "no_matches"
+    return {"sources": hits, "mountedOnly": True, "authorizedSourceCount": len(sources), "state": state}
 
 
 def parse_calls(calls: list[dict]) -> list[dict]:

@@ -11,7 +11,7 @@
 
 ## 0. 数字员工团队目标架构与历史范围
 
-通用团队以[系统设计 v0.3](features/digital-employee-team/system_design.md)及[实现契约 v1.0](features/digital-employee-team/implementation.md)为当前技术基线，主需求v1.16/专题v0.9，P01～06已由用户批准。Java事务 + PG持久工作项/租约/动作回执 + Python模型/隔离工具 + Vue四入口，MinIO归档代码版本。团队页面采用4秒轮询与持久事件补查API，未接团队WS；模型资源阻塞及已通过验证分项见[verification.md](features/digital-employee-team/verification.md)。
+通用团队以[系统设计 v0.3](features/digital-employee-team/system_design.md)及[实现契约 v1.1](features/digital-employee-team/implementation.md)为当前技术基线，主需求v1.16/专题v0.9，P01～06已由用户批准。Java事务 + PG持久工作项/租约/动作回执 + Python模型/隔离工具 + Vue四入口，MinIO归档代码版本。团队页面采用4秒轮询与持久事件补查API，未接团队WS；模型资源阻塞及已通过验证分项见[verification.md](features/digital-employee-team/verification.md)。
 
 下面§1起保留原会话系统历史设计，不代表新团队的无限规模或旧SessionRuntime多副本已获验证。旧入口#/legacy、V1表和原协议保留，新V2迁移只新增。
 

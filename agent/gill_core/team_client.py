@@ -48,13 +48,27 @@ class TeamClient:
         for attempt in range(2):
             try:
                 response = await self.http.post(f"jobs/{job['id']}/{operation}", json=body)
-                response.raise_for_status()
+                self._check(response)
                 return response.json()
             except httpx.TransportError:
                 if attempt:
                     raise
                 await asyncio.sleep(0.2)
         raise RuntimeError("Unreachable retry state")
+
+    def _check(self, response: httpx.Response) -> None:
+        if response.is_success:
+            return
+        try:
+            data = response.json()
+        except ValueError:
+            data = {}
+        error = data.get("error", {}) if isinstance(data, dict) else {}
+        message = error.get("message") if isinstance(error, dict) else None
+        if isinstance(message, str):
+            raise httpx.HTTPStatusError(f"HTTP {response.status_code}: {message[:900]}",
+                                        request=response.request, response=response)
+        response.raise_for_status()
 
     async def close(self) -> None:
         """Close HTTP connections."""
