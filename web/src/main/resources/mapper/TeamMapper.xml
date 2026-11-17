@@ -14,6 +14,14 @@
  SELECT j.id FROM team_jobs j WHERE
  (j.state='queued' OR (j.state='running' AND j.lease_until&lt;now()
  AND NOT EXISTS(SELECT 1 FROM team_actions a WHERE a.job_id=j.id AND a.state IN ('dispatched','unknown'))))
+ AND (j.payload-&gt;&gt;'kind' IS DISTINCT FROM 'turn' OR COALESCE((j.payload-&gt;&gt;'generation')::int,1)=
+ COALESCE((SELECT (w.document-&gt;'tasks'-&gt;(j.payload-&gt;&gt;'taskId')-&gt;&gt;'generation')::int
+ FROM team_workspaces w WHERE w.owner_user_id=j.owner_user_id),1))
+ AND (j.payload-&gt;&gt;'kind' IS DISTINCT FROM 'turn' OR NOT EXISTS(
+ SELECT 1 FROM team_jobs other WHERE other.id!=j.id AND other.owner_user_id=j.owner_user_id
+ AND other.payload-&gt;&gt;'taskId'=j.payload-&gt;&gt;'taskId' AND other.payload-&gt;&gt;'kind'='turn'
+ AND ((other.state='running' AND other.lease_until&gt;now()) OR EXISTS(
+ SELECT 1 FROM team_actions a WHERE a.job_id=other.id AND a.state IN ('dispatched','unknown')))))
  ORDER BY j.created_at FOR UPDATE SKIP LOCKED LIMIT 1
  ) UPDATE team_jobs j SET state='running',worker_id=#{worker},fence=fence+1,
  lease_until=now()+interval '40 seconds',updated_at=now()
@@ -32,7 +40,8 @@
  <select id="running" resultType="long">SELECT count(*) FROM team_jobs WHERE owner_user_id=#{uid} AND payload-&gt;&gt;'runId'=#{run} AND state='running'</select>
  <update id="reconcileExpired">UPDATE team_jobs j SET state='needs_reconciliation',updated_at=now() WHERE j.state='running' AND lease_until&lt;now() AND EXISTS(SELECT 1 FROM team_actions a WHERE a.job_id=j.id AND a.state IN ('dispatched','unknown'))</update>
  <select id="jobStates" resultType="map">SELECT DISTINCT ON(payload-&gt;&gt;'taskId') id::text AS job_id,sandbox_id,payload-&gt;&gt;'taskId' AS task_id,state,lease_until&gt;now() AS lease_valid FROM team_jobs WHERE owner_user_id=#{uid} AND jsonb_exists(payload,'taskId') ORDER BY payload-&gt;&gt;'taskId',created_at DESC</select>
- <update id="resumeJobs">UPDATE team_jobs SET state='queued',updated_at=now() WHERE owner_user_id=#{uid} AND payload-&gt;&gt;'runId'=#{run} AND state='paused'</update>
+ <update id="resumeTask">UPDATE team_jobs SET state='queued',updated_at=now() WHERE owner_user_id=#{uid} AND payload-&gt;&gt;'taskId'=#{task} AND COALESCE((payload-&gt;&gt;'generation')::int,1)=#{generation} AND state='paused'</update>
+ <select id="scheduledTask" resultType="long">SELECT count(*) FROM team_jobs WHERE owner_user_id=#{uid} AND payload-&gt;&gt;'taskId'=#{task} AND payload-&gt;&gt;'kind'='turn' AND COALESCE((payload-&gt;&gt;'generation')::int,1)=#{generation} AND state IN ('queued','running','paused','needs_reconciliation')</select>
  <select id="runningTask" resultType="long">SELECT count(*) FROM team_jobs WHERE owner_user_id=#{uid} AND payload-&gt;&gt;'taskId'=#{task} AND state='running'</select>
  <update id="resolveJob">UPDATE team_jobs SET state='reconciled',fence=fence+1,lease_until=now(),updated_at=now() WHERE id=#{id}::uuid</update>
  <select id="unresolvedTask" resultType="long">SELECT count(*) FROM team_actions a JOIN team_jobs j ON j.id=a.job_id WHERE j.owner_user_id=#{uid} AND j.payload-&gt;&gt;'taskId'=#{task} AND a.state IN ('dispatched','unknown')</select>

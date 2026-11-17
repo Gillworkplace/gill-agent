@@ -4,6 +4,16 @@
 
 `TeamChat` 是对话主区，`TaskControls` 提供任务阻断、恢复、改派与人工核实；右侧为团队摘要。`TeamDirectory` 首页只展示团队简介，详情管理组织树和员工；项目库在团队详情。`TemplateLibrary` 支持多轮生成草稿、编辑和明确保存；`KnowledgeLibrary` 管理 Agent 只读的知识版本。
 
+聊天可选择是否需要员工处理；只通知时保留@但不派发。决定编辑保留开始时的revision，过期提交交服务端拒绝且不丢输入；superseded明确显示“已失效，未应用”。当前产物只展示当前版本的核查，历史评审在对应历史版本下展开。配置异常仍在同一群聊显示，不增加主导航。
+
+```mermaid
+flowchart LR
+  Workspace[TeamWorkspace] --> Chat[TeamChat / TaskControls]
+  Chat --> Store[team/store]
+  Chat --> View[presentation纯展示规则]
+  Store --> API[api / Java网关]
+```
+
 ```sh
 npm ci
 npm test

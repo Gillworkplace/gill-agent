@@ -12,6 +12,7 @@ ACTION_NAMES = {
     "record_review": "check.record", "revise_template": "template.revise",
     "complete_task": "run.complete", "request_integration": "integration.request",
     "draft_template": "draft.generated",
+    "archive_document": "document.save",
 }
 
 
@@ -36,10 +37,12 @@ def tool_schemas(template: bool = False) -> list[dict]:
                         {"name": string, "prompt": string, "skills": skills, "summary": string},
                         ["name", "prompt", "skills", "summary"])]
     definitions = [
-        ("team_message", "向本团队发消息，可通过稳定员工ID互相@，回复请关联原消息。空mentions仅发布进展。",
-         {"text": string, "mentions": {"type": "array", "items": string}, "replyTo": string}, ["text"]),
+        ("team_message", "向本团队发消息，通过稳定员工ID互相@。requiresResponse=true请求实际处理；进展、收到、结束确认设false，只通知而不派工。回复关联replyTo。",
+         {"text": string, "mentions": {"type": "array", "items": string}, "replyTo": string,
+          "requiresResponse": {"type": "boolean"}}, ["text", "requiresResponse"]),
         ("assign_task", "向本团队员工分派相关任务。不限岗位或行业，员工ID来自同事清单。",
-         {"employeeId": string, "goal": string}, ["employeeId", "goal"]),
+         {"employeeId": string, "goal": string, "dependsOnTaskIds": {"type": "array", "items": string,
+          "description": "默认依赖当前任务的问题决定；独立工作在派发前显式传空数组。不能在已阻断任务中绕过等待派工。"}}, ["employeeId", "goal"]),
         ("update_task", "更新自己或下级任务状态。未解决决定不能通过状态更新绕过。",
          {"taskId": string, "employeeId": string, "state": {"type": "string", "enum": ["blocked", "queued", "completed", "failed", "cancelled"]},
           "reason": string}, ["state", "reason"]),
@@ -48,7 +51,10 @@ def tool_schemas(template: bool = False) -> list[dict]:
           "options": {"type": "array", "items": string}}, ["problem", "attempts", "options"]),
         ("respond_decision", "处理分配给你的评估问题；拿不准设escalate=true，补证未解决设resolved=false。",
          {"decisionId": string, "answer": string, "resolved": {"type": "boolean"},
-          "escalate": {"type": "boolean"}}, ["decisionId", "answer", "resolved"]),
+          "escalate": {"type": "boolean"}, "expectedRevision": {"type": "integer"}}, ["decisionId", "answer", "resolved"]),
+        ("archive_document", "将工作文档归档到当前任务关联的项目库。项目ID/现有文档版本来自project上下文；仅归档，不可修改项目配置。",
+         {"projectId": string, "id": string, "expectedRevision": {"type": "integer"},
+          "title": string, "content": string}, ["projectId", "title", "content"]),
         ("record_artifact", "保存可取得的成果正文与未验证范围；修改已有产物需原revision。",
          {"id": {"type": "string", "description": "仅更新已存在的产物时填写服务端返回的真实ID；新建产物必须省略id，由服务端分配，不可自行编造。"},
           "expectedRevision": {"type": "integer", "description": "更新现有产物时填写实际读取的revision；新建时省略。"}, "title": string, "content": string,
@@ -135,6 +141,8 @@ def build_system(context: dict[str, Any]) -> str:
         "你是通用数字员工团队中的实际员工。根据有效Prompt自主选择方法、分工、沟通和检查，"
         "不固定岗位流程。只有结构化工具调用会执行动作，普通文字不会执行。"
         "同事可以互相@；拿不准方案向直属上级评估，上级仍不确定逐级上报用户。"
+        "消息@接收者与请求其工作分开：仅进展、收到或结束确认用requiresResponse=false，"
+        "不为确认而继续互派任务。等待决定时，同事项依赖工作停止，独立工作不受影响。"
         "知识仅按挂载读取，不能修改源、创建员工或改写团队流程。可自迭代自己的模板，勿复制知识正文。"
         "使用record_artifact保存实际成果，指出未验证和剩余问题，再用complete_task提出完成；"
         "工具失败、未执行或未知必须如实记录。不要虚构同事、工具返回或检查结果。"

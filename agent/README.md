@@ -6,6 +6,17 @@
 
 `team_client` 只携带内部服务身份；`team_turns` 管理有效 Prompt、工具调用、检查点与控制；`team_sandbox` 是新运行的 CubeSDK 适配边界，资源 ID 持久化到 Java。模型和沙箱不接触网关/对象存储凭据。旧会话 SDK 适配仍在 `remote_sandbox`。
 
+模型工具`team_message`显式传requiresResponse：工作请求true，进展/收到/结束通知false；后者即使@员工也不派工。`archive_document`映射当前任务项目的文档归档，不授予项目配置或知识写权。任务代次与依赖等待由网关校验，Worker按heartbeat停止新调用，在途结果继续回存。
+
+```mermaid
+flowchart LR
+  Worker[team_worker] --> Turn[team_turns]
+  Turn --> Protocol[team_protocol请求与工具]
+  Turn --> Client[team_client租约/意图/回执]
+  Client --> Gateway[Java事务网关]
+  Turn --> Execution[LLM / TeamGit / TeamSandbox]
+```
+
 运行环境始终使用项目虚拟环境：
 
 ```sh

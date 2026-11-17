@@ -32,5 +32,6 @@ public interface TeamMapper extends BaseMapper<TeamWorkspaceRow> {
     long runningTask(@Param("uid") long uid,@Param("task") String task);
     long unresolvedTask(@Param("uid") long uid,@Param("task") String task);
     void resolveJob(@Param("id") String id);
-    void resumeJobs(@Param("uid") long uid,@Param("run") String run);
+    void resumeTask(@Param("uid") long uid,@Param("task") String task,@Param("generation") int generation);
+    long scheduledTask(@Param("uid") long uid,@Param("task") String task,@Param("generation") int generation);
 }

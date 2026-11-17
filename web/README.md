@@ -1,6 +1,18 @@
 # Java 网关
 
-新团队接口按 `TeamController / TeamWorkerController → TeamService → TeamEngine → 下层策略` 编排；`TeamService → TeamMapper → TeamWorkspaceRow` 持久化。纯策略互不形成循环，公共任务快照与权限下沉到 `TaskAdoption / TaskAccess / TeamData`。
+新团队接口按 `TeamController / TeamWorkerController → TeamService → TeamEngine → 下层策略` 编排；`TeamService → TeamMapper → TeamWorkspaceRow` 持久化。纯策略互不形成循环，公共任务快照、权限与依赖下沉到 `TaskAdoption / TaskAccess / TaskFlow / TeamData`。
+
+TaskFlow查询因果依赖及有效评估豁免、记录等待和旧决定失效；TeamService在聚合锁内补齐就绪任务的持久工作。generation隔离新旧调度，PG领取同时检查当前代次、同任务并发和未决动作；不是仅恢复一个UI标签。通知与工作请求分开，文档写入仅授权当前任务项目。
+
+```mermaid
+flowchart TD
+  API[Controller/Worker API] --> Service[TeamService事务]
+  Service --> Engine[TeamEngine与策略]
+  Engine --> Flow[TaskFlow/快照/权限]
+  Service --> Flow
+  Service --> Mapper[TeamMapper XML]
+  Mapper --> PG[PostgreSQL聚合/队列/回执]
+```
 
 `V2__digital_teams.sql` 新增独立工作区、幂等请求、事件、持久工作项和动作回执，兼容 V1 数据。定义对象在每用户 JSONB 聚合中；租约和执行意图是独立关系表。所有外部模型、沙箱、MinIO 等待都在 Java 事务之外。
 
@@ -9,6 +21,6 @@ mvn test
 mvn package
 ```
 
-需要 Java 21。`TeamEngineTest` 为纯领域测试；`TeamPersistenceTest` 只有在 `GILL_TEAM_DB_TEST=1` 时运行，必须设置 `DB_URL` 指向独立测试数据库及相应凭据，测试通过真实 PostgreSQL 验证事务与租约。禁止指向业务数据库。
+需要 Java 21。`TeamEngineTest`和`AcceptanceRepairTest`为纯领域测试；`TeamPersistenceTest`只有在`GILL_TEAM_DB_TEST=1`时运行，必须设置`DB_URL`指向独立测试数据库及相应凭据，测试通过真实PG验证事务、租约、暂停恢复、旧代次及依赖等待。禁止指向业务数据库。
 
 接口与状态见[实现契约](../docs/features/digital-employee-team/implementation.md)，前端见 [frontend/README.md](frontend/README.md)，规范见 [AGENT.md](AGENT.md)。

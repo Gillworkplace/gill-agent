@@ -21,24 +21,35 @@ final class CommunicationPolicy {
                 targets.add(text(original,"senderId"));
         }
         if(targets.isEmpty()&&a.human()&&reply.isEmpty()&&!text(t,"receiverId").isEmpty())targets.add(text(t,"receiverId"));
+        if(targets.isEmpty()&&a.human()&&original!=null&&p.path("requiresResponse").asBoolean(false)&&!text(original,"taskId").isBlank())
+            targets.add(text(get(s,"tasks",text(original,"taskId")),"employeeId"));
         for(String target:targets) {
             ObjectNode e=get(s,"employees",target);
             if(!tid.equals(text(e,"teamId"))||text(e,"lifecycle").equals("disabled"))
                 throw new IllegalArgumentException("SCOPE_FORBIDDEN: 无效或跨团队接收员工");
         }
-        ObjectNode m=message(s,tid,a.type(),a.id(),text,"chat");m.put("replyTo",reply);
-        ArrayNode mentions=m.putArray("mentions");targets.forEach(mentions::add);
         String taskId=text(p,"taskId");if(taskId.isBlank()&&original!=null)taskId=text(original,"taskId");
         ObjectNode context=taskId.isBlank()?null:get(s,"tasks",taskId);
         if(context!=null&&!tid.equals(text(context,"teamId")))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 任务不属于本团队");
+        boolean response=p.path("requiresResponse").asBoolean(true);
+        if(response&&context!=null)TaskFlow.requireHandoffAllowed(s,context);
+        ObjectNode m=message(s,tid,a.type(),a.id(),text,"chat");m.put("replyTo",reply);
+        ArrayNode mentions=m.putArray("mentions");targets.forEach(mentions::add);
+        m.put("requiresResponse",response);
         if(context!=null)m.put("taskId",text(context,"id")).put("runId",text(context,"runId"));
         for(String target:targets) {
+            if(!response) {
+                String deliveryId=text(m,"id")+":"+target;
+                map(s,"deliveries").set(deliveryId,node("id",deliveryId,"messageId",text(m,"id"),"employeeId",target,"state","notified"));
+                continue;
+            }
             ObjectNode task=createTask(s,tid,target,text,context,p);
             String deliveryId=text(m,"id")+":"+target;
             ObjectNode d=node("id",deliveryId,"messageId",text(m,"id"),"employeeId",target,"taskId",text(task,"id"),"state","queued");
             map(s,"deliveries").set(deliveryId,d);
             ObjectNode job=node("kind","turn","teamId",tid,"employeeId",target,"taskId",text(task,"id"),"runId",text(task,"runId"),"deliveryId",deliveryId);
             enqueue(s,job);task.put("sourceMessageId",text(m,"id"));
+            task.put("sourceDeliveryId",deliveryId);
             m.put("taskId",text(task,"id")).put("runId",text(task,"runId"));
         }
         return node("id",text(m,"id")).put("recipientCount",targets.size());

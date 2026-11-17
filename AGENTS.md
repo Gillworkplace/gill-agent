@@ -26,6 +26,8 @@ Gill Agent 的产品目标为 **通用数字员工团队管理平台**：一个�
 
 当前实现底座为 Java web 网关 + Python agent 守护进程 + Vue 3 前端 + CubeSandbox（E2B 兼容）云端沙箱，已有任务对话、命令执行、CDP 画面同步、文件/知识库/扩展/协作空间。旧能力与新team_*路径分别验证，不以旧会话结果代替新团队验收。
 
+D39授权按产品验收修复F01～F06；当前实现契约v1.2、系统设计v0.4，修改与实际回归见`docs/features/digital-employee-team/acceptance_fix_feedback_20261117.md`。旧验收结论保持原版本范围，程序回归通过不等于整体产品或模型质量已验收。
+
 **数据流**：浏览器 → web:8080（WS）→ agentd（FastAPI）→ GLM 流式 → 云端 MicroVM 沙箱 → Redis Streams（`gill:cmd:{sid}` / `gill:evt:{sid}`）回流 → WS 多端扇出。
 
 ## 2. 技术栈与版本约束

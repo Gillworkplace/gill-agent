@@ -28,3 +28,11 @@ class ProtocolTests(unittest.TestCase):
 
     def test_template_generator_only_has_draft_tool(self):
         self.assertEqual([s["function"]["name"] for s in tool_schemas(True)],["draft_template"])
+
+    def test_document_archiving_and_notification_contracts_are_exposed(self) -> None:
+        from gill_core.team_protocol import ACTION_NAMES
+        tools={s["function"]["name"]:s["function"] for s in tool_schemas()}
+        self.assertEqual(ACTION_NAMES.get("archive_document"),"document.save")
+        self.assertIn("expectedRevision",tools["archive_document"]["parameters"]["properties"])
+        self.assertIn("requiresResponse",tools["team_message"]["parameters"]["required"])
+        self.assertEqual(tools["team_message"]["parameters"]["properties"]["requiresResponse"]["type"],"boolean")

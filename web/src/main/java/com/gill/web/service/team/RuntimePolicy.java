@@ -24,6 +24,7 @@ final class RuntimePolicy {
         String target=required(p,"employeeId"),tid=teamOf(s,target);team(a,tid);
         ObjectNode parent=p.has("taskId")?get(s,"tasks",text(p,"taskId")):null;
         if(!a.human()&&(parent==null||!tid.equals(text(parent,"teamId"))))throw new IllegalArgumentException("INVALID_INPUT: 派工需要当前任务");
+        if(parent!=null)TaskFlow.requireHandoffAllowed(s,parent);
         ObjectNode task=TaskAdoption.createTask(s,tid,target,required(p,"goal"),parent,p);
         enqueue(s,node("kind","turn","teamId",tid,"employeeId",target,"taskId",text(task,"id"),"runId",text(task,"runId")));
         message(s,tid,a.type(),a.id(),"安排 "+text(get(s,"employees",target),"name")+"："+text(task,"goal"),"assignment").put("taskId",text(task,"id"));
@@ -36,6 +37,7 @@ final class RuntimePolicy {
             String target=required(p,"employeeId");if(!text(task,"teamId").equals(teamOf(s,target)))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 改派员工需属于本团队");
             ObjectNode next=TaskAdoption.createTask(s,text(task,"teamId"),target,text(task,"goal"),task,p);
             next.put("replacesTaskId",text(task,"id"));task.put("state","cancelled").put("replacementTaskId",text(next,"id"));
+            TaskFlow.invalidateDecisions(s,task,"任务已改派，原方案决定失效");
             enqueue(s,node("kind","turn","teamId",text(next,"teamId"),"employeeId",target,"taskId",text(next,"id"),"runId",text(next,"runId")));
             return node("id",text(next,"id"),"state","queued");
         }
@@ -45,25 +47,46 @@ final class RuntimePolicy {
         if(state.equals("completed")) {
             return complete(s,a,p);
         }
-        if(state.equals("queued")&&!text(task,"state").equals("queued"))enqueue(s,node("kind","turn","teamId",text(task,"teamId"),"employeeId",text(task,"employeeId"),"taskId",text(task,"id"),"runId",text(task,"runId")));
+        if(state.equals("queued")&&!text(task,"state").equals("queued")) {
+            if(!TaskFlow.blockingDecision(s,task).isBlank())throw new IllegalArgumentException("DEPENDENCY_UNRESOLVED: 相关事项等待明确决定");
+            task.put("generation",TaskFlow.generation(task)+1);
+            enqueue(s,node("kind","turn","teamId",text(task,"teamId"),"employeeId",text(task,"employeeId"),"taskId",text(task,"id"),"runId",text(task,"runId")));
+        }
         task.put("state",state).put("reason",text(p,"reason"));task.put("revision",task.path("revision").asInt()+1);
+        if(state.equals("cancelled"))TaskFlow.invalidateDecisions(s,task,"任务已取消，原决定失效");
         return node("id",text(task,"id"),"state",state);
     }
     private static ObjectNode escalate(ObjectNode s,TeamActor a,ObjectNode p) {
         ObjectNode task=get(s,"tasks",required(p,"taskId"));TaskAccess.authorize(s,a,task);
         if(task.has("assessmentDecisionId")){ObjectNode reply=p.deepCopy();reply.put("decisionId",text(task,"assessmentDecisionId")).put("answer",required(p,"problem")).put("escalate",true).put("resolved",false);return respond(s,a,reply);}
-        String id=id(),parent=a.human()?"user":TaskAccess.parent(s,task,a.id());
-        if(!parent.equals("user")&&(!map(s,"employees").has(parent)||text(get(s,"employees",parent),"lifecycle").equals("disabled")))parent="user";
-        ObjectNode d=node("id",id,"teamId",text(task,"teamId"),"taskId",text(task,"id"),"problem",required(p,"problem"),"handlerId",parent,"state","open","createdAt",now());
+        if(task.has("decisionId")&&text(get(s,"decisions",text(task,"decisionId")),"state").equals("open"))
+            throw new IllegalArgumentException("DEPENDENCY_UNRESOLVED: 当前任务已有待处理问题");
+        String id=id();
+        ObjectNode d=node("id",id,"teamId",text(task,"teamId"),"taskId",text(task,"id"),"problem",required(p,"problem"),"state","open","createdAt",now());
         d.put("originEmployeeId",text(task,"employeeId")).put("revision",1);
+        d.put("taskRevision",task.path("revision").asInt());
         d.set("options",p.path("options").deepCopy());d.set("attempts",p.path("attempts").deepCopy());d.putArray("path").add(a.id());
+        String parent=a.human()?"user":nextSuperior(s,task,a.id(),d);d.put("handlerId",parent);
         map(s,"decisions").set(id,d);task.put("state","blocked").put("decisionId",id);
-        deliverDecision(s,d,parent);return node("id",id);
+        deliverDecision(s,d,parent);TaskFlow.holdDependents(s,text(task,"runId"));return node("id",id);
+    }
+    private static String nextSuperior(ObjectNode s,ObjectNode task,String employee,ObjectNode d) {
+        String parent=TaskAccess.parent(s,task,employee);if(parent.equals("user"))return parent;
+        JsonNode candidate=map(s,"employees").path(parent);String fault="";
+        if(!candidate.isObject())fault="不存在";
+        else if(!text(candidate,"teamId").equals(text(task,"teamId")))fault="不属于本团队";
+        else if(text(candidate,"lifecycle").equals("disabled"))fault="已禁用";
+        for(JsonNode visited:d.path("path"))if(visited.asText().equals(parent))fault="关系循环";
+        if(fault.isBlank())return parent;
+        String error="上级配置异常："+parent+" "+fault+"，已转交用户评估。";
+        d.put("configurationError",text(d,"configurationError")+error);
+        list(d,"configurationExceptions").add(node("employeeId",parent,"reason",fault,"at",now()));
+        return "user";
     }
     private static void deliverDecision(ObjectNode s,ObjectNode d,String parent) {
         String tid=text(d,"teamId");
         if(parent.equals("user")) {
-            ObjectNode m=message(s,tid,"system","system",text(d,"problem"),"decision");
+            ObjectNode m=message(s,tid,"system","system",text(d,"problem")+(d.has("configurationError")?"\n"+text(d,"configurationError"):""),"decision");
             m.put("decisionId",text(d,"id")).put("mentionUser",true).put("status","needs-user");return;
         }
         ObjectNode parentTask=TaskAdoption.createTask(s,tid,parent,"评估问题："+text(d,"problem"),get(s,"tasks",text(d,"taskId")),node());
@@ -75,22 +98,29 @@ final class RuntimePolicy {
         ObjectNode d=get(s,"decisions",required(p,"decisionId"));team(a,text(d,"teamId"));
         if(!a.human()&&!a.id().equals(text(d,"handlerId")))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 非当前评估者");
         if(!text(d,"state").equals("open"))throw new IllegalArgumentException("VERSION_CONFLICT: 问题已有明确处理");
+        if(p.has("expectedRevision"))revision(d,p);
+        ObjectNode task=get(s,"tasks",text(d,"taskId"));
+        if(!text(task,"state").equals("blocked")||!text(task,"decisionId").equals(text(d,"id"))||task.has("replacementTaskId")||
+            (d.has("taskRevision")&&d.path("taskRevision").asInt()!=task.path("revision").asInt()))
+            throw new IllegalArgumentException("VERSION_CONFLICT: 原任务或方案已变化，此决定不再适用");
         String answer=required(p,"answer");d.put("answer",answer);
+        d.put("revision",d.path("revision").asInt()+1);
         message(s,text(d,"teamId"),a.type(),a.id(),answer,"decision-response").put("decisionId",text(d,"id"));
         if(p.path("escalate").asBoolean()&&!a.human()) {
-            String parent=TaskAccess.parent(s,get(s,"tasks",text(d,"taskId")),a.id());list(d,"path").add(a.id());
-            if(!parent.equals("user")&&!map(s,"employees").has(parent))parent="user";
+            list(d,"path").add(a.id());String parent=nextSuperior(s,task,a.id(),d);
             for(JsonNode assessment:map(s,"tasks"))
                 if(text(assessment,"assessmentDecisionId").equals(text(d,"id"))&&text(assessment,"employeeId").equals(a.id())&&!Set.of("completed","cancelled").contains(text(assessment,"state")))
                     ((ObjectNode)assessment).put("state","blocked").put("reason","已向上级升级，等待明确决定");
-            d.put("handlerId",parent);deliverDecision(s,d,parent);return node("id",text(d,"id"),"state","open");
+            d.put("handlerId",parent);deliverDecision(s,d,parent);TaskFlow.holdDependents(s,text(task,"runId"));return node("id",text(d,"id"),"state","open");
         }
         if(!p.path("resolved").asBoolean())return node("id",text(d,"id"),"state","open");
         d.put("state","applied").put("appliedAt",now());
         for(JsonNode assessment:map(s,"tasks"))if(text(assessment,"assessmentDecisionId").equals(text(d,"id")))((ObjectNode)assessment).put("state","completed").put("decisionResultId",text(d,"id"));
         for(JsonNode m:map(s,"messages"))if(text(m,"decisionId").equals(text(d,"id")))((ObjectNode)m).put("status","responded");
-        ObjectNode task=get(s,"tasks",text(d,"taskId"));ObjectNode run=get(s,"runs",text(task,"runId"));
-        task.put("state","queued").put("decisionAnswer",answer);
+        ObjectNode run=get(s,"runs",text(task,"runId"));
+        TaskFlow.releaseDependents(s,text(d,"id"),answer);
+        if(!text(task,"state").equals("queued"))task.put("generation",TaskFlow.generation(task)+1);
+        task.put("state","queued").put("decisionAnswer",answer);task.remove("waitingDecisionId");
         if(!run.path("manualPaused").asBoolean())enqueue(s,node("kind","turn","teamId",text(task,"teamId"),"employeeId",text(task,"employeeId"),"taskId",text(task,"id"),"runId",text(task,"runId")));
         return node("id",text(d,"id"),"state","applied");
     }
@@ -122,6 +152,12 @@ final class RuntimePolicy {
             ObjectNode art=get(s,"artifacts",required(p,"artifactId"));
             if(!text(art,"teamId").equals(text(task,"teamId")))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 核查对象跨团队");
             if(!p.has("subjectRevision"))throw new IllegalArgumentException("INVALID_INPUT: 核查需指定版本");
+            JsonNode version=p.path("subjectRevision");
+            if(!(version.isIntegralNumber()||(version.isTextual()&&version.asText().matches("[1-9][0-9]*")))||!version.canConvertToInt()&&!version.isTextual()||version.asInt()<=0)
+                throw new IllegalArgumentException("INVALID_INPUT: 核查版本需为正整数");
+            boolean exists=art.path("revision").asInt()==version.asInt();
+            for(JsonNode old:art.path("versions"))if(old.path("revision").asInt()==version.asInt())exists=true;
+            if(!exists)throw new IllegalArgumentException("VERSION_CONFLICT: 核查对象版本不存在");
             ObjectNode c=p.deepCopy();c.put("id",id()).put("teamId",text(task,"teamId")).put("employeeId",a.id()).put("createdAt",now());
             c.put("kind","model-assessment");map(s,"checks").set(text(c,"id"),c);return node("id",text(c,"id"));
         }
@@ -133,6 +169,7 @@ final class RuntimePolicy {
     }
     private static ObjectNode complete(ObjectNode s,TeamActor a,ObjectNode p) {
         ObjectNode task=get(s,"tasks",required(p,"taskId"));TaskAccess.authorize(s,a,task);
+        TaskFlow.requireWorkAllowed(s,task);
         String runId=text(task,"runId");boolean artifact=false;
         for(JsonNode v:map(s,"artifacts"))if(text(v,"taskId").equals(text(task,"id")))artifact=true;
         if(!artifact)throw new IllegalArgumentException("EVIDENCE_REQUIRED: 请先登记产物及未验证范围");

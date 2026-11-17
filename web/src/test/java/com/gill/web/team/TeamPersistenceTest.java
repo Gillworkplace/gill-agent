@@ -117,4 +117,75 @@ class TeamPersistenceTest {
   command("task.update",body("taskId",task,"state","queued"));
   assertEquals("queued",service.read(uid).path("tasks").path(task).path("state").asText());
  }
+
+ String employeeForRepair(String team) {
+  String template=command("template.save",body("name","repair","prompt","work")).path("id").asText();
+  return command("employee.create",body("name","repair","teamId",team,"templateId",template)).path("id").asText();
+ }
+ ObjectNode identity(Map<String,Object> job,String worker) {
+  return body("workerId",worker).put("fence",((Number)job.get("fence")).longValue());
+ }
+ void finish(Map<String,Object> job,String worker) {
+  ObjectNode p=identity(job,worker).put("state","done");p.set("result",json.createObjectNode());
+  service.worker(job.get("id").toString(),"finish",p);
+ }
+ @Test void answeredDuringPauseResumesExactlyOnceAndRejectsTheOldGeneration() {
+  String team=command("team.create",body("name","repair")).path("id").asText(),employee=employeeForRepair(team);
+  String task=command("task.assign",body("employeeId",employee,"goal","needs decision")).path("id").asText();
+  var job=service.claim("repair-test");String id=job.get("id").toString();
+  ObjectNode op=identity(job,"repair-test").put("kind","issue.escalate").put("requestKey","escalate");
+  op.set("payload",body("problem","need user"));
+  String decision=service.worker(id,"command",op).path("id").asText();finish(job,"repair-test");
+  String run=service.read(uid).path("tasks").path(task).path("runId").asText();
+  command("run.control",body("runId",run,"operation","pause"));
+  command("decision.respond",body("decisionId",decision,"answer","choose A").put("resolved",true));
+  assertNull(service.claim("repair-test"));
+  command("run.control",body("runId",run,"operation","resume"));
+  command("run.control",body("runId",run,"operation","resume"));
+  var resumed=service.claim("repair-test");assertNotNull(resumed,"answered task must become executable after explicit resume");
+  assertNull(service.claim("another-slot"),"same task must not be claimed twice");
+  assertEquals(task,service.worker(resumed.get("id").toString(),"context",identity(resumed,"repair-test")).path("taskId").asText());
+ }
+ @Test void sameIssueDependenciesWaitWithoutBlockingIndependentSiblingsOrTheAssessment() {
+  String team=command("team.create",body("name","dependency repair")).path("id").asText(),a=employeeForRepair(team),b=employeeForRepair(team);
+  String root=command("task.assign",body("employeeId",a,"goal","root")).path("id").asText();
+  var rootJob=service.claim("root-slot");
+  String child=command("task.assign",body("taskId",root,"employeeId",b,"goal","dependent")).path("id").asText();
+  ObjectNode independent=body("taskId",root,"employeeId",b,"goal","independent");independent.putArray("dependsOnTaskIds");
+  String sibling=command("task.assign",independent).path("id").asText();
+  var childJob=service.claim("child-slot");var siblingJob=service.claim("sibling-slot");
+  String decision=command("issue.escalate",body("taskId",root,"problem","human choice")).path("id").asText();
+  ObjectNode action=identity(childJob,"child-slot").put("requestKey","waited-model").put("kind","model");action.set("input",body("turn","1"));
+  assertEquals("paused",service.worker(childJob.get("id").toString(),"action",action).path("state").asText());
+  ObjectNode other=identity(siblingJob,"sibling-slot").put("requestKey","independent-model").put("kind","model");other.set("input",body("turn","1"));
+  assertEquals("dispatched",service.worker(siblingJob.get("id").toString(),"action",other).path("state").asText());
+  ObjectNode receipt=identity(siblingJob,"sibling-slot").put("requestKey","independent-model").put("state","succeeded");receipt.set("result",body("usage","synthetic receipt; no real model"));
+  service.worker(siblingJob.get("id").toString(),"action-result",receipt);
+  finish(rootJob,"root-slot");finish(childJob,"child-slot");finish(siblingJob,"sibling-slot");
+  assertEquals("blocked",service.read(uid).path("tasks").path(child).path("state").asText());
+  command("decision.respond",body("decisionId",decision,"answer","go ahead").put("resolved",true));
+  assertNotNull(service.claim("after-answer"));
+  assertFalse(service.read(uid).path("tasks").path(sibling).path("state").asText().equals("blocked"));
+ }
+ @Test void answeredWhileOldWorkerRunsFencesNewDispatchAndPreservesItsReceipt() {
+  String team=command("team.create",body("name","generation repair")).path("id").asText(),a=employeeForRepair(team);
+  String task=command("task.assign",body("employeeId",a,"goal","wait then resume")).path("id").asText();
+  var old=service.claim("old-worker");String id=old.get("id").toString();
+  ObjectNode intent=identity(old,"old-worker").put("requestKey","in-flight").put("kind","model");intent.set("input",body("turn","1"));
+  service.worker(id,"action",intent);
+  String decision=command("issue.escalate",body("taskId",task,"problem","need user")).path("id").asText();
+  command("decision.respond",body("decisionId",decision,"answer","choose A").put("resolved",true));
+  assertEquals("paused",service.worker(id,"heartbeat",identity(old,"old-worker")).path("state").asText());
+  ObjectNode next=intent.deepCopy().put("requestKey","stale-next");
+  assertEquals("paused",service.worker(id,"action",next).path("state").asText());
+  assertNull(service.claim("new-worker"));
+  ObjectNode receipt=identity(old,"old-worker").put("requestKey","in-flight").put("state","succeeded");receipt.set("result",body("usage","retained old request receipt"));
+  service.worker(id,"action-result",receipt);
+  assertNull(service.claim("new-worker"),"one task must not run in two slots at once");
+  finish(old,"old-worker");
+  assertEquals("queued",service.read(uid).path("tasks").path(task).path("state").asText());
+  var resumed=service.claim("new-worker");assertNotNull(resumed);
+  assertEquals("choose A",service.worker(resumed.get("id").toString(),"context",identity(resumed,"new-worker")).path("task").path("decisionAnswer").asText());
+  assertEquals(1,service.readExecution(uid,id).path("actions").size());
+ }
 }

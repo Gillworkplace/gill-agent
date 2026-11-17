@@ -6,11 +6,11 @@
 
 ## 文档清单与版本链
 
-当前目标与已批准政策：主需求v1.16（D18～D38）、专题requirement_analysis v0.9；系统设计v0.3、交付计划v0.3。
+当前目标与已批准政策：主需求v1.17（D18～D39，D39记录按验收修复授权，六项政策不变）、专题requirement_analysis v0.9；系统设计v0.4、交付计划v0.4。
 
-有效运行契约为专题[implementation.md](features/digital-employee-team/implementation.md) v1.1，分项真实证据/局限为[verification.md](features/digital-employee-team/verification.md)。02架构v1.6、04LLDv1.4的§0已指向新实现；03测试v1.4增加本次自验记录，05部署v1.2补团队配置。历史正文保留旧会话语境。
+有效运行契约为专题[implementation.md](features/digital-employee-team/implementation.md) v1.2，原分项证据为verification.md。02架构v1.7、04LLDv1.5、03测试v1.6、05部署补记v1.3同步六项缺陷修复。当前修改位置、程序/真实接口/模型联调结果和剩余限制见[acceptance_fix_feedback_20261117.md](features/digital-employee-team/acceptance_fix_feedback_20261117.md)。历史正文保留旧会话语境。
 
-产品探索稿v0.2、联合评审v0.1、候选附录v0.8与原型v0.7保留讨论来源，不作为另一套已实现契约。六项政策已经用户确认，不重复列为待批；有限模型案例续验见model_validation.md。03测试现为v1.5：按产品需求的新用例验收已执行，结论整体暂不通过，开放缺陷与AC01～34缺口见[acceptance_20261117.md](features/digital-employee-team/acceptance_20261117.md)；本轮不修产品代码。广泛模型语义、完整研发/版本集成及生产规模验收仍未完成。
+产品探索稿v0.2、联合评审v0.1、候选附录v0.8与原型v0.7保留讨论来源。原产品需求验收结论暂不通过，事实及AC01～34缺口见[acceptance_20261117.md](features/digital-employee-team/acceptance_20261117.md)。后续F01～F06已改并完成开发回归，待独立复验；真实模型纠错案例仍未在8次内收尾。广泛模型语义、完整研发/版本集成及生产规模验收仍未完成，不能按程序全绿自动改为产品验收通过。
 
 ## 维护规则
 

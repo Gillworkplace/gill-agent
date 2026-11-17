@@ -140,15 +140,27 @@ final class DefinitionPolicy {
         return node("id",text(employee,"id")).put("mounted",add);
     }
     private static ObjectNode project(ObjectNode s,TeamActor a,ObjectNode p,String kind) {
-        human(a);
         if(kind.equals("document.save")) {
             ObjectNode project=get(s,"projects",required(p,"projectId"));
-            ObjectNode docs=map(project,"documents");String id=text(p,"id");
-            ObjectNode doc=id.isEmpty()?node("id",id()):((ObjectNode)docs.path(id)).deepCopy();
+            team(a,text(project,"teamId"));
+            ObjectNode task=null;
+            if(!a.human()) {
+                task=get(s,"tasks",required(p,"taskId"));
+                ObjectNode work=get(s,"workItems",text(task,"workItemId"));
+                if(!a.id().equals(text(task,"employeeId"))||!text(project,"id").equals(text(work,"projectId")))
+                    throw new IllegalArgumentException("SCOPE_FORBIDDEN: 员工只能归档自身工作所关联项目的文档");
+                TaskFlow.requireWorkAllowed(s,task);
+            }
+            String id=text(p,"id");
+            ObjectNode doc=id.isEmpty()?node("id",id()):get(project,"documents",id).deepCopy();
             if(!id.isEmpty())revision(doc,p);
             doc.put("title",required(p,"title")).put("content",required(p,"content"));
+            doc.put("projectId",text(project,"id"));
+            if(task!=null)doc.put("taskId",text(task,"id")).put("workItemId",text(task,"workItemId")).put("runId",text(task,"runId"));
+            else doc.remove(List.of("taskId","workItemId","runId"));
             return save(project,"documents",doc,a);
         }
+        human(a);
         String id=text(p,"id");ObjectNode n=id.isEmpty()?node("id",id(),"teamId",required(p,"teamId")):get(s,"projects",id).deepCopy();
         if(!id.isEmpty())revision(n,p);get(s,"teams",required(n,"teamId"));
         for(String f:List.of("name","description","repositoryUrl","targetBranch"))if(p.has(f))n.put(f,text(p,f));

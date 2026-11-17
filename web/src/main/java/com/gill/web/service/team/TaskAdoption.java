@@ -21,11 +21,23 @@ final class TaskAdoption {
         if(!tid.equals(text(run,"teamId")))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 跨团队运行");
         ObjectNode task=node("id",id(),"teamId",tid,"employeeId",employee,"runId",runId,"goal",goal,"state","queued","createdAt",now());
         task.put("revision",1).put("parentTaskId",parent==null?"":text(parent,"id")).put("workItemId",text(run,"workItemId"));
+        task.put("generation",1);
+        ArrayNode dependencies=task.putArray("dependsOnTaskIds");
+        if(p.has("dependsOnTaskIds")) {
+            if(!p.path("dependsOnTaskIds").isArray())throw new IllegalArgumentException("INVALID_INPUT: dependsOnTaskIds需为数组");
+            for(JsonNode id:p.path("dependsOnTaskIds")) {
+                ObjectNode dependency=get(s,"tasks",id.asText());
+                if(!runId.equals(text(dependency,"runId")))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 依赖任务必须属于同一工作运行");
+                dependencies.add(id.asText());
+            }
+        } else if(parent!=null)dependencies.add(text(parent,"id"));
         task.set("employeeSnapshot",e.deepCopy());ObjectNode teamSnapshot=get(s,"teams",tid).deepCopy();
         ObjectNode organization=teamSnapshot.putObject("organization");
         for(JsonNode member:map(s,"employees"))if(tid.equals(text(member,"teamId")))organization.put(text(member,"id"),text(member,"parentId"));
         task.set("teamSnapshot",teamSnapshot);
-        map(s,"tasks").set(text(task,"id"),task);return task;
+        map(s,"tasks").set(text(task,"id"),task);
+        if(text(run,"state").equals("completed"))run.put("state","active");
+        return task;
     }
     private static void adopt(ObjectNode s,ObjectNode e) {
         ObjectNode tpl=get(s,"templates",required(e,"templateId"));

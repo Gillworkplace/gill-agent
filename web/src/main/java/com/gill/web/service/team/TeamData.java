@@ -53,6 +53,7 @@ public final class TeamData {
         return node("id",text(n,"id")).put("revision",rev);
     }
     public static void enqueue(ObjectNode s,ObjectNode job) {
+        if(text(job,"kind").equals("turn"))job.put("generation",get(s,"tasks",required(job,"taskId")).path("generation").asInt(1));
         list(s,"pending").add(job.put("id",id()).put("createdAt",now()));
     }
     public static ObjectNode message(ObjectNode s,String team,String senderType,String sender,String text,String kind) {

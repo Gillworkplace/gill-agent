@@ -56,7 +56,7 @@ public class TeamService {
         ObjectNode result=kind.equals("execution.reconcile")?reconcile(uid,s,actor,payload):engine.apply(s,actor,kind,payload);
         if(kind.equals("run.control")) {
             String runId=required(payload,"runId"),op=required(payload,"operation");
-            if(op.equals("resume"))db.resumeJobs(uid,runId);
+            if(op.equals("resume"))resumePaused(uid,s,runId);
             else if(db.running(uid,runId)==0){ObjectNode run=get(s,"runs",runId);run.put("state",op.equals("pause")?"paused":"stopped");result.put("state",text(run,"state"));}
         }
         persist(uid,s,kind,result,text(payload,"teamId"));
@@ -67,10 +67,37 @@ public class TeamService {
         ObjectNode s=parse(row.get("document"));init(s);return s;
     }
     private void persist(long uid,ObjectNode s,String kind,ObjectNode result,String tid) {
-        for(JsonNode job:list(s,"pending"))
+        for(JsonNode job:list(s,"pending")) {
+            if(text(job,"kind").equals("turn")&&!canSchedule(uid,s,get(s,"tasks",text(job,"taskId"))))continue;
             db.enqueue(required(job,"id"),uid,text(job,"teamId"),job.toString());
+        }
         s.set("pending",json.createArrayNode());db.saveWorkspace(uid,s.toString());
+        for(JsonNode n:map(s,"tasks")) {
+            ObjectNode task=(ObjectNode)n;
+            if(!canSchedule(uid,s,task))continue;
+            ObjectNode job=node("id",id(),"kind","turn","teamId",text(task,"teamId"),"employeeId",text(task,"employeeId"),"taskId",text(task,"id"),"runId",text(task,"runId"));
+            job.put("generation",TaskFlow.generation(task));
+            if(task.has("sourceDeliveryId"))job.put("deliveryId",text(task,"sourceDeliveryId"));
+            db.enqueue(text(job,"id"),uid,text(job,"teamId"),job.toString());
+        }
         db.event(uid,tid,kind,result.toString());
+    }
+    private boolean canSchedule(long uid,ObjectNode s,ObjectNode task) {
+        ObjectNode run=get(s,"runs",text(task,"runId"));
+        return text(task,"state").equals("queued")&&!run.path("manualPaused").asBoolean()&&
+            !Set.of("waiting","needs_reconciliation","stopped","stop_requested").contains(text(run,"state"))&&
+            TaskFlow.blockingDecision(s,task).isBlank()&&db.unresolvedTask(uid,text(task,"id"))==0&&
+            db.scheduledTask(uid,text(task,"id"),TaskFlow.generation(task))==0;
+    }
+    private void resumePaused(long uid,ObjectNode s,String run) {
+        for(Map<String,Object> job:db.jobStates(uid)) {
+            String taskId=Objects.toString(job.get("task_id"),"");
+            if(!map(s,"tasks").has(taskId)||!"paused".equals(job.get("state")))continue;
+            ObjectNode task=get(s,"tasks",taskId);
+            if(!run.equals(text(task,"runId"))||!Set.of("paused","queued").contains(text(task,"state"))||
+                !TaskFlow.blockingDecision(s,task).isBlank()||db.unresolvedTask(uid,taskId)>0)continue;
+            db.resumeTask(uid,taskId,TaskFlow.generation(task));task.put("state","queued");
+        }
     }
     public Map<String,Object> claim(String worker) {
         if(worker==null||!worker.matches("[a-zA-Z0-9._-]{1,100}"))throw new IllegalArgumentException("INVALID_INPUT: 无效workerId");
@@ -115,6 +142,9 @@ public class TeamService {
             ObjectNode run=get(s,"runs",text(p,"runId"));
             result.put("state",text(run,"state")).put("controlRevision",run.path("controlRevision").asInt());
             ObjectNode task=get(s,"tasks",text(p,"taskId"));result.put("taskState",text(task,"state"));
+            if(text(p,"kind").equals("turn")&&!TaskFlow.current(task,p))result.put("state","paused");
+            String waiting=TaskFlow.blockingDecision(s,task);
+            if(!waiting.isBlank())result.put("taskState","blocked").put("waitingDecisionId",waiting);
         }
         return result;
     }
@@ -169,7 +199,15 @@ public class TeamService {
             if(kind.equals("run.control")||kind.equals("employee.create")||kind.equals("knowledge.save"))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 员工无权执行");
             if(!body.has("teamId"))body.put("teamId",text(p,"teamId"));
             if(!body.has("taskId"))body.put("taskId",text(p,"taskId"));
+            if(kind.equals("document.save")&&!text(body,"taskId").equals(text(p,"taskId")))
+                throw new IllegalArgumentException("SCOPE_FORBIDDEN: 归档必须使用当前执行任务");
             ObjectNode run=get(s,"runs",text(p,"runId"));
+            ObjectNode task=get(s,"tasks",text(p,"taskId"));
+            if(text(p,"kind").equals("turn")&&!TaskFlow.current(task,p)&&!Set.of("version.record","integration.result").contains(kind))
+                throw new IllegalArgumentException("VERSION_CONFLICT: 原执行的调度版本已失效");
+            if(!TaskFlow.blockingDecision(s,task).isBlank()&&!Set.of("decision.respond","issue.escalate","version.record","integration.result").contains(kind)&&
+                !(kind.equals("message.send")&&!body.path("requiresResponse").asBoolean(true)))
+                throw new IllegalArgumentException("DEPENDENCY_UNRESOLVED: 相关事项等待明确决定");
             if(run.path("manualPaused").asBoolean()&&!Set.of("version.record","integration.result").contains(kind))throw new IllegalArgumentException("PAUSED: 团队目标已暂停");
         }
         TeamActor actor=text(p,"kind").equals("template")?new TeamActor("template",text(p,"draftId"),null):new TeamActor("employee",text(p,"employeeId"),text(p,"teamId"));
@@ -186,6 +224,7 @@ public class TeamService {
         }
         if(p.has("runId")) {
             ObjectNode run=get(s,"runs",text(p,"runId"));ObjectNode task=get(s,"tasks",text(p,"taskId"));
+            if((text(p,"kind").equals("turn")&&!TaskFlow.current(task,p))||!TaskFlow.blockingDecision(s,task).isBlank())return node("state","paused");
             if(run.path("manualPaused").asBoolean()||(text(task,"state").equals("blocked")||text(task,"state").equals("cancelled")||(text(task,"state").equals("completed")&&!text(p,"kind").equals("integration"))))return node("state","paused");
             int max=run.path("limits").path("maxRounds").asInt(25);
             long seconds=java.time.Duration.between(java.time.Instant.parse(text(run,"createdAt")),java.time.Instant.now()).toSeconds();
@@ -226,8 +265,9 @@ public class TeamService {
             return node("state",state);
         }
         ObjectNode task=get(s,"tasks",text(p,"taskId")),run=get(s,"runs",text(p,"runId"));
-        if(p.has("deliveryId"))get(s,"deliveries",text(p,"deliveryId")).put("state",state.equals("done")?"responded":state);
-        if(!Set.of("completed","cancelled","blocked","needs_reconciliation").contains(text(task,"state")))
+        boolean current=!text(p,"kind").equals("turn")||TaskFlow.current(task,p);
+        if(current&&p.has("deliveryId"))get(s,"deliveries",text(p,"deliveryId")).put("state",text(task,"state").equals("blocked")?"waiting_decision":state.equals("done")?"responded":state);
+        if(current&&!Set.of("completed","cancelled","blocked","needs_reconciliation").contains(text(task,"state")))
             task.put("state",state.equals("done")?"awaiting_followup":state);
         if(state.equals("failed")||state.equals("needs_reconciliation"))
             alert(s,text(task,"teamId"),"执行未完成："+input.path("result").path("error").asText(state),text(task,"id"));

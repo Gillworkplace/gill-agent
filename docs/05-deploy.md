@@ -6,6 +6,8 @@
 
 ## 0. 部署总览
 
+团队修复补记v1.3（2026-11-17）：同时重建web与agentd，使新requiresResponse/archive_document工具与网关契约一致。先停止新领取并核对在途工作，等待真实回执或保留needs_reconciliation，再替换服务；不重排未知请求。新增JSON字段有默认值，无DDL迁移；代码回退不回滚已应用决定或外部副作用，旧验收事实保留。实际本地部署与回归见[修复反馈](features/digital-employee-team/acceptance_fix_feedback_20261117.md)。
+
 | 目标 | 机器 | 入口 | 产物 |
 |---|---|---|---|
 | CubeSandbox 沙箱平台 | 39.107.34.109（Ubuntu 24.04） | `deploy/cube/install-cube.sh` | Cube :3000 + 双模板 READY |

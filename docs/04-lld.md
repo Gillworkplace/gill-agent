@@ -2,7 +2,7 @@
 
 | 项 | 内容 |
 |---|---|
-| 文档版本 | v1.4（新团队事务、租约、接口实现） |
+| 文档版本 | v1.5（任务generation、决定revision、依赖及归档权限修复） |
 | 编写日期 | 2026-10-17（v1.1 修订 2026-10-18；v1.2/v1.3 增补 2026-11-17） |
 | 上游文档 | 当前新增设计：主需求v1.16/专题v0.9及架构v1.6的§0；历史正文关联需求v1.5/架构v1.3/测试v1.2 |
 | 读者/用途 | 新团队实现见§0；§1起保留历史会话设计 |
@@ -12,6 +12,8 @@
 ## 0. 新团队内核契约范围
 
 新团队的有效源码契约见[implementation.md](features/digital-employee-team/implementation.md)：包含V2真实表、JSONB逻辑对象映射、命令与权限、API、租约/检查点/未知结果核实、配置采用和Git基线。DDL及索引以V2__digital_teams.sql为准，策略以service/team目录为准；历史候选附录不作为并行运行协议。
+
+v1.5：generation属于任务/工作项JSON字段，不修改V1/V2表；旧值默认1。持久事务补缺队、PG领取拒绝旧代次与同任务并行，未知动作继续阻断。决定校验原任务revision/状态与客户端expectedRevision；TaskFlow处理依赖后继及有效评估豁免。文档仅授权当前任务项目，核查只允许真实版本。详细错误/兼容及实测见[修改反馈](features/digital-employee-team/acceptance_fix_feedback_20261117.md)。
 
 P01～06已由用户明确批准。Java21真实PG测试和隔离沙箱/Git检查已执行，具体结果及模型429阻塞见[verification.md](features/digital-employee-team/verification.md)。旧§1起为原会话系统设计，不能作为新团队数据契约。
 

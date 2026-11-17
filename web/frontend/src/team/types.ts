@@ -6,11 +6,11 @@ export interface EmployeeTemplate { id: string; name: string; prompt: string; sk
 export interface Knowledge { id: string; title: string; content: string; category?: string; revision: number; versions: Version[] }
 export interface Document { id: string; title: string; content: string; revision: number; versions: Version[] }
 export interface Project { id: string; teamId: string; name: string; description?: string; repositoryUrl?: string; targetBranch?: string; checkCommand?: string; protectedBranches?: string[]; baselineCommit?: string; revision: number; documents?: Record<string, Document> }
-export interface Message { id: string; teamId: string; senderType: string; senderId: string; text: string; createdAt: string; kind: string; mentions?: string[]; mentionUser?: boolean; status?: string; decisionId?: string; taskId?: string; replyTo?: string }
+export interface Message { id: string; teamId: string; senderType: string; senderId: string; text: string; createdAt: string; kind: string; mentions?: string[]; mentionUser?: boolean; status?: string; decisionId?: string; taskId?: string; replyTo?: string; requiresResponse?: boolean }
 export interface Run { id: string; teamId: string; goal: string; state: string; createdAt: string; controlRevision: number; calls: number; manualPaused?: boolean }
 export interface Task { id: string; runId: string; teamId: string; employeeId: string; goal: string; state: string; reason?: string; revision: number; executionId?: string; sandboxId?: string; executedActions?: {id: string; state: string; kind: string; result: Record<string, unknown>}[] }
 export interface Artifact { id: string; taskId: string; teamId: string; title: string; content: string; unchecked: string; remaining: string; revision: number; versions: Version[] }
-export interface Decision { id: string; teamId: string; taskId: string; problem: string; state: string; handlerId: string; answer?: string; attempts?: string[]; options?: string[]; path: string[] }
+export interface Decision { id: string; teamId: string; taskId: string; problem: string; state: string; handlerId: string; answer?: string; attempts?: string[]; options?: string[]; path: string[]; revision?:number; configurationError?:string; invalidReason?:string }
 export interface Draft { id: string; busy: boolean; name?: string; prompt?: string; skills?: Skill[]; error?: string; messages: {role: string; content: string}[] }
 export interface Check { id: string; artifactId: string; subjectRevision: number; result: string; kind: string; limitations: string }
 export interface WorkItem { id: string; teamId: string; runId: string; projectId?: string; goal: string; state: string }

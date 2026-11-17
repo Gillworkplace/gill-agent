@@ -2,7 +2,7 @@
 
 | 项 | 内容 |
 |---|---|
-| 文档版本 | v1.6（数字团队实现与事实边界） |
+| 文档版本 | v1.7（验收修复：调度代次、依赖等待与决定适用性） |
 | 编写日期 | 2026-10-16（v1.3 修订 2026-10-18；v1.4/v1.5 增补 2026-11-17） |
 | 关联文档 | 当前新增设计：主需求v1.16/专题v0.9及§0；历史正文关联需求v1.5/测试v1.2/LLDv1.1 |
 | 变更说明 | v1.1：应用层全面无状态化（Redis 事件总线）；新增 MinIO 文件链路、RBAC 管理后台、可观测性、配额治理。v1.2：浏览器全量 E2E 修复固化（WS SSE 泵生命周期、审批单发射器、拦截审计、预签名公网出口、沙箱探活重建）。v1.3：前端重构为 Vue 3 + TS + Vite + Pinia 正规工程（web/frontend/），三阶段镜像构建，移动端 ≤768px 适配。v1.4：新增通用团队系统设计入口、现状差距和待评审状态 |
@@ -11,7 +11,7 @@
 
 ## 0. 数字员工团队目标架构与历史范围
 
-通用团队以[系统设计 v0.3](features/digital-employee-team/system_design.md)及[实现契约 v1.1](features/digital-employee-team/implementation.md)为当前技术基线，主需求v1.16/专题v0.9，P01～06已由用户批准。Java事务 + PG持久工作项/租约/动作回执 + Python模型/隔离工具 + Vue四入口，MinIO归档代码版本。团队页面采用4秒轮询与持久事件补查API，未接团队WS；模型资源阻塞及已通过验证分项见[verification.md](features/digital-employee-team/verification.md)。
+通用团队以[系统设计 v0.4](features/digital-employee-team/system_design.md)及[实现契约 v1.2](features/digital-employee-team/implementation.md)为当前技术基线，主需求v1.16/专题v0.9，P01～06已由用户批准。Java事务 + PG持久工作项/租约/动作回执 + Python模型/隔离工具 + Vue四入口，MinIO归档代码版本。v1.7补当前任务代次、依赖等待和定向通知/请求分离，纯策略共用下层TaskFlow；不引入新队列或固定业务流程。团队页面仍为4秒轮询，分项自验见verification.md，六缺陷修改与实测见[反馈](features/digital-employee-team/acceptance_fix_feedback_20261117.md)。
 
 下面§1起保留原会话系统历史设计，不代表新团队的无限规模或旧SessionRuntime多副本已获验证。旧入口#/legacy、V1表和原协议保留，新V2迁移只新增。
 
