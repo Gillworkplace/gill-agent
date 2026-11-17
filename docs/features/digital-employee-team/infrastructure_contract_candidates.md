@@ -1,6 +1,6 @@
 # 通用数字员工团队基础设施：数据与接口候选
 
-日期：2026-11-17；版本：v0.2；状态：设计输入草案，已同步 D24～D26，未经技术设计批准。
+日期：2026-11-17；版本：v0.3；状态：设计输入草案，已同步 D24～D28，未经技术设计批准。
 
 本文服务于[需求分析](requirement_analysis.md)。以下字段、存储职责及 HTTP 路径用于检查需求是否完整，均非已批准的数据库、API 或架构契约；实现前由系统设计师评估，不能据此直接创建表或开工。
 
@@ -13,8 +13,9 @@
 - 上下级用于拿不准问题的逐级评估，监督关系用于检查工作；两者分开。逐级升级不等于每个步骤都必须审批，未答复也不等于同意。
 - 所有跨对象引用校验归属与访问权；历史执行、失败、决定和引用过的版本不能因修改定义而被覆盖。聊天不能替代任务、动作、产物和决定事实。
 - 数字员工入口管理可复用模板及 Skills；团队入口管理本团队的实际员工。实际员工只有一个 team_id（界面可映射为 teamId）；同模板在其他团队创建新的员工 ID，不能把同一员工身份挂接多个团队。
-- 概览以团队群聊展示进展、空闲程度和 @我，不设置独立运行记录/我的待办顶级页面。内部运行、动作、证据及决定资源继续保留，在群聊按需展开。
+- 工作台（原概览）以团队群聊为核心，右侧呈现团队状态与切换，不设置独立运行记录/我的待办顶级页面。内部运行、动作、证据及决定资源继续保留，在群聊按需展开。
 - 模板与 Skills 更新对既有员工的同步策略仍待 Q-07；当前模板版本、实际员工工作版本与运行采用版本分开。已读 @消息不等于决定或应用变更。
+- 模板创建支持多轮对话和持续修订的草稿预览；保存时保留采用草稿及其对话来源。生成反馈、草稿更新与用户明确保存分别识别，不把本地预置原型当作真实模型能力。
 
 ## 2. 类型、公共字段与版本语义
 
@@ -42,6 +43,7 @@
 | 模板版本 | `work_prompt`, `responsibility_description`, `skill_version_refs` | `Text`, `Text`, `List<Ref>` | 是；Skills 可为空 | 指令和岗位开放；Skills 固定引用版本，不将技能清单当作工具白名单 |
 | 模板版本 | `capability_descriptions`, `input_expectations`, `output_expectations` | `List<Text>`, `Text?`, `Text?` | 能力列表是，可为空 | 能力不授予账号或权限，也不禁止员工处理其他开放任务 |
 | 模板版本 | `generation_ref`, `validation_findings` | `Ref?`, `List<Object>` | 检查列表是，可为空 | 追溯平台生成和用户调整；检查不宣称能力已真实验证 |
+| 模板版本 | `generation_conversation_ref`, `source_turn_refs`, `adopted_draft_revision_ref` | `Ref?`, `List<Ref>`, `Ref?` | 来源列表是；对话生成时引用必填 | 明确保存哪份草稿及来自哪些轮次，不仅保存最后一句 Prompt；生成中的草稿不自动生效 |
 | Skill 版本 | `skill_id`, `instructions`, `material_refs`, `dependency_descriptions` | `ID`, `Text`, `List<Ref>`, `List<Text>` | 是；列表可为空 | 用户管理的能力指令和素材；不可达依赖如实记录，不存明文凭据 |
 | 实际员工 | `team_id`, `source_template_revision_ref`, `working_revision_ref` | `ID`, `Ref?`, `Ref` | 团队/工作版本是 | employeeId 只对应一个 team_id；同模板在不同团队创建新 ID，不共享员工上下文。同一 team_id 可有多名员工，不能误作 team_id 全表唯一约束 |
 | 实际员工工作版本 | `work_prompt`, `skill_version_refs`, `responsibility_scope`, `context_refs` | `Text`, `List<Ref>`, `Text`, `List<Ref>` | 是；列表可为空 | 保存本员工实际采用的指令和 Skills；模板更新不自动覆盖，变更来源与同步规则见 Q-07 |
@@ -57,6 +59,8 @@
 | 流程版本 | `workflow_prompt`, `interpretation_summary`, `validation_findings` | `Text`, `Text?`, `List<Object>` | Prompt/检查列表是 | Prompt 为协作规则来源；解释摘要不取代原文，不强制转成固定 DAG |
 | 流程版本 | `referenced_definition_versions`, `context_refs` | `List<Ref>`, `List<Ref>` | 是，可为空 | 允许开放任务、反复检查和动态计划；不把临时计划写回有效流程 Prompt |
 | 生成操作 | `requested_by`, `request_prompt`, `input_refs`, `model_config_ref`, `state`, `candidate_refs` | `ActorRef`, `Text`, `List<Ref>`, `Ref?`, `OpenState`, `List<Ref>` | 除模型配置引用外是 | 追溯模板/团队/员工候选及失败；由用户发起或明确采用，模板生成不自动创建实际员工 |
+| 模板生成对话 | `initiator_user_ref`, `turn_refs`, `current_draft_revision_ref`, `state` | `ActorRef(user)`, `List<Ref>`, `Ref?`, `OpenState` | 除尚未产生的草稿外是 | 支持用户持续补充和修订，不规定固定轮数；保存与取消分别记录 |
+| 模板生成轮次 | `conversation_ref`, `speaker`, `content_ref`, `input_draft_revision_ref`, `output_draft_revision_ref` | `Ref`, `ActorRef`, `Ref`, `Ref?`, `Ref?` | 前三项是 | 保留用户要求和生成反馈；失败轮次不能伪报产出新草稿，用户来源由认证上下文确定 |
 
 ## 4. 运行、任务、通信与真实动作
 
@@ -72,7 +76,7 @@
 | 任务 | `run_ref`, `objective`, `assignee_ref`, `state` | `Ref`, `Text`, `Ref?`, `OpenState` | 除分派引用外是 | 任务可先创建再分派；类型开放，允许模型拆分、交接与重规划 |
 | 任务 | `input_version_refs`, `dependency_refs`, `expected_outputs`, `blocker_refs` | `List<Ref>`, `List<Ref>`, `Text?`, `List<Ref>` | 列表是，可为空 | 依赖引用明确对象；相互等待可被发现，不能静默标完成 |
 | 任务安排记录 | `task_ref`, `operation`, `before_ref`, `after_ref`, `reason` | `Ref`, `String`, `Ref?`, `Ref`, `Text` | 除前态外是 | 记录分派、改派、拆分及计划调整；不自动成为修改员工/流程的权力 |
-| 团队群聊 | `team_id`, `last_message_ref`, `progress_summary`, `availability_summary`, `observed_at` | `ID`, `Ref?`, `Object?`, `Object?`, `Time?` | 团队是 | 概览按团队展示群聊与进展/空闲状态；未知或过期不能伪作空闲，统计口径见 Q-05 |
+| 团队群聊 | `team_id`, `last_message_ref`, `progress_summary`, `availability_summary`, `observed_at` | `ID`, `Ref?`, `Object?`, `Object?`, `Time?` | 团队是 | 工作台按团队展示群聊与进展/空闲状态；未知或过期不能伪作空闲，统计口径见 Q-05 |
 | 通信消息 | `team_id`, `run_ref`, `sender`, `recipient_refs`, `content`, `related_refs` | `ID`, `Ref?`, `ActorRef`, `List<Ref>`, `Text`, `List<Ref>` | 除运行引用外是；列表可为空 | 普通群聊可尚无运行；实际员工身份与 team_id 相符，用户/系统来源真实，工作卡片关联内部事实 |
 | 通信消息 | `message_kind`, `delivery_state`, `reply_to_ref`, `correlation_id` | `String`, `OpenState`, `Ref?`, `ID?` | 前两项是 | 已发送、已送达、已响应分开；普通聊天不隐式授予决定权 |
 | 消息阅读记录 | `message_ref`, `reader`, `read_at` | `Ref`, `ActorRef`, `Time` | 是 | 只证明消息已读，不生成决定、不关闭问题或应用配置 |
@@ -129,9 +133,11 @@
 
 | Method | 候选路径 | 作用 | 最小入参 → 输出 | 幂等/版本语义 |
 | --- | --- | --- | --- | --- |
-| POST | `P/employee-template-generations` | 用户发起模板生成候选 | 用户 Prompt、资料引用 → 操作/模板草稿 | K；生成模板不自动创建团队实际员工 |
+| POST | `P/employee-template-generations` | 用户开始模板生成对话 | 初始要求、资料引用 → 对话/操作/草稿引用 | K；生成或继续对话均不自动保存模板或创建实际员工 |
+| GET | `P/employee-template-generations/{id}` | 查询模板生成对话及当前草稿 | 对话 ID、游标 → 轮次、状态、可预览草稿与来源 | 只读；失败保留已有对话与上一有效草稿 |
+| POST | `P/employee-template-generations/{id}/messages` | 用户继续沟通、修订模板要求 | 用户消息、资料、当前草稿基线 → 新轮次/操作/更新草稿 | K+V；保留多轮来源，采用用户直接编辑后的当前草稿，不静默丢弃已有修订 |
 | GET | `P/operations/{id}` | 查询生成或其他异步操作 | ID → 受理/运行状态、候选/结果引用、失败或未知信息 | 只读；操作成功不等于配置已启用 |
-| POST / GET | `P/employee-templates` | 用户保存模板/查询模板库 | 候选或模板内容、Skills 引用/游标 → 模板及版本 | 写入 K；可复用配置，不创建实际员工身份 |
+| POST / GET | `P/employee-templates` | 用户明确保存模板/查询模板库 | 草稿/内容、Skills、生成对话及采用轮次引用/游标 → 模板及版本 | 写入 K；明确保存才进入模板，来源可追溯，不创建实际员工身份 |
 | GET | `P/employee-templates/{id}`、`P/employee-templates/{id}/revisions` | 查看模板与历史版本 | ID/游标 → 工作 Prompt、Skills、来源及版本 | 只读；不以模板当前版本替代实际员工采用版本 |
 | POST | `P/employee-templates/{id}/revisions` | 用户调整模板 Prompt 或配置 | 基线、修改要求/内容 → 新模板草稿版本 | K+V；不覆盖旧版，不自动同步实际员工 |
 | POST / GET | `P/employee-templates/{id}/skills` | 管理模板能力 Skills/列表 | 能力名称、指令/素材、依赖或游标 → Skill/版本/模板变更引用 | 写入 K+V；用户管理，不构成工具白名单 |
@@ -146,10 +152,10 @@
 | POST | `P/teams/{id}/employees/{employeeId}/revisions` | 用户调整实际员工工作配置 | 当前员工基线、修改内容/决定 → 新工作版本 | K+V；仅修改该员工，不改变模板或其他同源员工 |
 | POST | `P/teams/{id}/employees/{employeeId}/deactivation` | 用户停用本团队实际员工 | 员工基线、原因 → 状态/影响范围 | K+V；不删除历史，在途工作处理另行设计，不改绑到其他团队 |
 | POST | `P/teams/{id}/relationship-revisions` | 用户保存本团队上下级与监督关系 | 基线、本团队员工引用、两类关系 → 新版本/校验问题 | K+V；不跨团队挂接身份，不混用上下级和监督关系 |
-| GET | `P/team-chats` | 概览聚合不同团队群聊 | 游标/当前用户 → 团队、最近消息、进展/空闲摘要、@我提示及来源时间 | 只读；未知不显示为空闲，汇总不替代原始事实 |
+| GET | `P/team-chats` | 工作台聚合不同团队群聊 | 游标/当前用户 → 团队、最近消息、进展/空闲摘要、@我提示及来源时间 | 只读；未知不显示为空闲，汇总不替代原始事实 |
 | POST / GET | `P/teams/{id}/messages` | 团队群聊发送和查询 | 内容、@对象、工作引用或游标 → 消息/送达状态/关联卡片 | 写入 K；普通讨论不强制 run_ref，来源由认证上下文确定 |
 | POST | `P/teams/{id}/messages/{messageId}/read-receipts` | 记录已读 | 消息/阅读位置 → 阅读记录 | K；只更新阅读，不解决问题或应用变更 |
-| GET | `P/mentions` | 概览 @我 聚合与定位 | 当前用户、团队、状态、游标 → 消息、团队及关联事项 | 只读；定位回对应群聊，不要求独立待办页面 |
+| GET | `P/mentions` | 工作台 @我 聚合与定位 | 当前用户、团队、状态、游标 → 消息、团队及关联事项 | 只读；定位回对应群聊，不要求独立待办页面 |
 | POST | `P/mentions/{id}/processing-records` | 记录明确处理进展或关联实际决定 | 当前状态、处理说明、决定/事项引用 → 处理记录 | K+V；已读不算决定，标记处理不能代替具体决定或应用事实 |
 | POST | `P/workflow-generations` | 依据用户 Prompt 生成流程候选 | Prompt、团队/上下文引用 → 操作/草稿 | K；不预设行业阶段 |
 | POST / GET | `P/workflows` | 用户保存流程草稿/列流程 | Prompt/候选引用或游标 → 定义/列表 | 写入 K；保存不自动应用 |
@@ -205,3 +211,4 @@
 | 版本与日期 | 内容与边界 |
 | --- | --- |
 | v0.2 / 2026-11-17 | 按 D24～D26 将可复用模板/Skills 与团队唯一归属实际员工分开；新增团队群聊、空闲摘要、mentions 和阅读/处理候选，取消全局员工跨团队挂接及独立待办入口假设；内部运行与证据资源保留，字段/API 尚待技术评审 |
+| v0.3 / 2026-11-17 | 按 D27/D28 补模板生成对话、多轮来源、当前草稿和明确保存引用及候选接口；用户入口改名工作台，现有内部运行语义不变；未批准技术契约或模板自动同步规则 |
