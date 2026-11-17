@@ -8,8 +8,8 @@
 
 | 文件 | 内容 | 当前版本 |
 |---|---|---|
-| `01-requirements.md` | 统一目标基线：D18 数字员工团队新定位；保留 v1.5 用户故事、FR/NFR/BD 供迁移评估 | v1.6（目标调整，机制待细化） |
-| `features/digital-employee-team/product_proposal.md` | D18 产品方案：员工生成、Prompt 流程、模型运行、相互监督、竞品依据与未决事项 | v0.1 草案 |
+| `01-requirements.md` | 统一目标基线：D18 数字员工团队新定位、D19 上下级逐级升级；保留 v1.5 需求供迁移评估 | v1.7（升级路径明确，其余机制待细化） |
+| `features/digital-employee-team/product_proposal.md` | D18/D19 产品方案：员工生成、Prompt 流程、模型运行、监督与逐级升级、竞品依据和未决事项 | v0.2 草案 |
 | `02-architecture.md` | 总体架构、核心机制（总线/审批/扇出）、模块设计、时序 | v1.3 |
 | `03-test-cases.md` | 测试用例全集（TC-* 22 组）+ §23 浏览器黑盒 E2E 执行记录 | v1.2 |
 | `04-lld.md` | 编码依据：目录树、DDL、REST/WS 协议、模块内部设计、错误矩阵 | v1.1 |
