@@ -10,7 +10,7 @@
 
 有效运行契约为专题[implementation.md](features/digital-employee-team/implementation.md) v1.1，分项真实证据/局限为[verification.md](features/digital-employee-team/verification.md)。02架构v1.6、04LLDv1.4的§0已指向新实现；03测试v1.4增加本次自验记录，05部署v1.2补团队配置。历史正文保留旧会话语境。
 
-产品探索稿v0.2、联合评审v0.1、候选附录v0.8与原型v0.7保留讨论来源，不作为另一套已实现契约。六项政策已经用户确认，不重复列为待批；有限模型案例已续验，见model_validation.md；独立测试、广泛模型语义与生产规模验收仍未完成。
+产品探索稿v0.2、联合评审v0.1、候选附录v0.8与原型v0.7保留讨论来源，不作为另一套已实现契约。六项政策已经用户确认，不重复列为待批；有限模型案例续验见model_validation.md。03测试现为v1.5：按产品需求的新用例验收已执行，结论整体暂不通过，开放缺陷与AC01～34缺口见[acceptance_20261117.md](features/digital-employee-team/acceptance_20261117.md)；本轮不修产品代码。广泛模型语义、完整研发/版本集成及生产规模验收仍未完成。
 
 ## 维护规则
 

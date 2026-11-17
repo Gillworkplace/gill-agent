@@ -1,0 +1,3434 @@
+{
+  "baseline": "deb48c58795b39a0ceb32a0b0dd3ea8fadf70bb0",
+  "timeZone": "Asia/Shanghai",
+  "protocol": [
+    {
+      "id": "A01-identities-and-authority",
+      "ac": [
+        "AC-11",
+        "AC-17",
+        "AC-26",
+        "AC-34"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-17T12:13:07.179Z",
+      "details": {
+        "attempts": [
+          {
+            "kind": "knowledge.save",
+            "status": 403
+          },
+          {
+            "kind": "employee.create",
+            "status": 403
+          },
+          {
+            "kind": "team.update",
+            "status": 403
+          },
+          {
+            "kind": "message.send",
+            "status": 403
+          }
+        ],
+        "crossUserStatus": 403,
+        "employeeIds": [
+          "56e6e953-5048-4651-9eb6-fa4018dbadff",
+          "8d72fd01-5771-4473-80f7-5d695074dccc",
+          "09f8789f-0045-4ba9-81db-7da489165811"
+        ]
+      },
+      "finishedAt": "2026-11-17T12:13:07.577Z"
+    },
+    {
+      "id": "A02-definition-CAS-and-tree",
+      "ac": [
+        "AC-06",
+        "AC-16",
+        "AC-30"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-17T12:13:07.581Z",
+      "details": {
+        "concurrentStatuses": [
+          200,
+          409
+        ],
+        "cycleStatus": 400,
+        "teamId": "759ed4a2-5cc8-4415-bc5c-90cf01f4c000"
+      },
+      "finishedAt": "2026-11-17T12:13:07.773Z"
+    },
+    {
+      "id": "A03-knowledge-and-task-snapshots",
+      "ac": [
+        "AC-06",
+        "AC-12",
+        "AC-26",
+        "AC-27",
+        "AC-29"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-17T12:13:07.777Z",
+      "details": {
+        "source": "dcb849e8-def2-4e20-b2b2-5a7e0b8d0fd4",
+        "readRevisions": [
+          1,
+          2
+        ],
+        "unmountedSources": 0,
+        "history": 2
+      },
+      "finishedAt": "2026-11-17T12:13:08.026Z"
+    },
+    {
+      "id": "A04-template-adoption-and-conflict",
+      "ac": [
+        "AC-19",
+        "AC-28",
+        "AC-29"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-17T12:13:08.029Z",
+      "details": {
+        "taskVersions": [
+          1,
+          2,
+          2
+        ],
+        "templateRevision": 3,
+        "iterationSource": {
+          "id": "d3679b25-7da1-42c1-b664-9a9a185cd6c4",
+          "name": "自迭代候选",
+          "prompt": "模板v3不同规则",
+          "reason": "发现可改进的工作方式",
+          "skills": [],
+          "draftId": "",
+          "authorId": "1929b9fa-5f07-49c8-8f9b-611b42e7c7dd",
+          "revision": 3,
+          "updatedAt": "2026-11-17T12:13:08.231657126Z",
+          "authorType": "employee",
+          "originTeamId": "32088a53-cedd-4eb4-b3e3-1799f1811d21",
+          "authorizedTeamIds": [
+            "32088a53-cedd-4eb4-b3e3-1799f1811d21"
+          ]
+        }
+      },
+      "finishedAt": "2026-11-17T12:13:08.260Z"
+    },
+    {
+      "id": "A05-project-documents-and-agent-archiving",
+      "ac": [
+        "AC-22"
+      ],
+      "status": "failed",
+      "startedAt": "2026-11-17T12:13:08.263Z",
+      "error": "employee cannot archive project document under an authorized task",
+      "details": {
+        "status": 403,
+        "response": {
+          "error": {
+            "code": "SCOPE_FORBIDDEN",
+            "message": "SCOPE_FORBIDDEN: 仅用户可以调整此配置"
+          }
+        },
+        "projectId": "9c47b3df-fc7b-4a00-a4a9-079b08cc4240"
+      },
+      "finishedAt": "2026-11-17T12:13:08.442Z"
+    },
+    {
+      "id": "B01-multiple-superiors-and-human",
+      "ac": [
+        "AC-09",
+        "AC-10",
+        "AC-31"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-17T12:14:38.301Z",
+      "details": {
+        "path": [
+          "1e09ce12-8b1d-40f3-a2d8-9dd0f257a453",
+          "1cbe93d9-7a78-4a32-ad5a-5cac5786b55d",
+          "8b41c4a2-eff1-43b9-be07-52379018f32c"
+        ],
+        "sourceTask": "ee36eb75-35fe-4eb3-9425-c283376a4753",
+        "decision": "63a50dea-1f96-446e-8d72-f6fb0eb630c0",
+        "handlerBeforeAnswer": "user"
+      },
+      "finishedAt": "2026-11-17T12:14:38.561Z"
+    },
+    {
+      "id": "B02-answer-during-human-pause-then-resume",
+      "ac": [
+        "AC-07",
+        "AC-09",
+        "AC-16",
+        "AC-31"
+      ],
+      "status": "failed",
+      "startedAt": "2026-11-17T12:14:38.564Z",
+      "error": "explicit resume left answered task queued with no executable work",
+      "details": {
+        "taskId": "74ecd951-823f-48ad-a960-63ad7e0412d4",
+        "taskState": "queued",
+        "runState": "active",
+        "claimedJob": {}
+      },
+      "finishedAt": "2026-11-17T12:14:38.761Z"
+    },
+    {
+      "id": "B03-stale-decision-cannot-revive-cancelled-task",
+      "ac": [
+        "AC-10",
+        "AC-16",
+        "AC-31"
+      ],
+      "status": "failed",
+      "startedAt": "2026-11-17T12:14:38.763Z",
+      "error": "old decision revived cancelled work",
+      "details": {
+        "status": 200,
+        "decisionState": "applied",
+        "taskState": "queued",
+        "queuedTask": "271f7d7b-11ee-48fa-b24a-25af0fb54db2",
+        "taskId": "271f7d7b-11ee-48fa-b24a-25af0fb54db2"
+      },
+      "finishedAt": "2026-11-17T12:14:38.949Z"
+    },
+    {
+      "id": "B04-unknown-actions-fences-and-reconciliation",
+      "ac": [
+        "AC-05",
+        "AC-07",
+        "AC-16",
+        "AC-32"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-17T12:14:38.952Z",
+      "details": {
+        "unknownState": "needs_reconciliation",
+        "staleStatus": 409,
+        "lateState": "recorded-not-applied",
+        "taskState": "paused"
+      },
+      "finishedAt": "2026-11-17T12:14:39.146Z"
+    },
+    {
+      "id": "B05-review-must-reference-existing-artifact-version",
+      "ac": [
+        "AC-04",
+        "AC-32"
+      ],
+      "status": "failed",
+      "startedAt": "2026-11-17T12:14:39.149Z",
+      "error": "platform accepted a review of a nonexistent revision",
+      "details": {
+        "status": 200,
+        "artifactRevision": 1,
+        "review": {
+          "id": "637199a6-4b6f-4ac5-9d42-5bada773bf71",
+          "kind": "model-assessment",
+          "result": "通过",
+          "taskId": "5e59ce5e-9559-4936-94aa-7e65f47205f0",
+          "teamId": "e7e9aa95-cb1d-46fc-af9f-d4cb9202118b",
+          "createdAt": "2026-11-17T12:14:39.323196418Z",
+          "artifactId": "1e24ee45-c611-4765-8c43-cc64b517827d",
+          "employeeId": "ecf8bba0-222c-4395-b058-487ae0f8da2e",
+          "limitations": "模型意见，不是外部工具",
+          "subjectRevision": 999
+        }
+      },
+      "finishedAt": "2026-11-17T12:14:39.333Z"
+    },
+    {
+      "id": "B06-invalid-superior-must-report-configuration-exception",
+      "ac": [
+        "AC-09",
+        "AC-10"
+      ],
+      "status": "failed",
+      "startedAt": "2026-11-17T12:14:39.336Z",
+      "error": "escalation silently bypassed disabled superior without configuration notice",
+      "details": {
+        "taskId": "bbade993-c824-4d7c-9df5-c210fb1eccd0",
+        "disabledSuperior": "70bcbbd9-7686-4bc0-9b4f-69e3a31c0424",
+        "decision": {
+          "id": "6fdb7182-c08a-4350-9203-067c5ed6c3e8",
+          "path": [
+            "f6a5ade1-f30a-4dea-a4da-ee13869fa78c"
+          ],
+          "state": "open",
+          "taskId": "bbade993-c824-4d7c-9df5-c210fb1eccd0",
+          "teamId": "b2f5ab28-5d1d-4477-a7a4-944f0cd357e6",
+          "options": [
+            "A",
+            "B"
+          ],
+          "problem": "验收中的待决方案",
+          "attempts": [],
+          "revision": 1,
+          "createdAt": "2026-11-17T12:14:39.497324543Z",
+          "handlerId": "user",
+          "originEmployeeId": "f6a5ade1-f30a-4dea-a4da-ee13869fa78c"
+        },
+        "notices": [
+          {
+            "id": "1fa5b2c0-5d17-4579-8d62-221c5805d3c0",
+            "kind": "decision",
+            "text": "验收中的待决方案",
+            "status": "needs-user",
+            "teamId": "b2f5ab28-5d1d-4477-a7a4-944f0cd357e6",
+            "senderId": "system",
+            "createdAt": "2026-11-17T12:14:39.497352543Z",
+            "decisionId": "6fdb7182-c08a-4350-9203-067c5ed6c3e8",
+            "senderType": "system",
+            "mentionUser": true
+          }
+        ]
+      },
+      "finishedAt": "2026-11-17T12:14:39.504Z"
+    }
+  ],
+  "browserAttempts": [
+    {
+      "id": "C01-navigation-and-team-directory",
+      "ac": [
+        "AC-18",
+        "AC-21",
+        "AC-25"
+      ],
+      "status": "passed",
+      "at": "2026-11-17T12:24:49.100Z"
+    },
+    {
+      "id": "C02-tree-drag-select-save-and-mobile",
+      "ac": [
+        "AC-30"
+      ],
+      "status": "failed",
+      "error": "drag changes draft []",
+      "at": "2026-11-17T12:24:50.319Z"
+    },
+    {
+      "id": "C03-per-employee-mount",
+      "ac": [
+        "AC-26",
+        "AC-27"
+      ],
+      "status": "passed",
+      "at": "2026-11-17T12:24:51.597Z"
+    },
+    {
+      "id": "C04-template-preview-and-Skills",
+      "ac": [
+        "AC-01",
+        "AC-19",
+        "AC-20"
+      ],
+      "status": "passed",
+      "at": "2026-11-17T12:24:53.241Z"
+    },
+    {
+      "id": "C05-shared-knowledge-version",
+      "ac": [
+        "AC-27",
+        "AC-29"
+      ],
+      "status": "passed",
+      "at": "2026-11-17T12:24:54.853Z"
+    },
+    {
+      "id": "C06-project-doc-CAS-preserves-input",
+      "ac": [
+        "AC-16",
+        "AC-22"
+      ],
+      "status": "passed",
+      "at": "2026-11-17T12:24:56.717Z"
+    },
+    {
+      "id": "C07-decision-view-is-not-consent",
+      "ac": [
+        "AC-18",
+        "AC-31"
+      ],
+      "status": "passed",
+      "at": "2026-11-17T12:24:59.545Z"
+    },
+    {
+      "id": "C01-navigation-and-team-directory",
+      "ac": [
+        "AC-18",
+        "AC-21",
+        "AC-25"
+      ],
+      "status": "passed",
+      "at": "2026-11-17T12:26:49.121Z"
+    },
+    {
+      "id": "C02-tree-drag-select-save-and-mobile",
+      "ac": [
+        "AC-30"
+      ],
+      "status": "passed",
+      "at": "2026-11-17T12:26:51.248Z"
+    },
+    {
+      "id": "C03-per-employee-mount",
+      "ac": [
+        "AC-26",
+        "AC-27"
+      ],
+      "status": "passed",
+      "at": "2026-11-17T12:26:52.509Z"
+    },
+    {
+      "id": "C04-template-preview-and-Skills",
+      "ac": [
+        "AC-01",
+        "AC-19",
+        "AC-20"
+      ],
+      "status": "passed",
+      "at": "2026-11-17T12:26:54.140Z"
+    },
+    {
+      "id": "C05-shared-knowledge-version",
+      "ac": [
+        "AC-27",
+        "AC-29"
+      ],
+      "status": "passed",
+      "at": "2026-11-17T12:26:55.737Z"
+    },
+    {
+      "id": "C06-project-doc-CAS-preserves-input",
+      "ac": [
+        "AC-16",
+        "AC-22"
+      ],
+      "status": "passed",
+      "at": "2026-11-17T12:26:57.590Z"
+    },
+    {
+      "id": "C07-decision-view-is-not-consent",
+      "ac": [
+        "AC-18",
+        "AC-31"
+      ],
+      "status": "passed",
+      "at": "2026-11-17T12:27:00.381Z"
+    }
+  ],
+  "unknownBrowser": {
+    "id": "C08-real-unknown-state",
+    "ac": [
+      "AC-07",
+      "AC-33"
+    ],
+    "status": "passed",
+    "checks": [
+      "unknown is not presented as complete or idle"
+    ],
+    "browserExceptions": []
+  },
+  "model": [
+    {
+      "mode": "correct-and-review",
+      "fixture": {
+        "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+        "members": [
+          "548171aa-ea02-461e-8ef7-6f3a87bfb4e7",
+          "d339940f-a9dc-4303-bebd-36b633c3a2a0"
+        ],
+        "templateId": "73b08646-a76d-4fc8-97c4-a0570129af26",
+        "artifactId": "f1036e7e-34d4-4b79-bb72-4f6e82e04e60",
+        "taskId": "3313dcb4-93dd-4c95-ad1e-21984961cb9b",
+        "startedAt": "2026-11-17T12:32:25.859Z"
+      },
+      "runs": [
+        {
+          "id": "259948ff-ba62-4d54-bd95-38d086c9331a",
+          "goal": "验收输入报告，待核查",
+          "calls": 0,
+          "state": "active",
+          "limits": {
+            "maxRounds": 8,
+            "maxSeconds": 600
+          },
+          "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+          "createdAt": "2026-11-17T12:32:25.851501884Z",
+          "workItemId": "047eb2b8-5bbe-4c83-b65c-9386e58ed562",
+          "manualPaused": false,
+          "controlRevision": 0
+        },
+        {
+          "id": "fbdf3b29-ac72-4387-84f0-5fdd7bb6d825",
+          "goal": "请核对库存汇总是否正确，并按团队流程处理。已确认且唯一的事实：期初100、入库20、出库30，没有其他调整项，原报告写期末95件。产物ID f1036e7e-34d4-4b79-bb72-4f6e82e04e60 revision 1，责任员工 548171aa-ea02-461e-8ef7-6f3a87bfb4e7，核查员工为你。仅合成数据，不要求外部业务数据或代码仓库。",
+          "calls": 8,
+          "state": "waiting",
+          "limits": {
+            "maxRounds": 8,
+            "maxSeconds": 600
+          },
+          "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+          "createdAt": "2026-11-17T12:32:26.170071551Z",
+          "workItemId": "8f48aecd-9700-4bde-a4dc-13dace070b2d",
+          "manualPaused": false,
+          "controlRevision": 0
+        }
+      ],
+      "tasks": [
+        {
+          "id": "03dfdefc-5d3b-4667-a682-ab625861cbb7",
+          "goal": "@员工0 你好，我是核查员工1。对产物 f1036e7e-34d4-4b79-bb72-4f6e82e04e60（revision 1）的库存汇总初审发现错误：按已确认明细 期初100 + 入库20 - 出库30 = 期末90件，原报告写期末95件，偏差5件，且已确认无其他调整项可解释。请作为责任员工修正该产物期末数值为90件并发布新版本（新revision）。修正完成后我会核对实际内容和revision再做复核。目前修正尚未完成，我不会将本请求视为已完成。",
+          "runId": "fbdf3b29-ac72-4387-84f0-5fdd7bb6d825",
+          "state": "completed",
+          "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+          "revision": 1,
+          "createdAt": "2026-11-17T12:33:11.841278127Z",
+          "employeeId": "548171aa-ea02-461e-8ef7-6f3a87bfb4e7",
+          "workItemId": "8f48aecd-9700-4bde-a4dc-13dace070b2d",
+          "parentTaskId": "3313dcb4-93dd-4c95-ad1e-21984961cb9b",
+          "teamSnapshot": {
+            "id": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+            "name": "库存验收-correct-and-review",
+            "limits": {
+              "maxRounds": 8,
+              "maxSeconds": 600
+            },
+            "prompt": "按明细事实校核，发现错误通过责任员工修正并再次核查新版本。每位员工登记自己的工作报告并完成自己的任务，不能把派发当成修正已完成。",
+            "revision": 2,
+            "versions": [
+              {
+                "id": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+                "name": "验收团队",
+                "limits": {
+                  "maxRounds": 8,
+                  "maxSeconds": 600
+                },
+                "prompt": "根据事实自主协作，不确定逐级升级。",
+                "authorId": "19",
+                "revision": 1,
+                "updatedAt": "2026-11-17T12:32:25.824812134Z",
+                "authorType": "user",
+                "description": "合成资料验收"
+              },
+              {
+                "id": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+                "name": "库存验收-correct-and-review",
+                "limits": {
+                  "maxRounds": 8,
+                  "maxSeconds": 600
+                },
+                "prompt": "按明细事实校核，发现错误通过责任员工修正并再次核查新版本。每位员工登记自己的工作报告并完成自己的任务，不能把派发当成修正已完成。",
+                "authorId": "19",
+                "revision": 2,
+                "updatedAt": "2026-11-17T12:32:25.843538134Z",
+                "authorType": "user",
+                "receiverId": "548171aa-ea02-461e-8ef7-6f3a87bfb4e7",
+                "description": "合成资料验收"
+              }
+            ],
+            "updatedAt": "2026-11-17T12:32:25.843538134Z",
+            "receiverId": "548171aa-ea02-461e-8ef7-6f3a87bfb4e7",
+            "description": "合成资料验收",
+            "organization": {
+              "548171aa-ea02-461e-8ef7-6f3a87bfb4e7": "user",
+              "d339940f-a9dc-4303-bebd-36b633c3a2a0": "user"
+            }
+          },
+          "executedActions": [
+            {
+              "id": "15496005-0225-42a2-b09b-c009a04a8554",
+              "kind": "model",
+              "state": "succeeded",
+              "at": "2026-11-17T12:35:27.284185218Z",
+              "usage": {
+                "prompt": 5915,
+                "completion": 5546
+              },
+              "tools": [
+                "record_artifact"
+              ]
+            },
+            {
+              "id": "ee925c62-af55-4367-b4a8-7afe3a4c528f",
+              "kind": "model",
+              "state": "succeeded",
+              "at": "2026-11-17T12:35:35.431427680Z",
+              "usage": {
+                "prompt": 6878,
+                "completion": 372
+              },
+              "tools": [
+                "team_message"
+              ]
+            },
+            {
+              "id": "2d1ad985-7476-457b-a6af-1211a37e15f2",
+              "kind": "model",
+              "state": "succeeded",
+              "at": "2026-11-17T12:35:51.036135923Z",
+              "usage": {
+                "prompt": 7612,
+                "completion": 334
+              },
+              "tools": [
+                "complete_task"
+              ]
+            }
+          ],
+          "sourceMessageId": "8e802abd-6b1f-4194-8dd6-ab6732a33dcd",
+          "employeeSnapshot": {
+            "id": "548171aa-ea02-461e-8ef7-6f3a87bfb4e7",
+            "name": "员工0",
+            "prompt": "收到核查同事的反馈后，按已确认明细计算并修正指定产物。修改须使用实际id和expectedRevision，不能编造ID。将新版本id/revision通过team_message @核查同事交回，之后complete_task。本轮事实是合成数据，必须保留未验证真实业务的说明。",
+            "skills": [
+              {
+                "name": "证据核查",
+                "content": "区分来源事实与推断。"
+              }
+            ],
+            "status": "idle",
+            "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+            "parentId": "user",
+            "revision": 2,
+            "versions": [
+              {
+                "id": "548171aa-ea02-461e-8ef7-6f3a87bfb4e7",
+                "name": "员工0",
+                "prompt": "核实来源并标明未验证事项。",
+                "skills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "status": "idle",
+                "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+                "authorId": "19",
+                "parentId": "user",
+                "revision": 1,
+                "updatedAt": "2026-11-17T12:32:25.837589009Z",
+                "authorType": "user",
+                "basePrompt": "核实来源并标明未验证事项。",
+                "baseSkills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "templateId": "73b08646-a76d-4fc8-97c4-a0570129af26",
+                "knowledgeIds": [],
+                "templateRevision": 1
+              },
+              {
+                "id": "548171aa-ea02-461e-8ef7-6f3a87bfb4e7",
+                "name": "员工0",
+                "prompt": "收到核查同事的反馈后，按已确认明细计算并修正指定产物。修改须使用实际id和expectedRevision，不能编造ID。将新版本id/revision通过team_message @核查同事交回，之后complete_task。本轮事实是合成数据，必须保留未验证真实业务的说明。",
+                "skills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "status": "idle",
+                "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+                "authorId": "19",
+                "parentId": "user",
+                "revision": 2,
+                "updatedAt": "2026-11-17T12:32:25.846051051Z",
+                "authorType": "user",
+                "basePrompt": "核实来源并标明未验证事项。",
+                "baseSkills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "templateId": "73b08646-a76d-4fc8-97c4-a0570129af26",
+                "knowledgeIds": [],
+                "templateRevision": 1
+              }
+            ],
+            "updatedAt": "2026-11-17T12:32:25.846051051Z",
+            "basePrompt": "核实来源并标明未验证事项。",
+            "baseSkills": [
+              {
+                "name": "证据核查",
+                "content": "区分来源事实与推断。"
+              }
+            ],
+            "templateId": "73b08646-a76d-4fc8-97c4-a0570129af26",
+            "knowledgeIds": [],
+            "templateRevision": 1
+          },
+          "retainedKnowledge": {},
+          "executionId": "c7b33a21-7672-4130-bdfa-2572b4723b30",
+          "sandboxId": ""
+        },
+        {
+          "id": "14db1778-1db3-4896-9c2e-7a02e940d754",
+          "goal": "验收输入报告，待核查",
+          "runId": "259948ff-ba62-4d54-bd95-38d086c9331a",
+          "state": "stopped",
+          "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+          "revision": 1,
+          "createdAt": "2026-11-17T12:32:25.851528926Z",
+          "employeeId": "548171aa-ea02-461e-8ef7-6f3a87bfb4e7",
+          "workItemId": "047eb2b8-5bbe-4c83-b65c-9386e58ed562",
+          "parentTaskId": "",
+          "teamSnapshot": {
+            "id": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+            "name": "库存验收-correct-and-review",
+            "limits": {
+              "maxRounds": 8,
+              "maxSeconds": 600
+            },
+            "prompt": "按明细事实校核，发现错误通过责任员工修正并再次核查新版本。每位员工登记自己的工作报告并完成自己的任务，不能把派发当成修正已完成。",
+            "revision": 2,
+            "versions": [
+              {
+                "id": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+                "name": "验收团队",
+                "limits": {
+                  "maxRounds": 8,
+                  "maxSeconds": 600
+                },
+                "prompt": "根据事实自主协作，不确定逐级升级。",
+                "authorId": "19",
+                "revision": 1,
+                "updatedAt": "2026-11-17T12:32:25.824812134Z",
+                "authorType": "user",
+                "description": "合成资料验收"
+              },
+              {
+                "id": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+                "name": "库存验收-correct-and-review",
+                "limits": {
+                  "maxRounds": 8,
+                  "maxSeconds": 600
+                },
+                "prompt": "按明细事实校核，发现错误通过责任员工修正并再次核查新版本。每位员工登记自己的工作报告并完成自己的任务，不能把派发当成修正已完成。",
+                "authorId": "19",
+                "revision": 2,
+                "updatedAt": "2026-11-17T12:32:25.843538134Z",
+                "authorType": "user",
+                "receiverId": "548171aa-ea02-461e-8ef7-6f3a87bfb4e7",
+                "description": "合成资料验收"
+              }
+            ],
+            "updatedAt": "2026-11-17T12:32:25.843538134Z",
+            "receiverId": "548171aa-ea02-461e-8ef7-6f3a87bfb4e7",
+            "description": "合成资料验收",
+            "organization": {
+              "548171aa-ea02-461e-8ef7-6f3a87bfb4e7": "user",
+              "d339940f-a9dc-4303-bebd-36b633c3a2a0": "user"
+            }
+          },
+          "employeeSnapshot": {
+            "id": "548171aa-ea02-461e-8ef7-6f3a87bfb4e7",
+            "name": "员工0",
+            "prompt": "收到核查同事的反馈后，按已确认明细计算并修正指定产物。修改须使用实际id和expectedRevision，不能编造ID。将新版本id/revision通过team_message @核查同事交回，之后complete_task。本轮事实是合成数据，必须保留未验证真实业务的说明。",
+            "skills": [
+              {
+                "name": "证据核查",
+                "content": "区分来源事实与推断。"
+              }
+            ],
+            "status": "idle",
+            "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+            "parentId": "user",
+            "revision": 2,
+            "versions": [
+              {
+                "id": "548171aa-ea02-461e-8ef7-6f3a87bfb4e7",
+                "name": "员工0",
+                "prompt": "核实来源并标明未验证事项。",
+                "skills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "status": "idle",
+                "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+                "authorId": "19",
+                "parentId": "user",
+                "revision": 1,
+                "updatedAt": "2026-11-17T12:32:25.837589009Z",
+                "authorType": "user",
+                "basePrompt": "核实来源并标明未验证事项。",
+                "baseSkills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "templateId": "73b08646-a76d-4fc8-97c4-a0570129af26",
+                "knowledgeIds": [],
+                "templateRevision": 1
+              },
+              {
+                "id": "548171aa-ea02-461e-8ef7-6f3a87bfb4e7",
+                "name": "员工0",
+                "prompt": "收到核查同事的反馈后，按已确认明细计算并修正指定产物。修改须使用实际id和expectedRevision，不能编造ID。将新版本id/revision通过team_message @核查同事交回，之后complete_task。本轮事实是合成数据，必须保留未验证真实业务的说明。",
+                "skills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "status": "idle",
+                "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+                "authorId": "19",
+                "parentId": "user",
+                "revision": 2,
+                "updatedAt": "2026-11-17T12:32:25.846051051Z",
+                "authorType": "user",
+                "basePrompt": "核实来源并标明未验证事项。",
+                "baseSkills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "templateId": "73b08646-a76d-4fc8-97c4-a0570129af26",
+                "knowledgeIds": [],
+                "templateRevision": 1
+              }
+            ],
+            "updatedAt": "2026-11-17T12:32:25.846051051Z",
+            "basePrompt": "核实来源并标明未验证事项。",
+            "baseSkills": [
+              {
+                "name": "证据核查",
+                "content": "区分来源事实与推断。"
+              }
+            ],
+            "templateId": "73b08646-a76d-4fc8-97c4-a0570129af26",
+            "knowledgeIds": [],
+            "templateRevision": 1
+          },
+          "executionId": "435afc26-2bd1-4d7b-aad0-a65f4aebc850",
+          "sandboxId": "",
+          "executedActions": []
+        },
+        {
+          "id": "214a4213-c7c5-43c3-be89-48710fa570db",
+          "goal": "@员工1 你好，我是责任员工0。已按你初审的已确认明细完成修正：库存汇总产物（id: f1036e7e-34d4-4b79-bb72-4f6e82e04e60）已由 revision 1 更新为 revision 2，期末库存由95件修正为 90件（期初100 + 入库20 - 出库30 = 90件），期初/入库/出库/无其他调整项等明细保持不变。修正依据为任务给定的已确认明细，未验证真实库存系统或业务事实（本轮为合成数据），该说明已保留在产物unchecked中。请核对实际内容和 revision 后再做复核；如复核仍有出入，我会再次修正并登记。",
+          "runId": "fbdf3b29-ac72-4387-84f0-5fdd7bb6d825",
+          "state": "blocked",
+          "reason": "运行调用上限已达",
+          "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+          "revision": 1,
+          "createdAt": "2026-11-17T12:35:35.450389222Z",
+          "employeeId": "d339940f-a9dc-4303-bebd-36b633c3a2a0",
+          "workItemId": "8f48aecd-9700-4bde-a4dc-13dace070b2d",
+          "parentTaskId": "03dfdefc-5d3b-4667-a682-ab625861cbb7",
+          "teamSnapshot": {
+            "id": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+            "name": "库存验收-correct-and-review",
+            "limits": {
+              "maxRounds": 8,
+              "maxSeconds": 600
+            },
+            "prompt": "按明细事实校核，发现错误通过责任员工修正并再次核查新版本。每位员工登记自己的工作报告并完成自己的任务，不能把派发当成修正已完成。",
+            "revision": 2,
+            "versions": [
+              {
+                "id": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+                "name": "验收团队",
+                "limits": {
+                  "maxRounds": 8,
+                  "maxSeconds": 600
+                },
+                "prompt": "根据事实自主协作，不确定逐级升级。",
+                "authorId": "19",
+                "revision": 1,
+                "updatedAt": "2026-11-17T12:32:25.824812134Z",
+                "authorType": "user",
+                "description": "合成资料验收"
+              },
+              {
+                "id": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+                "name": "库存验收-correct-and-review",
+                "limits": {
+                  "maxRounds": 8,
+                  "maxSeconds": 600
+                },
+                "prompt": "按明细事实校核，发现错误通过责任员工修正并再次核查新版本。每位员工登记自己的工作报告并完成自己的任务，不能把派发当成修正已完成。",
+                "authorId": "19",
+                "revision": 2,
+                "updatedAt": "2026-11-17T12:32:25.843538134Z",
+                "authorType": "user",
+                "receiverId": "548171aa-ea02-461e-8ef7-6f3a87bfb4e7",
+                "description": "合成资料验收"
+              }
+            ],
+            "updatedAt": "2026-11-17T12:32:25.843538134Z",
+            "receiverId": "548171aa-ea02-461e-8ef7-6f3a87bfb4e7",
+            "description": "合成资料验收",
+            "organization": {
+              "548171aa-ea02-461e-8ef7-6f3a87bfb4e7": "user",
+              "d339940f-a9dc-4303-bebd-36b633c3a2a0": "user"
+            }
+          },
+          "executedActions": [
+            {
+              "id": "30a9c8a7-e10f-4c0a-af67-a59413bfbd9f",
+              "kind": "model",
+              "state": "succeeded",
+              "at": "2026-11-17T12:36:49.263729756Z",
+              "usage": {
+                "prompt": 7772,
+                "completion": 2980
+              },
+              "tools": [
+                "record_review"
+              ]
+            },
+            {
+              "id": "1c4d86c4-fa0e-4075-8096-2cea3031a70c",
+              "kind": "model",
+              "state": "succeeded",
+              "at": "2026-11-17T12:37:11.035587919Z",
+              "usage": {
+                "prompt": 8350,
+                "completion": 1119
+              },
+              "tools": [
+                "team_message",
+                "record_artifact"
+              ]
+            },
+            {
+              "id": "264326ee-f082-4ebb-9fda-3b88df32e7f8",
+              "kind": "model",
+              "state": "succeeded",
+              "at": "2026-11-17T12:37:24.662257009Z",
+              "usage": {
+                "prompt": 10000,
+                "completion": 839
+              },
+              "tools": [
+                "record_artifact"
+              ]
+            }
+          ],
+          "sourceMessageId": "e29fbd52-daf2-4cbb-8bb2-05c00aba825c",
+          "employeeSnapshot": {
+            "id": "d339940f-a9dc-4303-bebd-36b633c3a2a0",
+            "name": "员工1",
+            "prompt": "依据已确认明细独立核查指定产物。发现错误用record_review如实记录其真实版本、@责任员工提出修正请求；保存本轮初审报告并complete_task。收到修正版时核对实际内容和revision，记录新版本复核结果、保存自己的复核报告，再complete_task。遵守当前团队流程，禁止把模型意见说成外部库存系统核验。新建报告省略id。",
+            "skills": [
+              {
+                "name": "证据核查",
+                "content": "区分来源事实与推断。"
+              }
+            ],
+            "status": "idle",
+            "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+            "parentId": "user",
+            "revision": 2,
+            "versions": [
+              {
+                "id": "d339940f-a9dc-4303-bebd-36b633c3a2a0",
+                "name": "员工1",
+                "prompt": "核实来源并标明未验证事项。",
+                "skills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "status": "idle",
+                "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+                "authorId": "19",
+                "parentId": "user",
+                "revision": 1,
+                "updatedAt": "2026-11-17T12:32:25.840597801Z",
+                "authorType": "user",
+                "basePrompt": "核实来源并标明未验证事项。",
+                "baseSkills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "templateId": "73b08646-a76d-4fc8-97c4-a0570129af26",
+                "knowledgeIds": [],
+                "templateRevision": 1
+              },
+              {
+                "id": "d339940f-a9dc-4303-bebd-36b633c3a2a0",
+                "name": "员工1",
+                "prompt": "依据已确认明细独立核查指定产物。发现错误用record_review如实记录其真实版本、@责任员工提出修正请求；保存本轮初审报告并complete_task。收到修正版时核对实际内容和revision，记录新版本复核结果、保存自己的复核报告，再complete_task。遵守当前团队流程，禁止把模型意见说成外部库存系统核验。新建报告省略id。",
+                "skills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "status": "idle",
+                "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+                "authorId": "19",
+                "parentId": "user",
+                "revision": 2,
+                "updatedAt": "2026-11-17T12:32:25.848709634Z",
+                "authorType": "user",
+                "basePrompt": "核实来源并标明未验证事项。",
+                "baseSkills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "templateId": "73b08646-a76d-4fc8-97c4-a0570129af26",
+                "knowledgeIds": [],
+                "templateRevision": 1
+              }
+            ],
+            "updatedAt": "2026-11-17T12:32:25.848709634Z",
+            "basePrompt": "核实来源并标明未验证事项。",
+            "baseSkills": [
+              {
+                "name": "证据核查",
+                "content": "区分来源事实与推断。"
+              }
+            ],
+            "templateId": "73b08646-a76d-4fc8-97c4-a0570129af26",
+            "knowledgeIds": [],
+            "templateRevision": 1
+          },
+          "retainedKnowledge": {},
+          "executionId": "d743564e-5741-4652-97f0-06d3aeb2442a",
+          "sandboxId": ""
+        },
+        {
+          "id": "3313dcb4-93dd-4c95-ad1e-21984961cb9b",
+          "goal": "请核对库存汇总是否正确，并按团队流程处理。已确认且唯一的事实：期初100、入库20、出库30，没有其他调整项，原报告写期末95件。产物ID f1036e7e-34d4-4b79-bb72-4f6e82e04e60 revision 1，责任员工 548171aa-ea02-461e-8ef7-6f3a87bfb4e7，核查员工为你。仅合成数据，不要求外部业务数据或代码仓库。",
+          "runId": "fbdf3b29-ac72-4387-84f0-5fdd7bb6d825",
+          "state": "completed",
+          "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+          "revision": 1,
+          "createdAt": "2026-11-17T12:32:26.170085384Z",
+          "employeeId": "d339940f-a9dc-4303-bebd-36b633c3a2a0",
+          "workItemId": "8f48aecd-9700-4bde-a4dc-13dace070b2d",
+          "parentTaskId": "",
+          "teamSnapshot": {
+            "id": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+            "name": "库存验收-correct-and-review",
+            "limits": {
+              "maxRounds": 8,
+              "maxSeconds": 600
+            },
+            "prompt": "按明细事实校核，发现错误通过责任员工修正并再次核查新版本。每位员工登记自己的工作报告并完成自己的任务，不能把派发当成修正已完成。",
+            "revision": 2,
+            "versions": [
+              {
+                "id": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+                "name": "验收团队",
+                "limits": {
+                  "maxRounds": 8,
+                  "maxSeconds": 600
+                },
+                "prompt": "根据事实自主协作，不确定逐级升级。",
+                "authorId": "19",
+                "revision": 1,
+                "updatedAt": "2026-11-17T12:32:25.824812134Z",
+                "authorType": "user",
+                "description": "合成资料验收"
+              },
+              {
+                "id": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+                "name": "库存验收-correct-and-review",
+                "limits": {
+                  "maxRounds": 8,
+                  "maxSeconds": 600
+                },
+                "prompt": "按明细事实校核，发现错误通过责任员工修正并再次核查新版本。每位员工登记自己的工作报告并完成自己的任务，不能把派发当成修正已完成。",
+                "authorId": "19",
+                "revision": 2,
+                "updatedAt": "2026-11-17T12:32:25.843538134Z",
+                "authorType": "user",
+                "receiverId": "548171aa-ea02-461e-8ef7-6f3a87bfb4e7",
+                "description": "合成资料验收"
+              }
+            ],
+            "updatedAt": "2026-11-17T12:32:25.843538134Z",
+            "receiverId": "548171aa-ea02-461e-8ef7-6f3a87bfb4e7",
+            "description": "合成资料验收",
+            "organization": {
+              "548171aa-ea02-461e-8ef7-6f3a87bfb4e7": "user",
+              "d339940f-a9dc-4303-bebd-36b633c3a2a0": "user"
+            }
+          },
+          "executedActions": [
+            {
+              "id": "0f1fece7-0c51-47e7-b2f4-a8c40d99f4f9",
+              "kind": "model",
+              "state": "succeeded",
+              "at": "2026-11-17T12:33:11.811043752Z",
+              "usage": {
+                "prompt": 3899,
+                "completion": 2337
+              },
+              "tools": [
+                "record_review",
+                "team_message",
+                "record_artifact"
+              ]
+            },
+            {
+              "id": "3bdc2538-4443-4d47-a11f-6fdf7d02051a",
+              "kind": "model",
+              "state": "succeeded",
+              "at": "2026-11-17T12:33:21.818379215Z",
+              "usage": {
+                "prompt": 6054,
+                "completion": 419
+              },
+              "tools": [
+                "complete_task"
+              ]
+            }
+          ],
+          "employeeSnapshot": {
+            "id": "d339940f-a9dc-4303-bebd-36b633c3a2a0",
+            "name": "员工1",
+            "prompt": "依据已确认明细独立核查指定产物。发现错误用record_review如实记录其真实版本、@责任员工提出修正请求；保存本轮初审报告并complete_task。收到修正版时核对实际内容和revision，记录新版本复核结果、保存自己的复核报告，再complete_task。遵守当前团队流程，禁止把模型意见说成外部库存系统核验。新建报告省略id。",
+            "skills": [
+              {
+                "name": "证据核查",
+                "content": "区分来源事实与推断。"
+              }
+            ],
+            "status": "idle",
+            "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+            "parentId": "user",
+            "revision": 2,
+            "versions": [
+              {
+                "id": "d339940f-a9dc-4303-bebd-36b633c3a2a0",
+                "name": "员工1",
+                "prompt": "核实来源并标明未验证事项。",
+                "skills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "status": "idle",
+                "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+                "authorId": "19",
+                "parentId": "user",
+                "revision": 1,
+                "updatedAt": "2026-11-17T12:32:25.840597801Z",
+                "authorType": "user",
+                "basePrompt": "核实来源并标明未验证事项。",
+                "baseSkills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "templateId": "73b08646-a76d-4fc8-97c4-a0570129af26",
+                "knowledgeIds": [],
+                "templateRevision": 1
+              },
+              {
+                "id": "d339940f-a9dc-4303-bebd-36b633c3a2a0",
+                "name": "员工1",
+                "prompt": "依据已确认明细独立核查指定产物。发现错误用record_review如实记录其真实版本、@责任员工提出修正请求；保存本轮初审报告并complete_task。收到修正版时核对实际内容和revision，记录新版本复核结果、保存自己的复核报告，再complete_task。遵守当前团队流程，禁止把模型意见说成外部库存系统核验。新建报告省略id。",
+                "skills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "status": "idle",
+                "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+                "authorId": "19",
+                "parentId": "user",
+                "revision": 2,
+                "updatedAt": "2026-11-17T12:32:25.848709634Z",
+                "authorType": "user",
+                "basePrompt": "核实来源并标明未验证事项。",
+                "baseSkills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "templateId": "73b08646-a76d-4fc8-97c4-a0570129af26",
+                "knowledgeIds": [],
+                "templateRevision": 1
+              }
+            ],
+            "updatedAt": "2026-11-17T12:32:25.848709634Z",
+            "basePrompt": "核实来源并标明未验证事项。",
+            "baseSkills": [
+              {
+                "name": "证据核查",
+                "content": "区分来源事实与推断。"
+              }
+            ],
+            "templateId": "73b08646-a76d-4fc8-97c4-a0570129af26",
+            "knowledgeIds": [],
+            "templateRevision": 1
+          },
+          "retainedKnowledge": {},
+          "executionId": "27b2a65c-3208-48fa-99d5-f02b6b72c5a2",
+          "sandboxId": ""
+        },
+        {
+          "id": "37073902-307c-4c05-817d-0177ebd2fba3",
+          "goal": "@员工0 你好，我是核查员工1。已完成对库存汇总产物 f1036e7e-34d4-4b79-bb72-4f6e82e04e60 修正版的复核：①核对实际版本数据，当前 revision=2（updatedAt 2026-11-17T12:35:27Z），与你声明一致；②核对实际文本，明细（期初100件/入库20件/出库30件/无其他调整项）与已确认明细一致，期末计算为100+20-30=90件，汇总结果为90件；③按已确认明细独立复算结果同为90件，与产物一致；revision 1 的期末95件错误（偏差5件）已在 revision 2 修正。复核结论：通过。复核评审已登记（record_review id: 4fbe6623-0538-43a2-86e6-c932f658956c），复核报告随后保存。说明：以上结论基于任务给定的已确认合成明细复算与文本核对，未验证真实库存系统或业务事实。",
+          "runId": "fbdf3b29-ac72-4387-84f0-5fdd7bb6d825",
+          "state": "blocked",
+          "reason": "运行调用上限已达",
+          "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+          "revision": 1,
+          "createdAt": "2026-11-17T12:37:11.053009419Z",
+          "employeeId": "548171aa-ea02-461e-8ef7-6f3a87bfb4e7",
+          "workItemId": "8f48aecd-9700-4bde-a4dc-13dace070b2d",
+          "parentTaskId": "214a4213-c7c5-43c3-be89-48710fa570db",
+          "teamSnapshot": {
+            "id": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+            "name": "库存验收-correct-and-review",
+            "limits": {
+              "maxRounds": 8,
+              "maxSeconds": 600
+            },
+            "prompt": "按明细事实校核，发现错误通过责任员工修正并再次核查新版本。每位员工登记自己的工作报告并完成自己的任务，不能把派发当成修正已完成。",
+            "revision": 2,
+            "versions": [
+              {
+                "id": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+                "name": "验收团队",
+                "limits": {
+                  "maxRounds": 8,
+                  "maxSeconds": 600
+                },
+                "prompt": "根据事实自主协作，不确定逐级升级。",
+                "authorId": "19",
+                "revision": 1,
+                "updatedAt": "2026-11-17T12:32:25.824812134Z",
+                "authorType": "user",
+                "description": "合成资料验收"
+              },
+              {
+                "id": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+                "name": "库存验收-correct-and-review",
+                "limits": {
+                  "maxRounds": 8,
+                  "maxSeconds": 600
+                },
+                "prompt": "按明细事实校核，发现错误通过责任员工修正并再次核查新版本。每位员工登记自己的工作报告并完成自己的任务，不能把派发当成修正已完成。",
+                "authorId": "19",
+                "revision": 2,
+                "updatedAt": "2026-11-17T12:32:25.843538134Z",
+                "authorType": "user",
+                "receiverId": "548171aa-ea02-461e-8ef7-6f3a87bfb4e7",
+                "description": "合成资料验收"
+              }
+            ],
+            "updatedAt": "2026-11-17T12:32:25.843538134Z",
+            "receiverId": "548171aa-ea02-461e-8ef7-6f3a87bfb4e7",
+            "description": "合成资料验收",
+            "organization": {
+              "548171aa-ea02-461e-8ef7-6f3a87bfb4e7": "user",
+              "d339940f-a9dc-4303-bebd-36b633c3a2a0": "user"
+            }
+          },
+          "sourceMessageId": "5aae86ba-6fb0-4b37-9975-0f81eac708cb",
+          "employeeSnapshot": {
+            "id": "548171aa-ea02-461e-8ef7-6f3a87bfb4e7",
+            "name": "员工0",
+            "prompt": "收到核查同事的反馈后，按已确认明细计算并修正指定产物。修改须使用实际id和expectedRevision，不能编造ID。将新版本id/revision通过team_message @核查同事交回，之后complete_task。本轮事实是合成数据，必须保留未验证真实业务的说明。",
+            "skills": [
+              {
+                "name": "证据核查",
+                "content": "区分来源事实与推断。"
+              }
+            ],
+            "status": "idle",
+            "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+            "parentId": "user",
+            "revision": 2,
+            "versions": [
+              {
+                "id": "548171aa-ea02-461e-8ef7-6f3a87bfb4e7",
+                "name": "员工0",
+                "prompt": "核实来源并标明未验证事项。",
+                "skills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "status": "idle",
+                "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+                "authorId": "19",
+                "parentId": "user",
+                "revision": 1,
+                "updatedAt": "2026-11-17T12:32:25.837589009Z",
+                "authorType": "user",
+                "basePrompt": "核实来源并标明未验证事项。",
+                "baseSkills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "templateId": "73b08646-a76d-4fc8-97c4-a0570129af26",
+                "knowledgeIds": [],
+                "templateRevision": 1
+              },
+              {
+                "id": "548171aa-ea02-461e-8ef7-6f3a87bfb4e7",
+                "name": "员工0",
+                "prompt": "收到核查同事的反馈后，按已确认明细计算并修正指定产物。修改须使用实际id和expectedRevision，不能编造ID。将新版本id/revision通过team_message @核查同事交回，之后complete_task。本轮事实是合成数据，必须保留未验证真实业务的说明。",
+                "skills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "status": "idle",
+                "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+                "authorId": "19",
+                "parentId": "user",
+                "revision": 2,
+                "updatedAt": "2026-11-17T12:32:25.846051051Z",
+                "authorType": "user",
+                "basePrompt": "核实来源并标明未验证事项。",
+                "baseSkills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "templateId": "73b08646-a76d-4fc8-97c4-a0570129af26",
+                "knowledgeIds": [],
+                "templateRevision": 1
+              }
+            ],
+            "updatedAt": "2026-11-17T12:32:25.846051051Z",
+            "basePrompt": "核实来源并标明未验证事项。",
+            "baseSkills": [
+              {
+                "name": "证据核查",
+                "content": "区分来源事实与推断。"
+              }
+            ],
+            "templateId": "73b08646-a76d-4fc8-97c4-a0570129af26",
+            "knowledgeIds": [],
+            "templateRevision": 1
+          },
+          "retainedKnowledge": {},
+          "executionId": "b9ca2b03-b38b-4acb-a438-01edc59138bd",
+          "sandboxId": "",
+          "executedActions": []
+        }
+      ],
+      "artifacts": [
+        {
+          "id": "311ad273-799c-4b3b-a809-d2b70d75d273",
+          "title": "员工1｜库存汇总初审报告（产物f1036e7e-34d4-4b79-bb72-4f6e82e04e60 revision 1）",
+          "taskId": "3313dcb4-93dd-4c95-ad1e-21984961cb9b",
+          "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+          "content": "初审对象：产物 f1036e7e-34d4-4b79-bb72-4f6e82e04e60，revision 1，责任员工：员工0（548171aa-ea02-461e-8ef7-6f3a87bfb4e7）。\n\n一、核查依据（来源事实，任务给定的已确认且唯一明细）\n1. 期初库存：100件\n2. 入库：20件\n3. 出库：30件\n4. 其他调整项：无\n\n二、复算过程（推断，基于上述来源事实）\n期末 = 期初 + 入库 - 出库 = 100 + 20 - 30 = 90件。\n\n三、初审结论\n原报告写期末95件，与按明细复算的90件不一致，偏差5件；已确认明细中无其他调整项可解释该差异。因此 revision 1 的库存汇总数值不正确，建议修正期末为90件并发布新revision。\n\n四、已采取措施\n1. 已通过 record_review 登记对 revision 1 的初审评审（结论：发现错误）。\n2. 已在团队消息中 @员工0，提出修正请求（期末改为90件），并说明修正后需发布新版本供复核。\n\n五、当前状态\n修正尚未完成。按团队流程，待责任员工发布修正版后，我将核对实际内容和revision，再做新版本复核并保存复核报告。本轮派发请求不视为修正已完成。",
+          "revision": 1,
+          "versions": [
+            {
+              "id": "311ad273-799c-4b3b-a809-d2b70d75d273",
+              "title": "员工1｜库存汇总初审报告（产物f1036e7e-34d4-4b79-bb72-4f6e82e04e60 revision 1）",
+              "taskId": "3313dcb4-93dd-4c95-ad1e-21984961cb9b",
+              "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+              "content": "初审对象：产物 f1036e7e-34d4-4b79-bb72-4f6e82e04e60，revision 1，责任员工：员工0（548171aa-ea02-461e-8ef7-6f3a87bfb4e7）。\n\n一、核查依据（来源事实，任务给定的已确认且唯一明细）\n1. 期初库存：100件\n2. 入库：20件\n3. 出库：30件\n4. 其他调整项：无\n\n二、复算过程（推断，基于上述来源事实）\n期末 = 期初 + 入库 - 出库 = 100 + 20 - 30 = 90件。\n\n三、初审结论\n原报告写期末95件，与按明细复算的90件不一致，偏差5件；已确认明细中无其他调整项可解释该差异。因此 revision 1 的库存汇总数值不正确，建议修正期末为90件并发布新revision。\n\n四、已采取措施\n1. 已通过 record_review 登记对 revision 1 的初审评审（结论：发现错误）。\n2. 已在团队消息中 @员工0，提出修正请求（期末改为90件），并说明修正后需发布新版本供复核。\n\n五、当前状态\n修正尚未完成。按团队流程，待责任员工发布修正版后，我将核对实际内容和revision，再做新版本复核并保存复核报告。本轮派发请求不视为修正已完成。",
+              "authorId": "d339940f-a9dc-4303-bebd-36b633c3a2a0",
+              "revision": 1,
+              "remaining": "待责任员工（员工0）修正产物期末数值为90件并发布新revision后，进行新版本复核；如修正版仍有出入需再次登记评审并请求修正。",
+              "unchecked": "未直接读取产物原文（本轮无产物内容挂载，\"期末95件\"数值取自任务说明转述）；未做外部库存系统或业务数据核验（任务明确仅合成数据）；95件与90件差异的具体成因未从产物原文验证，仅依据已确认事实排除其他调整项。",
+              "updatedAt": "2026-11-17T12:33:11.854759211Z",
+              "authorType": "employee"
+            }
+          ],
+          "remaining": "待责任员工（员工0）修正产物期末数值为90件并发布新revision后，进行新版本复核；如修正版仍有出入需再次登记评审并请求修正。",
+          "unchecked": "未直接读取产物原文（本轮无产物内容挂载，\"期末95件\"数值取自任务说明转述）；未做外部库存系统或业务数据核验（任务明确仅合成数据）；95件与90件差异的具体成因未从产物原文验证，仅依据已确认事实排除其他调整项。",
+          "updatedAt": "2026-11-17T12:33:11.854759211Z"
+        },
+        {
+          "id": "678057c9-f6b0-4799-96fb-72a20dda4d61",
+          "title": "员工1｜库存汇总复核报告（产物f1036e7e-34d4-4b79-bb72-4f6e82e04e60 revision 2）",
+          "taskId": "214a4213-c7c5-43c3-be89-48710fa570db",
+          "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+          "content": "复核对象：产物 f1036e7e-34d4-4b79-bb72-4f6e82e04e60，revision 2（updatedAt 2026-11-17T12:35:27.303781718Z），责任员工：员工0（548171aa-ea02-461e-8ef7-6f3a87bfb4e7）。\n\n一、版本核对\n通过本任务可用产物版本数据核对实际版本：该产物当前 revision=2，与责任员工0在团队消息（sourceMessageId e29fbd52-daf2-4cbb-8bb2-05c00aba825c）中声明的修正版本一致。\n\n二、内容核对（来源事实：任务给定的已确认且唯一明细：期初100件、入库20件、出库30件、无其他调整项）\n1. 产物文本的明细依据与已确认明细一致：期初100件、本期入库20件、本期出库30件、其他调整项无。\n2. 产物文本的期末计算：期末 = 100 + 20 - 30 = 90件；汇总结果期末库存90件。\n\n三、独立复算（推断，基于上述来源事实）\n期末 = 期初 + 入库 - 出库 = 100 + 20 - 30 = 90件，与 revision 2 产物文本的期末值一致。\n\n四、复核结论\nrevision 2 复核通过：revision 1 的期末95件错误（偏差5件）已在 revision 2 修正为90件；期初/入库/出库/无其他调整项等明细与已确认明细一致且保持不变，无新的差异。\n\n五、已采取措施\n1. 已通过 record_review 登记对 revision 2 的复核评审（id: 4fbe6623-0538-43a2-86e6-c932f658956c，结论：复核通过）。\n2. 已在团队消息中回复并@员工0，告知复核通过及登记信息（消息id: 5aae86ba-6fb0-4b37-9975-0f81eac708cb）。\n3. 复核报告保存说明：第一次保存因误填id被服务端拒绝（HTTP 404），已按\"新建报告省略id\"规则重试。\n\n六、复核状态\n修正已完成并复核通过，本轮复核任务到此完成。",
+          "revision": 1,
+          "versions": [
+            {
+              "id": "678057c9-f6b0-4799-96fb-72a20dda4d61",
+              "title": "员工1｜库存汇总复核报告（产物f1036e7e-34d4-4b79-bb72-4f6e82e04e60 revision 2）",
+              "taskId": "214a4213-c7c5-43c3-be89-48710fa570db",
+              "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+              "content": "复核对象：产物 f1036e7e-34d4-4b79-bb72-4f6e82e04e60，revision 2（updatedAt 2026-11-17T12:35:27.303781718Z），责任员工：员工0（548171aa-ea02-461e-8ef7-6f3a87bfb4e7）。\n\n一、版本核对\n通过本任务可用产物版本数据核对实际版本：该产物当前 revision=2，与责任员工0在团队消息（sourceMessageId e29fbd52-daf2-4cbb-8bb2-05c00aba825c）中声明的修正版本一致。\n\n二、内容核对（来源事实：任务给定的已确认且唯一明细：期初100件、入库20件、出库30件、无其他调整项）\n1. 产物文本的明细依据与已确认明细一致：期初100件、本期入库20件、本期出库30件、其他调整项无。\n2. 产物文本的期末计算：期末 = 100 + 20 - 30 = 90件；汇总结果期末库存90件。\n\n三、独立复算（推断，基于上述来源事实）\n期末 = 期初 + 入库 - 出库 = 100 + 20 - 30 = 90件，与 revision 2 产物文本的期末值一致。\n\n四、复核结论\nrevision 2 复核通过：revision 1 的期末95件错误（偏差5件）已在 revision 2 修正为90件；期初/入库/出库/无其他调整项等明细与已确认明细一致且保持不变，无新的差异。\n\n五、已采取措施\n1. 已通过 record_review 登记对 revision 2 的复核评审（id: 4fbe6623-0538-43a2-86e6-c932f658956c，结论：复核通过）。\n2. 已在团队消息中回复并@员工0，告知复核通过及登记信息（消息id: 5aae86ba-6fb0-4b37-9975-0f81eac708cb）。\n3. 复核报告保存说明：第一次保存因误填id被服务端拒绝（HTTP 404），已按\"新建报告省略id\"规则重试。\n\n六、复核状态\n修正已完成并复核通过，本轮复核任务到此完成。",
+              "authorId": "d339940f-a9dc-4303-bebd-36b633c3a2a0",
+              "revision": 1,
+              "remaining": "无待办修正项。如后续产物再次变更或明细更新，需对新版本重新核对revision与内容并另行登记评审。",
+              "unchecked": "本轮数据为任务给定的合成数据，未验证真实库存系统、单据或业务事实，结论仅限于对已确认明细的复算和产物文本核对；revision 1 原文未在本任务挂载，未与其逐字比对，仅依据初审记录与修正记录确认\"95件→90件\"的修正；\"无其他调整项\"以任务已确认明细为准，无独立证据链。",
+              "updatedAt": "2026-11-17T12:37:24.681217050Z",
+              "authorType": "employee"
+            }
+          ],
+          "remaining": "无待办修正项。如后续产物再次变更或明细更新，需对新版本重新核对revision与内容并另行登记评审。",
+          "unchecked": "本轮数据为任务给定的合成数据，未验证真实库存系统、单据或业务事实，结论仅限于对已确认明细的复算和产物文本核对；revision 1 原文未在本任务挂载，未与其逐字比对，仅依据初审记录与修正记录确认\"95件→90件\"的修正；\"无其他调整项\"以任务已确认明细为准，无独立证据链。",
+          "updatedAt": "2026-11-17T12:37:24.681217050Z"
+        },
+        {
+          "id": "f1036e7e-34d4-4b79-bb72-4f6e82e04e60",
+          "title": "库存汇总（修正版：期末库存90件）",
+          "taskId": "03dfdefc-5d3b-4667-a682-ab625861cbb7",
+          "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+          "content": "库存汇总（修正版）\n\n一、明细依据（来源事实：任务给定的已确认且唯一明细，本轮为合成数据）\n1. 期初库存：100件\n2. 本期入库：20件\n3. 本期出库：30件\n4. 其他调整项：无\n\n二、期末计算（推断，基于上述来源事实）\n期末库存 = 期初 + 入库 - 出库 = 100 + 20 - 30 = 90件\n\n三、汇总结果\n期末库存：90件\n\n四、修正记录\nrevision 1 曾记期末库存为95件，经核查员工1（d339940f-a9dc-4303-bebd-36b633c3a2a0）初审按上述明细复算为90件，偏差5件且已确认无其他调整项可解释。本版本已将期末库存由95件修正为90件；期初100件、入库20件、出库30件、无其他调整项等明细保持不变。",
+          "revision": 2,
+          "versions": [
+            {
+              "id": "f1036e7e-34d4-4b79-bb72-4f6e82e04e60",
+              "title": "库存汇总（待核查）",
+              "taskId": "14db1778-1db3-4896-9c2e-7a02e940d754",
+              "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+              "content": "已确认明细：期初100件、入库20件、出库30件，没有其他调整项。汇总报告：期末95件。",
+              "authorId": "548171aa-ea02-461e-8ef7-6f3a87bfb4e7",
+              "revision": 1,
+              "remaining": "",
+              "unchecked": "未独立复核；合成资料未经真实业务核验",
+              "updatedAt": "2026-11-17T12:32:25.856664551Z",
+              "authorType": "employee"
+            },
+            {
+              "id": "f1036e7e-34d4-4b79-bb72-4f6e82e04e60",
+              "title": "库存汇总（修正版：期末库存90件）",
+              "taskId": "03dfdefc-5d3b-4667-a682-ab625861cbb7",
+              "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+              "content": "库存汇总（修正版）\n\n一、明细依据（来源事实：任务给定的已确认且唯一明细，本轮为合成数据）\n1. 期初库存：100件\n2. 本期入库：20件\n3. 本期出库：30件\n4. 其他调整项：无\n\n二、期末计算（推断，基于上述来源事实）\n期末库存 = 期初 + 入库 - 出库 = 100 + 20 - 30 = 90件\n\n三、汇总结果\n期末库存：90件\n\n四、修正记录\nrevision 1 曾记期末库存为95件，经核查员工1（d339940f-a9dc-4303-bebd-36b633c3a2a0）初审按上述明细复算为90件，偏差5件且已确认无其他调整项可解释。本版本已将期末库存由95件修正为90件；期初100件、入库20件、出库30件、无其他调整项等明细保持不变。",
+              "authorId": "548171aa-ea02-461e-8ef7-6f3a87bfb4e7",
+              "revision": 2,
+              "remaining": "待核查员工1对本修正版核对实际内容和revision后复核；如复核仍有出入将再次修正并登记。",
+              "unchecked": "本轮数据为任务给定的合成数据，未验证真实库存系统、单据或业务事实；revision 1 报告原文未在本任务中挂载，本修正以已确认明细重算为准，未对原文其他表述逐字比对。",
+              "updatedAt": "2026-11-17T12:35:27.303781718Z",
+              "authorType": "employee"
+            }
+          ],
+          "remaining": "待核查员工1对本修正版核对实际内容和revision后复核；如复核仍有出入将再次修正并登记。",
+          "unchecked": "本轮数据为任务给定的合成数据，未验证真实库存系统、单据或业务事实；revision 1 报告原文未在本任务中挂载，本修正以已确认明细重算为准，未对原文其他表述逐字比对。",
+          "updatedAt": "2026-11-17T12:35:27.303781718Z"
+        }
+      ],
+      "checks": [
+        {
+          "id": "4fbe6623-0538-43a2-86e6-c932f658956c",
+          "kind": "model-assessment",
+          "method": "模型意见与实际核对相结合：1) 核对本任务可用产物版本数据，确认 f1036e7e-34d4-4b79-bb72-4f6e82e04e60 当前实际 revision=2（updatedAt 2026-11-17T12:35:27.303781718Z），与责任员工0声明的版本一致；2) 核对产物实际文本：明细依据（期初100件/入库20件/出库30件/无其他调整项）与已确认明细一致，期末计算式为100+20-30=90件，汇总结果为90件；3) 按已确认明细独立复算 100+20-30=90件，与文本一致；4) 对照初审（revision 1 期末95件）确认偏差5件已修正。以上为基于给定已确认明细的复算与文本核对，非外部库存系统核验。",
+          "result": "复核通过：产物 f1036e7e-34d4-4b79-bb72-4f6e82e04e60 已更新为 revision 2，期末库存90件，与按已确认明细复算结果（期初100 + 入库20 - 出库30 = 90件）一致；期初100件、入库20件、出库30件、无其他调整项等明细与已确认明细一致且相对 revision 1 保持不变；revision 1 的期末95件错误（偏差5件）已在 revision 2 修正。",
+          "taskId": "214a4213-c7c5-43c3-be89-48710fa570db",
+          "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+          "createdAt": "2026-11-17T12:36:49.283624173Z",
+          "artifactId": "f1036e7e-34d4-4b79-bb72-4f6e82e04e60",
+          "employeeId": "d339940f-a9dc-4303-bebd-36b633c3a2a0",
+          "limitations": "本轮为合成数据，未做外部库存系统、单据或业务事实核验；结论仅限于对给定已确认明细的复算与对本任务可用产物版本数据的文本核对，不代表真实库存系统验证；revision 1 原文未在本任务挂载，未与其逐字比对，\"revision 1 曾记95件\"取自初审记录与产物修正记录文本，无独立第三方证据；\"无其他调整项\"为任务已确认明细内容，双方文本一致，无独立证据链。",
+          "subjectRevision": 2
+        },
+        {
+          "id": "ba43b41f-221d-4fc9-9623-a23cb14be9d3",
+          "kind": "model-assessment",
+          "method": "依据任务给定的已确认明细事实（期初100、入库20、出库30、无其他调整项）进行算术复算与一致性核对：100+20-30=90。原报告数值取自任务说明中转述的\"期末95件\"。此为本员工基于给定明细的复算结论，非外部库存系统核验。",
+          "result": "初审发现错误：按已确认明细计算，期末库存应为 期初100 + 入库20 - 出库30 = 90件；原报告（revision 1）写期末95件，与明细不一致，偏差5件，且已确认无其他调整项可解释该差异。结论：revision 1 数值不正确，需修正期末为期90件。",
+          "taskId": "3313dcb4-93dd-4c95-ad1e-21984961cb9b",
+          "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+          "createdAt": "2026-11-17T12:33:11.828375586Z",
+          "artifactId": "f1036e7e-34d4-4b79-bb72-4f6e82e04e60",
+          "employeeId": "d339940f-a9dc-4303-bebd-36b633c3a2a0",
+          "limitations": "未直接读取产物原文（本轮无产物内容挂载，原报告数值95件取自任务说明转述）；任务明确仅合成数据，未访问外部库存系统或业务数据做核验；95件的差异成因未从产物原文验证（依据已确认事实已排除其他调整项可能）。",
+          "subjectRevision": 1
+        }
+      ],
+      "decisions": [],
+      "messages": [
+        {
+          "id": "1b94ba46-8e67-4703-aece-cfb38d6d51c6",
+          "kind": "assignment",
+          "text": "安排 员工0：验收输入报告，待核查",
+          "taskId": "14db1778-1db3-4896-9c2e-7a02e940d754",
+          "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+          "senderId": "19",
+          "createdAt": "2026-11-17T12:32:25.851549342Z",
+          "senderType": "user"
+        },
+        {
+          "id": "23e28f2c-23a1-4e67-9edb-a7c9a29ce595",
+          "kind": "assignment",
+          "text": "安排 员工1：请核对库存汇总是否正确，并按团队流程处理。已确认且唯一的事实：期初100、入库20、出库30，没有其他调整项，原报告写期末95件。产物ID f1036e7e-34d4-4b79-bb72-4f6e82e04e60 revision 1，责任员工 548171aa-ea02-461e-8ef7-6f3a87bfb4e7，核查员工为你。仅合成数据，不要求外部业务数据或代码仓库。",
+          "taskId": "3313dcb4-93dd-4c95-ad1e-21984961cb9b",
+          "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+          "senderId": "19",
+          "createdAt": "2026-11-17T12:32:26.170100718Z",
+          "senderType": "user"
+        },
+        {
+          "id": "2c07071a-c048-4841-bc47-81f934efeb37",
+          "kind": "attention",
+          "text": "运行达到配置上限，保留成果，等待你的下一步决定。",
+          "status": "needs-user",
+          "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+          "senderId": "system",
+          "createdAt": "2026-11-17T12:37:24.738930675Z",
+          "subjectId": "fbdf3b29-ac72-4387-84f0-5fdd7bb6d825",
+          "senderType": "system",
+          "mentionUser": true
+        },
+        {
+          "id": "4cae17e6-ab5b-4e06-b52e-2b880a7e5a51",
+          "kind": "task-completed",
+          "text": "任务已完成：请核对库存汇总是否正确，并按团队流程处理。已确认且唯一的事实：期初100、入库20、出库30，没有其他调整项，原报告写期末95件。产物ID f1036e7e-34d4-4b79-bb72-4f6e82e04e60 revision 1，责任员工 548171aa-ea02-461e-8ef7-6f3a87bfb4e7，核查员工为你。仅合成数据，不要求外部业务数据或代码仓库。",
+          "taskId": "3313dcb4-93dd-4c95-ad1e-21984961cb9b",
+          "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+          "senderId": "system",
+          "createdAt": "2026-11-17T12:33:21.833448674Z",
+          "senderType": "system"
+        },
+        {
+          "id": "5aae86ba-6fb0-4b37-9975-0f81eac708cb",
+          "kind": "chat",
+          "text": "@员工0 你好，我是核查员工1。已完成对库存汇总产物 f1036e7e-34d4-4b79-bb72-4f6e82e04e60 修正版的复核：①核对实际版本数据，当前 revision=2（updatedAt 2026-11-17T12:35:27Z），与你声明一致；②核对实际文本，明细（期初100件/入库20件/出库30件/无其他调整项）与已确认明细一致，期末计算为100+20-30=90件，汇总结果为90件；③按已确认明细独立复算结果同为90件，与产物一致；revision 1 的期末95件错误（偏差5件）已在 revision 2 修正。复核结论：通过。复核评审已登记（record_review id: 4fbe6623-0538-43a2-86e6-c932f658956c），复核报告随后保存。说明：以上结论基于任务给定的已确认合成明细复算与文本核对，未验证真实库存系统或业务事实。",
+          "runId": "fbdf3b29-ac72-4387-84f0-5fdd7bb6d825",
+          "taskId": "37073902-307c-4c05-817d-0177ebd2fba3",
+          "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+          "replyTo": "e29fbd52-daf2-4cbb-8bb2-05c00aba825c",
+          "mentions": [
+            "548171aa-ea02-461e-8ef7-6f3a87bfb4e7"
+          ],
+          "senderId": "d339940f-a9dc-4303-bebd-36b633c3a2a0",
+          "createdAt": "2026-11-17T12:37:11.052980085Z",
+          "senderType": "employee"
+        },
+        {
+          "id": "77cdec78-ba83-45e9-8b73-575b8698d999",
+          "kind": "task-completed",
+          "text": "任务已完成：@员工0 你好，我是核查员工1。对产物 f1036e7e-34d4-4b79-bb72-4f6e82e04e60（revision 1）的库存汇总初审发现错误：按已确认明细 期初100 + 入库20 - 出库30 = 期末90件，原报告写期末95件，偏差5件，且已确认无其他调整项可解释。请作为责任员工修正该产物期末数值为90件并发布新版本（新revision）。修正完成后我会核对实际内容和revision再做复核。目前修正尚未完成，我不会将本请求视为已完成。",
+          "taskId": "03dfdefc-5d3b-4667-a682-ab625861cbb7",
+          "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+          "senderId": "system",
+          "createdAt": "2026-11-17T12:35:51.054552215Z",
+          "senderType": "system"
+        },
+        {
+          "id": "8e802abd-6b1f-4194-8dd6-ab6732a33dcd",
+          "kind": "chat",
+          "text": "@员工0 你好，我是核查员工1。对产物 f1036e7e-34d4-4b79-bb72-4f6e82e04e60（revision 1）的库存汇总初审发现错误：按已确认明细 期初100 + 入库20 - 出库30 = 期末90件，原报告写期末95件，偏差5件，且已确认无其他调整项可解释。请作为责任员工修正该产物期末数值为90件并发布新版本（新revision）。修正完成后我会核对实际内容和revision再做复核。目前修正尚未完成，我不会将本请求视为已完成。",
+          "runId": "fbdf3b29-ac72-4387-84f0-5fdd7bb6d825",
+          "taskId": "03dfdefc-5d3b-4667-a682-ab625861cbb7",
+          "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+          "replyTo": "",
+          "mentions": [
+            "548171aa-ea02-461e-8ef7-6f3a87bfb4e7"
+          ],
+          "senderId": "d339940f-a9dc-4303-bebd-36b633c3a2a0",
+          "createdAt": "2026-11-17T12:33:11.840971502Z",
+          "senderType": "employee"
+        },
+        {
+          "id": "d8075ebd-06a9-4a07-90e6-c32ee7dda65e",
+          "kind": "attention",
+          "text": "运行达到配置上限，保留成果，等待你的下一步决定。",
+          "status": "needs-user",
+          "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+          "senderId": "system",
+          "createdAt": "2026-11-17T12:37:24.705607967Z",
+          "subjectId": "fbdf3b29-ac72-4387-84f0-5fdd7bb6d825",
+          "senderType": "system",
+          "mentionUser": true
+        },
+        {
+          "id": "e29fbd52-daf2-4cbb-8bb2-05c00aba825c",
+          "kind": "chat",
+          "text": "@员工1 你好，我是责任员工0。已按你初审的已确认明细完成修正：库存汇总产物（id: f1036e7e-34d4-4b79-bb72-4f6e82e04e60）已由 revision 1 更新为 revision 2，期末库存由95件修正为 90件（期初100 + 入库20 - 出库30 = 90件），期初/入库/出库/无其他调整项等明细保持不变。修正依据为任务给定的已确认明细，未验证真实库存系统或业务事实（本轮为合成数据），该说明已保留在产物unchecked中。请核对实际内容和 revision 后再做复核；如复核仍有出入，我会再次修正并登记。",
+          "runId": "fbdf3b29-ac72-4387-84f0-5fdd7bb6d825",
+          "taskId": "214a4213-c7c5-43c3-be89-48710fa570db",
+          "teamId": "7476f8cd-dd2c-4c81-aa44-bbe31b0fe0de",
+          "replyTo": "8e802abd-6b1f-4194-8dd6-ab6732a33dcd",
+          "mentions": [
+            "d339940f-a9dc-4303-bebd-36b633c3a2a0"
+          ],
+          "senderId": "548171aa-ea02-461e-8ef7-6f3a87bfb4e7",
+          "createdAt": "2026-11-17T12:35:35.450362639Z",
+          "senderType": "employee"
+        }
+      ],
+      "templates": [
+        {
+          "id": "73b08646-a76d-4fc8-97c4-a0570129af26",
+          "name": "开放能力模板",
+          "prompt": "核实来源并标明未验证事项。",
+          "reason": "",
+          "skills": [
+            {
+              "name": "证据核查",
+              "content": "区分来源事实与推断。"
+            }
+          ],
+          "draftId": "",
+          "revision": 1,
+          "versions": [
+            {
+              "id": "73b08646-a76d-4fc8-97c4-a0570129af26",
+              "name": "开放能力模板",
+              "prompt": "核实来源并标明未验证事项。",
+              "reason": "",
+              "skills": [
+                {
+                  "name": "证据核查",
+                  "content": "区分来源事实与推断。"
+                }
+              ],
+              "draftId": "",
+              "authorId": "19",
+              "revision": 1,
+              "updatedAt": "2026-11-17T12:32:25.833865759Z",
+              "authorType": "user"
+            }
+          ],
+          "updatedAt": "2026-11-17T12:32:25.833865759Z"
+        }
+      ],
+      "employeeCount": 2,
+      "knowledgeCount": 0
+    },
+    {
+      "mode": "review-before-human-decision",
+      "fixture": {
+        "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+        "members": [
+          "2a3017c2-d320-4b3b-988b-333522e3f002",
+          "fec85fce-6c44-4909-88c0-57a65abd5acb"
+        ],
+        "templateId": "0a535c26-a8e6-4077-912b-a33d9170b5dc",
+        "artifactId": "f3163537-11b5-4615-ae57-14b4cf4b7bbd",
+        "taskId": "3918ebc7-5976-426e-a530-a9703f31089e",
+        "startedAt": "2026-11-17T12:32:26.039Z"
+      },
+      "runs": [
+        {
+          "id": "142ba7b9-4653-49ab-bf2a-416163ca2c16",
+          "goal": "验收输入报告，待核查",
+          "calls": 0,
+          "state": "active",
+          "limits": {
+            "maxRounds": 8,
+            "maxSeconds": 600
+          },
+          "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+          "createdAt": "2026-11-17T12:32:26.029048509Z",
+          "workItemId": "63156c98-f737-4dcf-a728-39dc3b9b5226",
+          "manualPaused": false,
+          "controlRevision": 0
+        },
+        {
+          "id": "e3c49d87-3355-4307-9ea9-48af351c1357",
+          "goal": "请核对库存汇总是否正确，并按团队流程处理。已确认且唯一的事实：期初100、入库20、出库30，没有其他调整项，原报告写期末95件。产物ID f3163537-11b5-4615-ae57-14b4cf4b7bbd revision 1，责任员工 2a3017c2-d320-4b3b-988b-333522e3f002，核查员工为你。仅合成数据，不要求外部业务数据或代码仓库。",
+          "calls": 8,
+          "state": "active",
+          "limits": {
+            "maxRounds": 8,
+            "maxSeconds": 600
+          },
+          "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+          "createdAt": "2026-11-17T12:32:26.173193384Z",
+          "workItemId": "834b83f7-fde1-4fa9-8ea7-3c476c6c0aa8",
+          "manualPaused": false,
+          "controlRevision": 0
+        }
+      ],
+      "tasks": [
+        {
+          "id": "3918ebc7-5976-426e-a530-a9703f31089e",
+          "goal": "请核对库存汇总是否正确，并按团队流程处理。已确认且唯一的事实：期初100、入库20、出库30，没有其他调整项，原报告写期末95件。产物ID f3163537-11b5-4615-ae57-14b4cf4b7bbd revision 1，责任员工 2a3017c2-d320-4b3b-988b-333522e3f002，核查员工为你。仅合成数据，不要求外部业务数据或代码仓库。",
+          "runId": "e3c49d87-3355-4307-9ea9-48af351c1357",
+          "state": "blocked",
+          "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+          "revision": 1,
+          "createdAt": "2026-11-17T12:32:26.173222093Z",
+          "decisionId": "20ae9e92-85bd-4e68-83ad-3fe76822d873",
+          "employeeId": "fec85fce-6c44-4909-88c0-57a65abd5acb",
+          "workItemId": "834b83f7-fde1-4fa9-8ea7-3c476c6c0aa8",
+          "parentTaskId": "",
+          "teamSnapshot": {
+            "id": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+            "name": "库存验收-review-before-human-decision",
+            "limits": {
+              "maxRounds": 8,
+              "maxSeconds": 600
+            },
+            "prompt": "本轮不自动改写原报告，发现错误先保存核算依据并上报用户，请用户决定是否修改或发布；用户决定前不要派其他员工或改原产物。",
+            "revision": 2,
+            "versions": [
+              {
+                "id": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+                "name": "验收团队",
+                "limits": {
+                  "maxRounds": 8,
+                  "maxSeconds": 600
+                },
+                "prompt": "根据事实自主协作，不确定逐级升级。",
+                "authorId": "20",
+                "revision": 1,
+                "updatedAt": "2026-11-17T12:32:26.007873259Z",
+                "authorType": "user",
+                "description": "合成资料验收"
+              },
+              {
+                "id": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+                "name": "库存验收-review-before-human-decision",
+                "limits": {
+                  "maxRounds": 8,
+                  "maxSeconds": 600
+                },
+                "prompt": "本轮不自动改写原报告，发现错误先保存核算依据并上报用户，请用户决定是否修改或发布；用户决定前不要派其他员工或改原产物。",
+                "authorId": "20",
+                "revision": 2,
+                "updatedAt": "2026-11-17T12:32:26.020172009Z",
+                "authorType": "user",
+                "receiverId": "2a3017c2-d320-4b3b-988b-333522e3f002",
+                "description": "合成资料验收"
+              }
+            ],
+            "updatedAt": "2026-11-17T12:32:26.020172009Z",
+            "receiverId": "2a3017c2-d320-4b3b-988b-333522e3f002",
+            "description": "合成资料验收",
+            "organization": {
+              "2a3017c2-d320-4b3b-988b-333522e3f002": "user",
+              "fec85fce-6c44-4909-88c0-57a65abd5acb": "user"
+            }
+          },
+          "executedActions": [
+            {
+              "id": "b6468748-cb31-466c-b143-4d54a7da7258",
+              "kind": "model",
+              "state": "succeeded",
+              "at": "2026-11-17T12:35:02.287930137Z",
+              "usage": {
+                "prompt": 3883,
+                "completion": 5234
+              },
+              "tools": [
+                "record_review",
+                "team_message",
+                "record_artifact"
+              ]
+            },
+            {
+              "id": "6b971096-e9cd-4722-b93f-8dea3ef78068",
+              "kind": "model",
+              "state": "succeeded",
+              "at": "2026-11-17T12:35:15.537623171Z",
+              "usage": {
+                "prompt": 6442,
+                "completion": 488
+              },
+              "tools": [
+                "ask_superior"
+              ]
+            }
+          ],
+          "employeeSnapshot": {
+            "id": "fec85fce-6c44-4909-88c0-57a65abd5acb",
+            "name": "员工1",
+            "prompt": "依据已确认明细独立核查指定产物。发现错误用record_review如实记录其真实版本、@责任员工提出修正请求；保存本轮初审报告并complete_task。收到修正版时核对实际内容和revision，记录新版本复核结果、保存自己的复核报告，再complete_task。遵守当前团队流程，禁止把模型意见说成外部库存系统核验。新建报告省略id。",
+            "skills": [
+              {
+                "name": "证据核查",
+                "content": "区分来源事实与推断。"
+              }
+            ],
+            "status": "idle",
+            "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+            "parentId": "user",
+            "revision": 2,
+            "versions": [
+              {
+                "id": "fec85fce-6c44-4909-88c0-57a65abd5acb",
+                "name": "员工1",
+                "prompt": "核实来源并标明未验证事项。",
+                "skills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "status": "idle",
+                "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+                "authorId": "20",
+                "parentId": "user",
+                "revision": 1,
+                "updatedAt": "2026-11-17T12:32:26.016178176Z",
+                "authorType": "user",
+                "basePrompt": "核实来源并标明未验证事项。",
+                "baseSkills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "templateId": "0a535c26-a8e6-4077-912b-a33d9170b5dc",
+                "knowledgeIds": [],
+                "templateRevision": 1
+              },
+              {
+                "id": "fec85fce-6c44-4909-88c0-57a65abd5acb",
+                "name": "员工1",
+                "prompt": "依据已确认明细独立核查指定产物。发现错误用record_review如实记录其真实版本、@责任员工提出修正请求；保存本轮初审报告并complete_task。收到修正版时核对实际内容和revision，记录新版本复核结果、保存自己的复核报告，再complete_task。遵守当前团队流程，禁止把模型意见说成外部库存系统核验。新建报告省略id。",
+                "skills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "status": "idle",
+                "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+                "authorId": "20",
+                "parentId": "user",
+                "revision": 2,
+                "updatedAt": "2026-11-17T12:32:26.026204926Z",
+                "authorType": "user",
+                "basePrompt": "核实来源并标明未验证事项。",
+                "baseSkills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "templateId": "0a535c26-a8e6-4077-912b-a33d9170b5dc",
+                "knowledgeIds": [],
+                "templateRevision": 1
+              }
+            ],
+            "updatedAt": "2026-11-17T12:32:26.026204926Z",
+            "basePrompt": "核实来源并标明未验证事项。",
+            "baseSkills": [
+              {
+                "name": "证据核查",
+                "content": "区分来源事实与推断。"
+              }
+            ],
+            "templateId": "0a535c26-a8e6-4077-912b-a33d9170b5dc",
+            "knowledgeIds": [],
+            "templateRevision": 1
+          },
+          "retainedKnowledge": {},
+          "executionId": "8f24daad-c5f7-4099-bc4e-0164c1ef81cb",
+          "sandboxId": ""
+        },
+        {
+          "id": "41ef2da3-91dc-4bb9-82c3-4a5aa0e88511",
+          "goal": "验收输入报告，待核查",
+          "runId": "142ba7b9-4653-49ab-bf2a-416163ca2c16",
+          "state": "stopped",
+          "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+          "revision": 1,
+          "createdAt": "2026-11-17T12:32:26.029071843Z",
+          "employeeId": "2a3017c2-d320-4b3b-988b-333522e3f002",
+          "workItemId": "63156c98-f737-4dcf-a728-39dc3b9b5226",
+          "parentTaskId": "",
+          "teamSnapshot": {
+            "id": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+            "name": "库存验收-review-before-human-decision",
+            "limits": {
+              "maxRounds": 8,
+              "maxSeconds": 600
+            },
+            "prompt": "本轮不自动改写原报告，发现错误先保存核算依据并上报用户，请用户决定是否修改或发布；用户决定前不要派其他员工或改原产物。",
+            "revision": 2,
+            "versions": [
+              {
+                "id": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+                "name": "验收团队",
+                "limits": {
+                  "maxRounds": 8,
+                  "maxSeconds": 600
+                },
+                "prompt": "根据事实自主协作，不确定逐级升级。",
+                "authorId": "20",
+                "revision": 1,
+                "updatedAt": "2026-11-17T12:32:26.007873259Z",
+                "authorType": "user",
+                "description": "合成资料验收"
+              },
+              {
+                "id": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+                "name": "库存验收-review-before-human-decision",
+                "limits": {
+                  "maxRounds": 8,
+                  "maxSeconds": 600
+                },
+                "prompt": "本轮不自动改写原报告，发现错误先保存核算依据并上报用户，请用户决定是否修改或发布；用户决定前不要派其他员工或改原产物。",
+                "authorId": "20",
+                "revision": 2,
+                "updatedAt": "2026-11-17T12:32:26.020172009Z",
+                "authorType": "user",
+                "receiverId": "2a3017c2-d320-4b3b-988b-333522e3f002",
+                "description": "合成资料验收"
+              }
+            ],
+            "updatedAt": "2026-11-17T12:32:26.020172009Z",
+            "receiverId": "2a3017c2-d320-4b3b-988b-333522e3f002",
+            "description": "合成资料验收",
+            "organization": {
+              "2a3017c2-d320-4b3b-988b-333522e3f002": "user",
+              "fec85fce-6c44-4909-88c0-57a65abd5acb": "user"
+            }
+          },
+          "employeeSnapshot": {
+            "id": "2a3017c2-d320-4b3b-988b-333522e3f002",
+            "name": "员工0",
+            "prompt": "收到核查同事的反馈后，按已确认明细计算并修正指定产物。修改须使用实际id和expectedRevision，不能编造ID。将新版本id/revision通过team_message @核查同事交回，之后complete_task。本轮事实是合成数据，必须保留未验证真实业务的说明。",
+            "skills": [
+              {
+                "name": "证据核查",
+                "content": "区分来源事实与推断。"
+              }
+            ],
+            "status": "idle",
+            "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+            "parentId": "user",
+            "revision": 2,
+            "versions": [
+              {
+                "id": "2a3017c2-d320-4b3b-988b-333522e3f002",
+                "name": "员工0",
+                "prompt": "核实来源并标明未验证事项。",
+                "skills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "status": "idle",
+                "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+                "authorId": "20",
+                "parentId": "user",
+                "revision": 1,
+                "updatedAt": "2026-11-17T12:32:26.013241967Z",
+                "authorType": "user",
+                "basePrompt": "核实来源并标明未验证事项。",
+                "baseSkills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "templateId": "0a535c26-a8e6-4077-912b-a33d9170b5dc",
+                "knowledgeIds": [],
+                "templateRevision": 1
+              },
+              {
+                "id": "2a3017c2-d320-4b3b-988b-333522e3f002",
+                "name": "员工0",
+                "prompt": "收到核查同事的反馈后，按已确认明细计算并修正指定产物。修改须使用实际id和expectedRevision，不能编造ID。将新版本id/revision通过team_message @核查同事交回，之后complete_task。本轮事实是合成数据，必须保留未验证真实业务的说明。",
+                "skills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "status": "idle",
+                "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+                "authorId": "20",
+                "parentId": "user",
+                "revision": 2,
+                "updatedAt": "2026-11-17T12:32:26.023456842Z",
+                "authorType": "user",
+                "basePrompt": "核实来源并标明未验证事项。",
+                "baseSkills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "templateId": "0a535c26-a8e6-4077-912b-a33d9170b5dc",
+                "knowledgeIds": [],
+                "templateRevision": 1
+              }
+            ],
+            "updatedAt": "2026-11-17T12:32:26.023456842Z",
+            "basePrompt": "核实来源并标明未验证事项。",
+            "baseSkills": [
+              {
+                "name": "证据核查",
+                "content": "区分来源事实与推断。"
+              }
+            ],
+            "templateId": "0a535c26-a8e6-4077-912b-a33d9170b5dc",
+            "knowledgeIds": [],
+            "templateRevision": 1
+          },
+          "executionId": "ada9b234-dece-4227-b5e5-a4fedb36bfb0",
+          "sandboxId": "",
+          "executedActions": []
+        },
+        {
+          "id": "47f9774e-813f-4b3a-8cc3-2edf8df19f54",
+          "goal": "@员工0 你好，我完成对库存汇总产物 f3163537-11b5-4615-ae57-14b4cf4b7bbd（revision 1）的独立初审，发现期末数量错误：按已确认事实 期初100 + 入库20 − 出库30 = 90件，报告写95件，多计5件且无调整项依据。已用record_review在你名下产物revision 1上如实记录。现提出修正请求：期末应修正为90件。但按本轮团队流程，我不会改写原产物、也不会给你派任务，需待用户决定是否修改或发布后再处理。核算依据已保存为我的初审报告，并已上报用户。",
+          "runId": "e3c49d87-3355-4307-9ea9-48af351c1357",
+          "state": "blocked",
+          "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+          "revision": 1,
+          "createdAt": "2026-11-17T12:35:02.321150887Z",
+          "decisionId": "19ee6bd5-c999-479a-bb48-06082df32fb8",
+          "employeeId": "2a3017c2-d320-4b3b-988b-333522e3f002",
+          "workItemId": "834b83f7-fde1-4fa9-8ea7-3c476c6c0aa8",
+          "parentTaskId": "3918ebc7-5976-426e-a530-a9703f31089e",
+          "teamSnapshot": {
+            "id": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+            "name": "库存验收-review-before-human-decision",
+            "limits": {
+              "maxRounds": 8,
+              "maxSeconds": 600
+            },
+            "prompt": "本轮不自动改写原报告，发现错误先保存核算依据并上报用户，请用户决定是否修改或发布；用户决定前不要派其他员工或改原产物。",
+            "revision": 2,
+            "versions": [
+              {
+                "id": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+                "name": "验收团队",
+                "limits": {
+                  "maxRounds": 8,
+                  "maxSeconds": 600
+                },
+                "prompt": "根据事实自主协作，不确定逐级升级。",
+                "authorId": "20",
+                "revision": 1,
+                "updatedAt": "2026-11-17T12:32:26.007873259Z",
+                "authorType": "user",
+                "description": "合成资料验收"
+              },
+              {
+                "id": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+                "name": "库存验收-review-before-human-decision",
+                "limits": {
+                  "maxRounds": 8,
+                  "maxSeconds": 600
+                },
+                "prompt": "本轮不自动改写原报告，发现错误先保存核算依据并上报用户，请用户决定是否修改或发布；用户决定前不要派其他员工或改原产物。",
+                "authorId": "20",
+                "revision": 2,
+                "updatedAt": "2026-11-17T12:32:26.020172009Z",
+                "authorType": "user",
+                "receiverId": "2a3017c2-d320-4b3b-988b-333522e3f002",
+                "description": "合成资料验收"
+              }
+            ],
+            "updatedAt": "2026-11-17T12:32:26.020172009Z",
+            "receiverId": "2a3017c2-d320-4b3b-988b-333522e3f002",
+            "description": "合成资料验收",
+            "organization": {
+              "2a3017c2-d320-4b3b-988b-333522e3f002": "user",
+              "fec85fce-6c44-4909-88c0-57a65abd5acb": "user"
+            }
+          },
+          "executedActions": [
+            {
+              "id": "cbedb399-41ca-466e-b7c1-6a2853849e3a",
+              "kind": "model",
+              "state": "succeeded",
+              "at": "2026-11-17T12:37:18.912224172Z",
+              "usage": {
+                "prompt": 6308,
+                "completion": 6063
+              },
+              "tools": [
+                "team_message",
+                "record_artifact"
+              ]
+            },
+            {
+              "id": "25471e8a-ee4e-4a1b-8599-6fca7b41db17",
+              "kind": "model",
+              "state": "succeeded",
+              "at": "2026-11-17T12:37:46.428391296Z",
+              "usage": {
+                "prompt": 8714,
+                "completion": 1201
+              },
+              "tools": [
+                "ask_superior"
+              ]
+            }
+          ],
+          "sourceMessageId": "9dc1ae89-33b3-4231-84b9-64d528c67d33",
+          "employeeSnapshot": {
+            "id": "2a3017c2-d320-4b3b-988b-333522e3f002",
+            "name": "员工0",
+            "prompt": "收到核查同事的反馈后，按已确认明细计算并修正指定产物。修改须使用实际id和expectedRevision，不能编造ID。将新版本id/revision通过team_message @核查同事交回，之后complete_task。本轮事实是合成数据，必须保留未验证真实业务的说明。",
+            "skills": [
+              {
+                "name": "证据核查",
+                "content": "区分来源事实与推断。"
+              }
+            ],
+            "status": "idle",
+            "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+            "parentId": "user",
+            "revision": 2,
+            "versions": [
+              {
+                "id": "2a3017c2-d320-4b3b-988b-333522e3f002",
+                "name": "员工0",
+                "prompt": "核实来源并标明未验证事项。",
+                "skills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "status": "idle",
+                "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+                "authorId": "20",
+                "parentId": "user",
+                "revision": 1,
+                "updatedAt": "2026-11-17T12:32:26.013241967Z",
+                "authorType": "user",
+                "basePrompt": "核实来源并标明未验证事项。",
+                "baseSkills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "templateId": "0a535c26-a8e6-4077-912b-a33d9170b5dc",
+                "knowledgeIds": [],
+                "templateRevision": 1
+              },
+              {
+                "id": "2a3017c2-d320-4b3b-988b-333522e3f002",
+                "name": "员工0",
+                "prompt": "收到核查同事的反馈后，按已确认明细计算并修正指定产物。修改须使用实际id和expectedRevision，不能编造ID。将新版本id/revision通过team_message @核查同事交回，之后complete_task。本轮事实是合成数据，必须保留未验证真实业务的说明。",
+                "skills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "status": "idle",
+                "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+                "authorId": "20",
+                "parentId": "user",
+                "revision": 2,
+                "updatedAt": "2026-11-17T12:32:26.023456842Z",
+                "authorType": "user",
+                "basePrompt": "核实来源并标明未验证事项。",
+                "baseSkills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "templateId": "0a535c26-a8e6-4077-912b-a33d9170b5dc",
+                "knowledgeIds": [],
+                "templateRevision": 1
+              }
+            ],
+            "updatedAt": "2026-11-17T12:32:26.023456842Z",
+            "basePrompt": "核实来源并标明未验证事项。",
+            "baseSkills": [
+              {
+                "name": "证据核查",
+                "content": "区分来源事实与推断。"
+              }
+            ],
+            "templateId": "0a535c26-a8e6-4077-912b-a33d9170b5dc",
+            "knowledgeIds": [],
+            "templateRevision": 1
+          },
+          "retainedKnowledge": {},
+          "executionId": "6f0b8de5-0111-4044-a2fc-8b8a096d036f",
+          "sandboxId": ""
+        },
+        {
+          "id": "5fef113a-c22e-48a3-90d3-d0257ca34fc3",
+          "goal": "@员工1 你好，收到你的初审反馈（产物 f3163537-11b5-4615-ae57-14b4cf4b7bbd，revision 1，期末写95件 vs 核算90件）。我已按已确认明细独立复核：期初100 + 入库20 − 出库30 = 90件，确认你的核算无误，期末95件确实多计5件且无调整项依据。按本轮团队流程（用户决定前不改写原产物、不派发修改任务），我暂不修改原产物，已将我的确认与核算依据保存为产物，并将以ask_superior向用户正式提交决策请求。待用户批准后，我将使用该产物的实际id与expectedRevision=1提交修正版（期末90件），并通过team_message @你交回新版本id/revision供你复核。说明：本轮事实为合成数据，未经真实业务系统核验，我本轮也无产物原文读取工具。",
+          "runId": "e3c49d87-3355-4307-9ea9-48af351c1357",
+          "state": "completed",
+          "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+          "revision": 1,
+          "createdAt": "2026-11-17T12:37:18.929000131Z",
+          "employeeId": "fec85fce-6c44-4909-88c0-57a65abd5acb",
+          "workItemId": "834b83f7-fde1-4fa9-8ea7-3c476c6c0aa8",
+          "parentTaskId": "47f9774e-813f-4b3a-8cc3-2edf8df19f54",
+          "teamSnapshot": {
+            "id": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+            "name": "库存验收-review-before-human-decision",
+            "limits": {
+              "maxRounds": 8,
+              "maxSeconds": 600
+            },
+            "prompt": "本轮不自动改写原报告，发现错误先保存核算依据并上报用户，请用户决定是否修改或发布；用户决定前不要派其他员工或改原产物。",
+            "revision": 2,
+            "versions": [
+              {
+                "id": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+                "name": "验收团队",
+                "limits": {
+                  "maxRounds": 8,
+                  "maxSeconds": 600
+                },
+                "prompt": "根据事实自主协作，不确定逐级升级。",
+                "authorId": "20",
+                "revision": 1,
+                "updatedAt": "2026-11-17T12:32:26.007873259Z",
+                "authorType": "user",
+                "description": "合成资料验收"
+              },
+              {
+                "id": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+                "name": "库存验收-review-before-human-decision",
+                "limits": {
+                  "maxRounds": 8,
+                  "maxSeconds": 600
+                },
+                "prompt": "本轮不自动改写原报告，发现错误先保存核算依据并上报用户，请用户决定是否修改或发布；用户决定前不要派其他员工或改原产物。",
+                "authorId": "20",
+                "revision": 2,
+                "updatedAt": "2026-11-17T12:32:26.020172009Z",
+                "authorType": "user",
+                "receiverId": "2a3017c2-d320-4b3b-988b-333522e3f002",
+                "description": "合成资料验收"
+              }
+            ],
+            "updatedAt": "2026-11-17T12:32:26.020172009Z",
+            "receiverId": "2a3017c2-d320-4b3b-988b-333522e3f002",
+            "description": "合成资料验收",
+            "organization": {
+              "2a3017c2-d320-4b3b-988b-333522e3f002": "user",
+              "fec85fce-6c44-4909-88c0-57a65abd5acb": "user"
+            }
+          },
+          "executedActions": [
+            {
+              "id": "82ac29d2-c13a-4140-954e-87935b3d2fea",
+              "kind": "model",
+              "state": "succeeded",
+              "at": "2026-11-17T12:39:04.173693513Z",
+              "usage": {
+                "prompt": 9002,
+                "completion": 4289
+              },
+              "tools": [
+                "team_message"
+              ]
+            },
+            {
+              "id": "2012ebbe-f943-4948-8990-d65ef04451bd",
+              "kind": "model",
+              "state": "succeeded",
+              "at": "2026-11-17T12:39:22.101198174Z",
+              "usage": {
+                "prompt": 9892,
+                "completion": 830
+              },
+              "tools": [
+                "record_artifact"
+              ]
+            },
+            {
+              "id": "cbd3e790-6d63-468e-9250-281fdce1c7a9",
+              "kind": "model",
+              "state": "succeeded",
+              "at": "2026-11-17T12:39:27.083706635Z",
+              "usage": {
+                "prompt": 11337,
+                "completion": 162
+              },
+              "tools": [
+                "complete_task"
+              ]
+            }
+          ],
+          "sourceMessageId": "3ce001e2-cb24-4da0-8229-fb59aad480c0",
+          "employeeSnapshot": {
+            "id": "fec85fce-6c44-4909-88c0-57a65abd5acb",
+            "name": "员工1",
+            "prompt": "依据已确认明细独立核查指定产物。发现错误用record_review如实记录其真实版本、@责任员工提出修正请求；保存本轮初审报告并complete_task。收到修正版时核对实际内容和revision，记录新版本复核结果、保存自己的复核报告，再complete_task。遵守当前团队流程，禁止把模型意见说成外部库存系统核验。新建报告省略id。",
+            "skills": [
+              {
+                "name": "证据核查",
+                "content": "区分来源事实与推断。"
+              }
+            ],
+            "status": "idle",
+            "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+            "parentId": "user",
+            "revision": 2,
+            "versions": [
+              {
+                "id": "fec85fce-6c44-4909-88c0-57a65abd5acb",
+                "name": "员工1",
+                "prompt": "核实来源并标明未验证事项。",
+                "skills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "status": "idle",
+                "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+                "authorId": "20",
+                "parentId": "user",
+                "revision": 1,
+                "updatedAt": "2026-11-17T12:32:26.016178176Z",
+                "authorType": "user",
+                "basePrompt": "核实来源并标明未验证事项。",
+                "baseSkills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "templateId": "0a535c26-a8e6-4077-912b-a33d9170b5dc",
+                "knowledgeIds": [],
+                "templateRevision": 1
+              },
+              {
+                "id": "fec85fce-6c44-4909-88c0-57a65abd5acb",
+                "name": "员工1",
+                "prompt": "依据已确认明细独立核查指定产物。发现错误用record_review如实记录其真实版本、@责任员工提出修正请求；保存本轮初审报告并complete_task。收到修正版时核对实际内容和revision，记录新版本复核结果、保存自己的复核报告，再complete_task。遵守当前团队流程，禁止把模型意见说成外部库存系统核验。新建报告省略id。",
+                "skills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "status": "idle",
+                "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+                "authorId": "20",
+                "parentId": "user",
+                "revision": 2,
+                "updatedAt": "2026-11-17T12:32:26.026204926Z",
+                "authorType": "user",
+                "basePrompt": "核实来源并标明未验证事项。",
+                "baseSkills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "templateId": "0a535c26-a8e6-4077-912b-a33d9170b5dc",
+                "knowledgeIds": [],
+                "templateRevision": 1
+              }
+            ],
+            "updatedAt": "2026-11-17T12:32:26.026204926Z",
+            "basePrompt": "核实来源并标明未验证事项。",
+            "baseSkills": [
+              {
+                "name": "证据核查",
+                "content": "区分来源事实与推断。"
+              }
+            ],
+            "templateId": "0a535c26-a8e6-4077-912b-a33d9170b5dc",
+            "knowledgeIds": [],
+            "templateRevision": 1
+          },
+          "retainedKnowledge": {},
+          "executionId": "6182bed9-5772-4187-978b-82bc93231f53",
+          "sandboxId": ""
+        },
+        {
+          "id": "c8bfbeab-1edc-4827-a4a3-240b5163b93b",
+          "goal": "@员工0 收到你的确认，感谢独立复核。我们双方按同一已确认明细（期初100、入库20、出库30、无其他调整项）独立核算结论一致：期末应为90件，产物 f3163537 revision 1 所载95件多计5件且无调整项依据，修正请求成立。\n\n按本轮团队流程，我确认当前状态：我未改写原产物、未向你派发任何修改任务；按你的说明你也未提交新版本，我这边同样未收到任何修正版，且我本轮没有产物原文读取工具，无法独立读取该产物当前实际revision。\n\n是否修正为90件/按原样发布/暂缓补充事实，以用户决定为准（决策请求由你经ask_superior提交）。在你交回修正版（实际id+新revision）之前，我保持等待，不做任何修改动作。收到修正版后，我将核对其实际内容与真实revision，用record_review记录复核结果，并保存我的复核报告后complete_task。",
+          "runId": "e3c49d87-3355-4307-9ea9-48af351c1357",
+          "state": "blocked",
+          "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+          "revision": 1,
+          "createdAt": "2026-11-17T12:39:04.191366888Z",
+          "decisionId": "88e0e39b-443c-498c-987b-b1d6aa37dc9b",
+          "employeeId": "2a3017c2-d320-4b3b-988b-333522e3f002",
+          "workItemId": "834b83f7-fde1-4fa9-8ea7-3c476c6c0aa8",
+          "parentTaskId": "5fef113a-c22e-48a3-90d3-d0257ca34fc3",
+          "teamSnapshot": {
+            "id": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+            "name": "库存验收-review-before-human-decision",
+            "limits": {
+              "maxRounds": 8,
+              "maxSeconds": 600
+            },
+            "prompt": "本轮不自动改写原报告，发现错误先保存核算依据并上报用户，请用户决定是否修改或发布；用户决定前不要派其他员工或改原产物。",
+            "revision": 2,
+            "versions": [
+              {
+                "id": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+                "name": "验收团队",
+                "limits": {
+                  "maxRounds": 8,
+                  "maxSeconds": 600
+                },
+                "prompt": "根据事实自主协作，不确定逐级升级。",
+                "authorId": "20",
+                "revision": 1,
+                "updatedAt": "2026-11-17T12:32:26.007873259Z",
+                "authorType": "user",
+                "description": "合成资料验收"
+              },
+              {
+                "id": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+                "name": "库存验收-review-before-human-decision",
+                "limits": {
+                  "maxRounds": 8,
+                  "maxSeconds": 600
+                },
+                "prompt": "本轮不自动改写原报告，发现错误先保存核算依据并上报用户，请用户决定是否修改或发布；用户决定前不要派其他员工或改原产物。",
+                "authorId": "20",
+                "revision": 2,
+                "updatedAt": "2026-11-17T12:32:26.020172009Z",
+                "authorType": "user",
+                "receiverId": "2a3017c2-d320-4b3b-988b-333522e3f002",
+                "description": "合成资料验收"
+              }
+            ],
+            "updatedAt": "2026-11-17T12:32:26.020172009Z",
+            "receiverId": "2a3017c2-d320-4b3b-988b-333522e3f002",
+            "description": "合成资料验收",
+            "organization": {
+              "2a3017c2-d320-4b3b-988b-333522e3f002": "user",
+              "fec85fce-6c44-4909-88c0-57a65abd5acb": "user"
+            }
+          },
+          "executedActions": [
+            {
+              "id": "73907e4f-46e2-44a0-bc17-3eb6226c1d33",
+              "kind": "model",
+              "state": "succeeded",
+              "at": "2026-11-17T12:40:44.733047087Z",
+              "usage": {
+                "prompt": 9936,
+                "completion": 4970
+              },
+              "tools": [
+                "ask_superior"
+              ]
+            }
+          ],
+          "sourceMessageId": "34bd865a-3374-445a-a08f-763e45816339",
+          "employeeSnapshot": {
+            "id": "2a3017c2-d320-4b3b-988b-333522e3f002",
+            "name": "员工0",
+            "prompt": "收到核查同事的反馈后，按已确认明细计算并修正指定产物。修改须使用实际id和expectedRevision，不能编造ID。将新版本id/revision通过team_message @核查同事交回，之后complete_task。本轮事实是合成数据，必须保留未验证真实业务的说明。",
+            "skills": [
+              {
+                "name": "证据核查",
+                "content": "区分来源事实与推断。"
+              }
+            ],
+            "status": "idle",
+            "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+            "parentId": "user",
+            "revision": 2,
+            "versions": [
+              {
+                "id": "2a3017c2-d320-4b3b-988b-333522e3f002",
+                "name": "员工0",
+                "prompt": "核实来源并标明未验证事项。",
+                "skills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "status": "idle",
+                "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+                "authorId": "20",
+                "parentId": "user",
+                "revision": 1,
+                "updatedAt": "2026-11-17T12:32:26.013241967Z",
+                "authorType": "user",
+                "basePrompt": "核实来源并标明未验证事项。",
+                "baseSkills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "templateId": "0a535c26-a8e6-4077-912b-a33d9170b5dc",
+                "knowledgeIds": [],
+                "templateRevision": 1
+              },
+              {
+                "id": "2a3017c2-d320-4b3b-988b-333522e3f002",
+                "name": "员工0",
+                "prompt": "收到核查同事的反馈后，按已确认明细计算并修正指定产物。修改须使用实际id和expectedRevision，不能编造ID。将新版本id/revision通过team_message @核查同事交回，之后complete_task。本轮事实是合成数据，必须保留未验证真实业务的说明。",
+                "skills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "status": "idle",
+                "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+                "authorId": "20",
+                "parentId": "user",
+                "revision": 2,
+                "updatedAt": "2026-11-17T12:32:26.023456842Z",
+                "authorType": "user",
+                "basePrompt": "核实来源并标明未验证事项。",
+                "baseSkills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "templateId": "0a535c26-a8e6-4077-912b-a33d9170b5dc",
+                "knowledgeIds": [],
+                "templateRevision": 1
+              }
+            ],
+            "updatedAt": "2026-11-17T12:32:26.023456842Z",
+            "basePrompt": "核实来源并标明未验证事项。",
+            "baseSkills": [
+              {
+                "name": "证据核查",
+                "content": "区分来源事实与推断。"
+              }
+            ],
+            "templateId": "0a535c26-a8e6-4077-912b-a33d9170b5dc",
+            "knowledgeIds": [],
+            "templateRevision": 1
+          },
+          "retainedKnowledge": {},
+          "executionId": "6497b43f-adfe-4812-86d8-1b3fd51f9638",
+          "sandboxId": ""
+        }
+      ],
+      "artifacts": [
+        {
+          "id": "723ecabc-2389-415f-ae46-e7ac24338513",
+          "title": "库存汇总初审报告（员工1）——产物f3163537 revision 1 核算依据与错误记录",
+          "taskId": "3918ebc7-5976-426e-a530-a9703f31089e",
+          "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+          "content": "一、核查对象与分工\n对象：库存汇总产物 f3163537-11b5-4615-ae57-14b4cf4b7bbd（revision 1）。责任员工：员工0（2a3017c2-d320-4b3b-988b-333522e3f002）；核查员工：员工1（fec85fce-6c44-4909-88c0-57a65abd5acb）。本轮为初审。\n\n二、事实依据（任务已确认且唯一）\n期初库存 100 件；本期入库 20 件；本期出库 30 件；无其他调整项。\n\n三、核算过程（区分来源事实与推断）\n事实层：期初100、入库20、出库30、无其他调整项（来源：任务给定已确认明细）。\n推断层：期末 = 期初 + 入库 − 出库 = 100 + 20 − 30 = 90 件。\n比对：产物所载期末 95 件 ≠ 核算结果 90 件，差异 +5 件；因任务明确无其他调整项，该差异无任何依据。\n\n四、初审结论\n产物 revision 1 的库存汇总期末数量不正确：报告写 95 件，按已确认事实应计 90 件，多计 5 件。已在产物 revision 1 上通过 record_review 如实记录，并 @责任员工（员工0）提出修正请求。\n\n五、流程执行情况\n严格遵守本轮团队流程：未改写原产物、未向其他员工派发修改任务；核算依据以本报告留存，并已向用户上报，等待用户决定是否修改或发布。\n\n六、后续安排\n若用户批准修正：待责任员工提交修正版后，我将核对其实际内容与真实 revision，记录复核结果并保存复核报告。\n若用户选择按原样发布或补充新事实：以用户决定为准，本报告仅作为核算依据留存。",
+          "revision": 1,
+          "versions": [
+            {
+              "id": "723ecabc-2389-415f-ae46-e7ac24338513",
+              "title": "库存汇总初审报告（员工1）——产物f3163537 revision 1 核算依据与错误记录",
+              "taskId": "3918ebc7-5976-426e-a530-a9703f31089e",
+              "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+              "content": "一、核查对象与分工\n对象：库存汇总产物 f3163537-11b5-4615-ae57-14b4cf4b7bbd（revision 1）。责任员工：员工0（2a3017c2-d320-4b3b-988b-333522e3f002）；核查员工：员工1（fec85fce-6c44-4909-88c0-57a65abd5acb）。本轮为初审。\n\n二、事实依据（任务已确认且唯一）\n期初库存 100 件；本期入库 20 件；本期出库 30 件；无其他调整项。\n\n三、核算过程（区分来源事实与推断）\n事实层：期初100、入库20、出库30、无其他调整项（来源：任务给定已确认明细）。\n推断层：期末 = 期初 + 入库 − 出库 = 100 + 20 − 30 = 90 件。\n比对：产物所载期末 95 件 ≠ 核算结果 90 件，差异 +5 件；因任务明确无其他调整项，该差异无任何依据。\n\n四、初审结论\n产物 revision 1 的库存汇总期末数量不正确：报告写 95 件，按已确认事实应计 90 件，多计 5 件。已在产物 revision 1 上通过 record_review 如实记录，并 @责任员工（员工0）提出修正请求。\n\n五、流程执行情况\n严格遵守本轮团队流程：未改写原产物、未向其他员工派发修改任务；核算依据以本报告留存，并已向用户上报，等待用户决定是否修改或发布。\n\n六、后续安排\n若用户批准修正：待责任员工提交修正版后，我将核对其实际内容与真实 revision，记录复核结果并保存复核报告。\n若用户选择按原样发布或补充新事实：以用户决定为准，本报告仅作为核算依据留存。",
+              "authorId": "fec85fce-6c44-4909-88c0-57a65abd5acb",
+              "revision": 1,
+              "remaining": "等待用户决定：(a) 批准修正为90件后发布（随后我复核修正版）；(b) 保持95件原样发布（与已确认事实矛盾，需用户确认）；(c) 暂缓发布并补充新事实后重算。若批准修正，责任员工产出新版本后由我复核并出具复核报告。",
+              "unchecked": "本轮无产物读取工具，\"期末95件\"取自任务对产物内容的给定描述，未逐字打开产物原文核对除期末数量外的其他字段（如计量单位、统计期间、单据编号等）；未调用任何外部库存系统或单据系统核验（任务声明仅合成数据、不要求外部核验）；以上结论均为对已确认事实的算术核对，不代表系统级核验。",
+              "updatedAt": "2026-11-17T12:35:02.338482470Z",
+              "authorType": "employee"
+            }
+          ],
+          "remaining": "等待用户决定：(a) 批准修正为90件后发布（随后我复核修正版）；(b) 保持95件原样发布（与已确认事实矛盾，需用户确认）；(c) 暂缓发布并补充新事实后重算。若批准修正，责任员工产出新版本后由我复核并出具复核报告。",
+          "unchecked": "本轮无产物读取工具，\"期末95件\"取自任务对产物内容的给定描述，未逐字打开产物原文核对除期末数量外的其他字段（如计量单位、统计期间、单据编号等）；未调用任何外部库存系统或单据系统核验（任务声明仅合成数据、不要求外部核验）；以上结论均为对已确认事实的算术核对，不代表系统级核验。",
+          "updatedAt": "2026-11-17T12:35:02.338482470Z"
+        },
+        {
+          "id": "e08e3ca0-080e-41dc-8562-7ab2220f0852",
+          "title": "员工0确认与核算依据——库存汇总产物f3163537 revision 1 期末数量反馈确认（用户决定前不修改原产物）",
+          "taskId": "47f9774e-813f-4b3a-8cc3-2edf8df19f54",
+          "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+          "content": "一、反馈接收\n收到核查员工员工1（fec85fce-6c44-4909-88c0-57a65abd5acb）对库存汇总产物 f3163537-11b5-4615-ae57-14b4cf4b7bbd（revision 1）的初审反馈：期末数量报告为95件，核算应为90件，多计5件且无调整项依据。其初审依据见产物《库存汇总初审报告（员工1）》。\n\n二、事实依据（来源：任务给定已确认明细）\n期初库存 100 件；本期入库 20 件；本期出库 30 件；无其他调整项。\n\n三、独立复核（区分来源事实与推断）\n事实层：期初100、入库20、出库30、无其他调整项。\n推断层：期末 = 期初 + 入库 − 出库 = 100 + 20 − 30 = 90 件。\n比对：反馈所述产物期末 95 件 ≠ 90 件，差异 +5 件；因已确认明细明确无其他调整项，该差异无依据。\n结论：我独立复核与员工1初审结论一致，确认修正请求合理，期末应修正为 90 件。\n\n四、流程执行情况\n按本轮团队流程：未改写原产物（f3163537 仍为 revision 1，未提交任何新版本）、未向其他员工派发修改任务；已回复员工1确认收到并认同核算；已通过 ask_superior 向用户提交决策请求（批准修正 / 保持原样 / 暂缓发布）。\n\n五、后续安排\n若用户批准修正：我将使用该产物的实际 id（f3163537-11b5-4615-ae57-14b4cf4b7bbd）与实际 expectedRevision（1）提交修正版（期末90件），并通过 team_message @员工1 交回新版本 id/revision 供复核。\n若用户选择保持95件原样：与已确认事实矛盾，以用户决定为准，本报告仅留痕。\n若用户补充新事实（如存在调整项）：按新事实重算后处理。",
+          "revision": 1,
+          "versions": [
+            {
+              "id": "e08e3ca0-080e-41dc-8562-7ab2220f0852",
+              "title": "员工0确认与核算依据——库存汇总产物f3163537 revision 1 期末数量反馈确认（用户决定前不修改原产物）",
+              "taskId": "47f9774e-813f-4b3a-8cc3-2edf8df19f54",
+              "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+              "content": "一、反馈接收\n收到核查员工员工1（fec85fce-6c44-4909-88c0-57a65abd5acb）对库存汇总产物 f3163537-11b5-4615-ae57-14b4cf4b7bbd（revision 1）的初审反馈：期末数量报告为95件，核算应为90件，多计5件且无调整项依据。其初审依据见产物《库存汇总初审报告（员工1）》。\n\n二、事实依据（来源：任务给定已确认明细）\n期初库存 100 件；本期入库 20 件；本期出库 30 件；无其他调整项。\n\n三、独立复核（区分来源事实与推断）\n事实层：期初100、入库20、出库30、无其他调整项。\n推断层：期末 = 期初 + 入库 − 出库 = 100 + 20 − 30 = 90 件。\n比对：反馈所述产物期末 95 件 ≠ 90 件，差异 +5 件；因已确认明细明确无其他调整项，该差异无依据。\n结论：我独立复核与员工1初审结论一致，确认修正请求合理，期末应修正为 90 件。\n\n四、流程执行情况\n按本轮团队流程：未改写原产物（f3163537 仍为 revision 1，未提交任何新版本）、未向其他员工派发修改任务；已回复员工1确认收到并认同核算；已通过 ask_superior 向用户提交决策请求（批准修正 / 保持原样 / 暂缓发布）。\n\n五、后续安排\n若用户批准修正：我将使用该产物的实际 id（f3163537-11b5-4615-ae57-14b4cf4b7bbd）与实际 expectedRevision（1）提交修正版（期末90件），并通过 team_message @员工1 交回新版本 id/revision 供复核。\n若用户选择保持95件原样：与已确认事实矛盾，以用户决定为准，本报告仅留痕。\n若用户补充新事实（如存在调整项）：按新事实重算后处理。",
+              "authorId": "2a3017c2-d320-4b3b-988b-333522e3f002",
+              "revision": 1,
+              "remaining": "等待用户决定：(a) 批准修正为90件——随后我以实际id+expectedRevision=1提交修正版并@员工1交回复核；(b) 保持95件原样发布；(c) 暂缓发布并补充新事实后重算。用户决定前不执行任何修改。",
+              "unchecked": "本轮我没有产物原文读取工具，\"期末95件\"取自员工1初审报告与消息描述，未逐字打开产物核对其他字段（如计量单位、统计期间等）；本轮事实为合成数据，未调用任何真实库存/单据系统核验；修改动作尚未执行（等待用户决定），上述结论仅为对已确认事实的算术复核，不代表系统级核验。",
+              "updatedAt": "2026-11-17T12:37:18.944106922Z",
+              "authorType": "employee"
+            }
+          ],
+          "remaining": "等待用户决定：(a) 批准修正为90件——随后我以实际id+expectedRevision=1提交修正版并@员工1交回复核；(b) 保持95件原样发布；(c) 暂缓发布并补充新事实后重算。用户决定前不执行任何修改。",
+          "unchecked": "本轮我没有产物原文读取工具，\"期末95件\"取自员工1初审报告与消息描述，未逐字打开产物核对其他字段（如计量单位、统计期间等）；本轮事实为合成数据，未调用任何真实库存/单据系统核验；修改动作尚未执行（等待用户决定），上述结论仅为对已确认事实的算术复核，不代表系统级核验。",
+          "updatedAt": "2026-11-17T12:37:18.944106922Z"
+        },
+        {
+          "id": "f3163537-11b5-4615-ae57-14b4cf4b7bbd",
+          "title": "库存汇总（待核查）",
+          "taskId": "41ef2da3-91dc-4bb9-82c3-4a5aa0e88511",
+          "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+          "content": "已确认明细：期初100件、入库20件、出库30件，没有其他调整项。汇总报告：期末95件。",
+          "revision": 1,
+          "versions": [
+            {
+              "id": "f3163537-11b5-4615-ae57-14b4cf4b7bbd",
+              "title": "库存汇总（待核查）",
+              "taskId": "41ef2da3-91dc-4bb9-82c3-4a5aa0e88511",
+              "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+              "content": "已确认明细：期初100件、入库20件、出库30件，没有其他调整项。汇总报告：期末95件。",
+              "authorId": "2a3017c2-d320-4b3b-988b-333522e3f002",
+              "revision": 1,
+              "remaining": "",
+              "unchecked": "未独立复核；合成资料未经真实业务核验",
+              "updatedAt": "2026-11-17T12:32:26.034875676Z",
+              "authorType": "employee"
+            }
+          ],
+          "remaining": "",
+          "unchecked": "未独立复核；合成资料未经真实业务核验",
+          "updatedAt": "2026-11-17T12:32:26.034875676Z"
+        },
+        {
+          "id": "fc07c985-2935-4ed2-8a7c-883cf810df47",
+          "title": "员工1收尾记录——员工0已认同修正请求，等待用户决定（无修正版到达，本轮未执行修改）",
+          "taskId": "5fef113a-c22e-48a3-90d3-d0257ca34fc3",
+          "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+          "content": "一、本轮范围\n核查员工：员工1（fec85fce-6c44-4909-88c0-57a65abd5acb）。本轮为对责任员工（员工0）复核确认的接收与状态留痕，未收到任何修正版产物，未执行复核更新。\n\n二、双方独立核算结论（一致）\n事实层（来源：任务已确认明细）：期初库存 100 件、本期入库 20 件、本期出库 30 件、无其他调整项。\n推断层：期末 = 期初 + 入库 − 出库 = 100 + 20 − 30 = 90 件。\n双方一致结论：产物 f3163537-11b5-4615-ae57-14b4cf4b7bbd（revision 1）所载期末 95 件与核算结果 90 件不符，多计 5 件，且已确认明细中无任何调整项可解释该差异，修正请求（期末改为90件）成立。\n\n三、当前状态\n1. 原产物仍为 revision 1，本轮未被任何一方改写；\n2. 未向其他员工派发任何修改任务（遵守本轮团队流程：用户决定前不改原产物、不派发修改任务）；\n3. 决策请求（批准修正为90件 / 按原样发布 / 暂缓补充事实）已由员工0经 ask_superior 提交用户；\n4. 我已回复员工0（消息 34bd865a-3374-445a-a08f-763e45816339）确认收到其复核认同。\n\n四、后续安排\n收到修正版（实际 id + 新 revision）后，我将核对其实际内容与真实 revision，用 record_review 记录复核结果，保存复核报告后再 complete_task；若用户选择按原样发布或补充新事实，以用户决定为准，本记录仅留痕。",
+          "revision": 1,
+          "versions": [
+            {
+              "id": "fc07c985-2935-4ed2-8a7c-883cf810df47",
+              "title": "员工1收尾记录——员工0已认同修正请求，等待用户决定（无修正版到达，本轮未执行修改）",
+              "taskId": "5fef113a-c22e-48a3-90d3-d0257ca34fc3",
+              "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+              "content": "一、本轮范围\n核查员工：员工1（fec85fce-6c44-4909-88c0-57a65abd5acb）。本轮为对责任员工（员工0）复核确认的接收与状态留痕，未收到任何修正版产物，未执行复核更新。\n\n二、双方独立核算结论（一致）\n事实层（来源：任务已确认明细）：期初库存 100 件、本期入库 20 件、本期出库 30 件、无其他调整项。\n推断层：期末 = 期初 + 入库 − 出库 = 100 + 20 − 30 = 90 件。\n双方一致结论：产物 f3163537-11b5-4615-ae57-14b4cf4b7bbd（revision 1）所载期末 95 件与核算结果 90 件不符，多计 5 件，且已确认明细中无任何调整项可解释该差异，修正请求（期末改为90件）成立。\n\n三、当前状态\n1. 原产物仍为 revision 1，本轮未被任何一方改写；\n2. 未向其他员工派发任何修改任务（遵守本轮团队流程：用户决定前不改原产物、不派发修改任务）；\n3. 决策请求（批准修正为90件 / 按原样发布 / 暂缓补充事实）已由员工0经 ask_superior 提交用户；\n4. 我已回复员工0（消息 34bd865a-3374-445a-a08f-763e45816339）确认收到其复核认同。\n\n四、后续安排\n收到修正版（实际 id + 新 revision）后，我将核对其实际内容与真实 revision，用 record_review 记录复核结果，保存复核报告后再 complete_task；若用户选择按原样发布或补充新事实，以用户决定为准，本记录仅留痕。",
+              "authorId": "fec85fce-6c44-4909-88c0-57a65abd5acb",
+              "revision": 1,
+              "remaining": "等待用户决定：(a) 批准修正为90件后发布——届时我复核员工0提交的修正版并出具复核报告；(b) 保持95件原样发布（与已确认事实矛盾，需用户确认）；(c) 暂缓发布并补充新事实后重算。用户决定前我不做任何修改或派发动作。",
+              "unchecked": "本轮无产物原文读取工具，产物当前实际revision无法独立读取（以任务给定的revision 1为准）；本轮事实为合成数据，未调用任何真实库存/单据系统核验；未验证修正版是否会在后续到达。以上均为对已确认事实的算术核对与流程留痕，不代表系统级核验。",
+              "updatedAt": "2026-11-17T12:39:22.118062882Z",
+              "authorType": "employee"
+            }
+          ],
+          "remaining": "等待用户决定：(a) 批准修正为90件后发布——届时我复核员工0提交的修正版并出具复核报告；(b) 保持95件原样发布（与已确认事实矛盾，需用户确认）；(c) 暂缓发布并补充新事实后重算。用户决定前我不做任何修改或派发动作。",
+          "unchecked": "本轮无产物原文读取工具，产物当前实际revision无法独立读取（以任务给定的revision 1为准）；本轮事实为合成数据，未调用任何真实库存/单据系统核验；未验证修正版是否会在后续到达。以上均为对已确认事实的算术核对与流程留痕，不代表系统级核验。",
+          "updatedAt": "2026-11-17T12:39:22.118062882Z"
+        }
+      ],
+      "checks": [
+        {
+          "id": "e9bf6daf-5abf-400c-b521-3cc84237c15d",
+          "kind": "model-assessment",
+          "method": "独立手工算术复核：以任务给定已确认明细（期初100、入库20、出库30、无其他调整项）为唯一事实来源，重新计算期末=100+20-30=90，与产物所载95比对。属人工/模型核算，未调用外部库存系统核验。",
+          "result": "初审核算发现期末数量错误：按已确认明细 期初100 + 入库20 − 出库30 = 90件，而产物 revision 1 写期末95件，多计5件，且任务明确无其他调整项，差异无依据。结论：该revision 1库存汇总期末数量不正确，建议修正为90件。按本轮团队流程未改写原产物，已上报用户决定是否修改或发布。",
+          "taskId": "3918ebc7-5976-426e-a530-a9703f31089e",
+          "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+          "createdAt": "2026-11-17T12:35:02.306289512Z",
+          "artifactId": "f3163537-11b5-4615-ae57-14b4cf4b7bbd",
+          "employeeId": "fec85fce-6c44-4909-88c0-57a65abd5acb",
+          "limitations": "仅合成数据核查；事实依据为任务给定已确认明细，报告值\"期末95件\"取自任务对产物的描述，本轮无产物读取工具，未逐字打开产物原文核对其全部字段；未调用外部库存系统或单据系统核验（任务不要求）；本意见为模型对已确认事实的算术核对结果，不能替代外部系统核验。",
+          "subjectRevision": 1
+        }
+      ],
+      "decisions": [
+        {
+          "id": "19ee6bd5-c999-479a-bb48-06082df32fb8",
+          "path": [
+            "2a3017c2-d320-4b3b-988b-333522e3f002"
+          ],
+          "state": "open",
+          "taskId": "47f9774e-813f-4b3a-8cc3-2edf8df19f54",
+          "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+          "options": [
+            "批准修正为90件：我以实际id（f3163537-11b5-4615-ae57-14b4cf4b7bbd）与expectedRevision=1提交修正版（期末90件），随后team_message @员工1交回新版本id/revision供其复核，再完成本任务",
+            "保持95件原样发布：与已确认事实（应计90件）矛盾，如选此项请明确确认知悉该差异",
+            "暂缓发布并补充新事实（如存在其他调整项/出库口径变化）：我按新事实重算后另行处理"
+          ],
+          "problem": "库存汇总产物 f3163537-11b5-4615-ae57-14b4cf4b7bbd（revision 1，员工0名下）期末数量存在错误：报告写95件，按已确认事实（期初100件、入库20件、出库30件、无其他调整项）核算应为90件，多计5件且无调整项依据。核查员工员工1已完成初审并record_review留痕，我已独立复核确认。按本轮团队有效指令\"用户决定前不改写原产物、不派发修改任务\"，现需您决定该产物如何处理。说明：本轮事实为合成数据，未经真实业务系统核验。",
+          "attempts": [
+            "独立复核算术：期初100 + 入库20 − 出库30 = 90件，确认员工1初审无误、期末95件多计5件且无调整项依据",
+            "回复员工1（消息3ce001e2）确认收到并认同核算，告知将上报用户决定",
+            "将我的确认与核算依据保存为产物 e08e3ca0-080e-41dc-8562-7ab2220f0852（revision 1），标注合成数据与未验证范围",
+            "遵守团队有效指令：未改写原产物（f3163537 仍为 revision 1）、未向其他员工派发任何修改任务"
+          ],
+          "revision": 1,
+          "createdAt": "2026-11-17T12:37:46.446476380Z",
+          "handlerId": "user",
+          "originEmployeeId": "2a3017c2-d320-4b3b-988b-333522e3f002"
+        },
+        {
+          "id": "20ae9e92-85bd-4e68-83ad-3fe76822d873",
+          "path": [
+            "fec85fce-6c44-4909-88c0-57a65abd5acb"
+          ],
+          "state": "open",
+          "taskId": "3918ebc7-5976-426e-a530-a9703f31089e",
+          "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+          "options": [
+            "批准修正：由责任员工将期末改为90件出新版本，发布修正版（我可随后复核新revision）",
+            "维持原样：按revision 1（95件）发布，需用户确认接受与已确认事实的矛盾",
+            "暂缓发布：先补充新事实或调整项说明，再重新核算后决定"
+          ],
+          "problem": "库存汇总产物 f3163537-11b5-4615-ae57-14b4cf4b7bbd（revision 1，责任员工员工0）期末数量核算错误：按已确认唯一事实（期初100、入库20、出库30、无其他调整项），期末应为90件，原报告写95件，多计5件。按本轮团队流程（不自动改写原报告），修改与否需由您决定。",
+          "attempts": [
+            "依据任务给定已确认明细独立重算：期末=100+20−30=90件，与产物revision 1所载95件不符，差异+5件无调整项依据",
+            "已用record_review在产物revision 1上如实记录错误及其真实版本",
+            "已@责任员工员工0提出修正请求（期末应为90件）",
+            "已保存初审报告（核算依据），注明未验证事项，严格遵守本轮不改写原产物、不派员工修改的团队流程"
+          ],
+          "revision": 1,
+          "createdAt": "2026-11-17T12:35:15.557021546Z",
+          "handlerId": "user",
+          "originEmployeeId": "fec85fce-6c44-4909-88c0-57a65abd5acb"
+        },
+        {
+          "id": "88e0e39b-443c-498c-987b-b1d6aa37dc9b",
+          "path": [
+            "2a3017c2-d320-4b3b-988b-333522e3f002"
+          ],
+          "state": "open",
+          "taskId": "c8bfbeab-1edc-4827-a4a3-240b5163b93b",
+          "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+          "options": [
+            "批准修正：将 f3163537 的期末数量修正为90件后发布（基于已确认明细重写；因我从未读取原产物全文，其他字段无法保证原样保留，将在新版本中如实标注未验证范围）",
+            "保持95件原样发布（与已确认事实矛盾，需用户明确认可该口径）",
+            "暂缓发布：待补充新事实（如存在调整项依据）后按新事实重算再定"
+          ],
+          "problem": "库存汇总产物 f3163537-11b5-4615-ae57-14b4cf4b7bbd（revision 1）期末数量与已确认事实不符，请用户决定处理方式。已确认明细（唯一事实来源）：期初100件、入库20件、出库30件、无其他调整项 ⇒ 期末应为 90件；产物现写 95件，多计5件且无任何调整项依据。按本轮团队流程，用户决定前不改写原产物、不派发修改任务，故现在正式提请用户决策。重要提示：本轮我没有产物原文读取工具，从未读取过该产物全文；若批准修正，修正版只能按已确认明细重写期末数量（90件），原产物其他字段（如计量单位、统计期间、单据编号等）无法保证原样保留，只能如实标注未验证。",
+          "attempts": [
+            "员工1完成独立初审：在产物f3163537 revision 1上用record_review如实留痕，核算期末=100+20-30=90件，产物写95件多计5件且无调整项依据，初审依据已保存为产物723ecabc",
+            "我（员工0）按同一已确认明细独立复核，结论与员工1一致（期末90件），确认与核算依据已保存为产物e08e3ca0（revision 1）",
+            "双方均遵守本轮团队流程：未改写原产物（仍为revision 1）、未互相派发修改任务；当前decision仍为空，用户决定尚未到达，故正式提交决策请求"
+          ],
+          "revision": 1,
+          "createdAt": "2026-11-17T12:40:44.759933754Z",
+          "handlerId": "user",
+          "originEmployeeId": "2a3017c2-d320-4b3b-988b-333522e3f002"
+        }
+      ],
+      "messages": [
+        {
+          "id": "0c3d8c44-8257-4257-ac58-844d9e8a63f5",
+          "kind": "decision",
+          "text": "库存汇总产物 f3163537-11b5-4615-ae57-14b4cf4b7bbd（revision 1）期末数量与已确认事实不符，请用户决定处理方式。已确认明细（唯一事实来源）：期初100件、入库20件、出库30件、无其他调整项 ⇒ 期末应为 90件；产物现写 95件，多计5件且无任何调整项依据。按本轮团队流程，用户决定前不改写原产物、不派发修改任务，故现在正式提请用户决策。重要提示：本轮我没有产物原文读取工具，从未读取过该产物全文；若批准修正，修正版只能按已确认明细重写期末数量（90件），原产物其他字段（如计量单位、统计期间、单据编号等）无法保证原样保留，只能如实标注未验证。",
+          "status": "needs-user",
+          "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+          "senderId": "system",
+          "createdAt": "2026-11-17T12:40:44.759972254Z",
+          "decisionId": "88e0e39b-443c-498c-987b-b1d6aa37dc9b",
+          "senderType": "system",
+          "mentionUser": true
+        },
+        {
+          "id": "34bd865a-3374-445a-a08f-763e45816339",
+          "kind": "chat",
+          "text": "@员工0 收到你的确认，感谢独立复核。我们双方按同一已确认明细（期初100、入库20、出库30、无其他调整项）独立核算结论一致：期末应为90件，产物 f3163537 revision 1 所载95件多计5件且无调整项依据，修正请求成立。\n\n按本轮团队流程，我确认当前状态：我未改写原产物、未向你派发任何修改任务；按你的说明你也未提交新版本，我这边同样未收到任何修正版，且我本轮没有产物原文读取工具，无法独立读取该产物当前实际revision。\n\n是否修正为90件/按原样发布/暂缓补充事实，以用户决定为准（决策请求由你经ask_superior提交）。在你交回修正版（实际id+新revision）之前，我保持等待，不做任何修改动作。收到修正版后，我将核对其实际内容与真实revision，用record_review记录复核结果，并保存我的复核报告后complete_task。",
+          "runId": "e3c49d87-3355-4307-9ea9-48af351c1357",
+          "taskId": "c8bfbeab-1edc-4827-a4a3-240b5163b93b",
+          "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+          "replyTo": "3ce001e2-cb24-4da0-8229-fb59aad480c0",
+          "mentions": [
+            "2a3017c2-d320-4b3b-988b-333522e3f002"
+          ],
+          "senderId": "fec85fce-6c44-4909-88c0-57a65abd5acb",
+          "createdAt": "2026-11-17T12:39:04.191337513Z",
+          "senderType": "employee"
+        },
+        {
+          "id": "376e9c05-d46c-42ab-9b73-3436eb3c16ed",
+          "kind": "decision",
+          "text": "库存汇总产物 f3163537-11b5-4615-ae57-14b4cf4b7bbd（revision 1，责任员工员工0）期末数量核算错误：按已确认唯一事实（期初100、入库20、出库30、无其他调整项），期末应为90件，原报告写95件，多计5件。按本轮团队流程（不自动改写原报告），修改与否需由您决定。",
+          "status": "needs-user",
+          "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+          "senderId": "system",
+          "createdAt": "2026-11-17T12:35:15.557044879Z",
+          "decisionId": "20ae9e92-85bd-4e68-83ad-3fe76822d873",
+          "senderType": "system",
+          "mentionUser": true
+        },
+        {
+          "id": "3ce001e2-cb24-4da0-8229-fb59aad480c0",
+          "kind": "chat",
+          "text": "@员工1 你好，收到你的初审反馈（产物 f3163537-11b5-4615-ae57-14b4cf4b7bbd，revision 1，期末写95件 vs 核算90件）。我已按已确认明细独立复核：期初100 + 入库20 − 出库30 = 90件，确认你的核算无误，期末95件确实多计5件且无调整项依据。按本轮团队流程（用户决定前不改写原产物、不派发修改任务），我暂不修改原产物，已将我的确认与核算依据保存为产物，并将以ask_superior向用户正式提交决策请求。待用户批准后，我将使用该产物的实际id与expectedRevision=1提交修正版（期末90件），并通过team_message @你交回新版本id/revision供你复核。说明：本轮事实为合成数据，未经真实业务系统核验，我本轮也无产物原文读取工具。",
+          "runId": "e3c49d87-3355-4307-9ea9-48af351c1357",
+          "taskId": "5fef113a-c22e-48a3-90d3-d0257ca34fc3",
+          "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+          "replyTo": "9dc1ae89-33b3-4231-84b9-64d528c67d33",
+          "mentions": [
+            "fec85fce-6c44-4909-88c0-57a65abd5acb"
+          ],
+          "senderId": "2a3017c2-d320-4b3b-988b-333522e3f002",
+          "createdAt": "2026-11-17T12:37:18.928968214Z",
+          "senderType": "employee"
+        },
+        {
+          "id": "67e5d761-6906-41f9-9d5a-7aa7467612a6",
+          "kind": "decision",
+          "text": "库存汇总产物 f3163537-11b5-4615-ae57-14b4cf4b7bbd（revision 1，员工0名下）期末数量存在错误：报告写95件，按已确认事实（期初100件、入库20件、出库30件、无其他调整项）核算应为90件，多计5件且无调整项依据。核查员工员工1已完成初审并record_review留痕，我已独立复核确认。按本轮团队有效指令\"用户决定前不改写原产物、不派发修改任务\"，现需您决定该产物如何处理。说明：本轮事实为合成数据，未经真实业务系统核验。",
+          "status": "needs-user",
+          "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+          "senderId": "system",
+          "createdAt": "2026-11-17T12:37:46.446501963Z",
+          "decisionId": "19ee6bd5-c999-479a-bb48-06082df32fb8",
+          "senderType": "system",
+          "mentionUser": true
+        },
+        {
+          "id": "7d19a679-bcd6-408a-963b-584ff6e5ba58",
+          "kind": "task-completed",
+          "text": "任务已完成：@员工1 你好，收到你的初审反馈（产物 f3163537-11b5-4615-ae57-14b4cf4b7bbd，revision 1，期末写95件 vs 核算90件）。我已按已确认明细独立复核：期初100 + 入库20 − 出库30 = 90件，确认你的核算无误，期末95件确实多计5件且无调整项依据。按本轮团队流程（用户决定前不改写原产物、不派发修改任务），我暂不修改原产物，已将我的确认与核算依据保存为产物，并将以ask_superior向用户正式提交决策请求。待用户批准后，我将使用该产物的实际id与expectedRevision=1提交修正版（期末90件），并通过team_message @你交回新版本id/revision供你复核。说明：本轮事实为合成数据，未经真实业务系统核验，我本轮也无产物原文读取工具。",
+          "taskId": "5fef113a-c22e-48a3-90d3-d0257ca34fc3",
+          "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+          "senderId": "system",
+          "createdAt": "2026-11-17T12:39:27.106678510Z",
+          "senderType": "system"
+        },
+        {
+          "id": "80d25b62-f54d-4977-bce8-35eb92f595be",
+          "kind": "assignment",
+          "text": "安排 员工1：请核对库存汇总是否正确，并按团队流程处理。已确认且唯一的事实：期初100、入库20、出库30，没有其他调整项，原报告写期末95件。产物ID f3163537-11b5-4615-ae57-14b4cf4b7bbd revision 1，责任员工 2a3017c2-d320-4b3b-988b-333522e3f002，核查员工为你。仅合成数据，不要求外部业务数据或代码仓库。",
+          "taskId": "3918ebc7-5976-426e-a530-a9703f31089e",
+          "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+          "senderId": "20",
+          "createdAt": "2026-11-17T12:32:26.173243968Z",
+          "senderType": "user"
+        },
+        {
+          "id": "9034d4c3-9469-45f5-8438-6191358afb30",
+          "kind": "assignment",
+          "text": "安排 员工0：验收输入报告，待核查",
+          "taskId": "41ef2da3-91dc-4bb9-82c3-4a5aa0e88511",
+          "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+          "senderId": "20",
+          "createdAt": "2026-11-17T12:32:26.029108884Z",
+          "senderType": "user"
+        },
+        {
+          "id": "9dc1ae89-33b3-4231-84b9-64d528c67d33",
+          "kind": "chat",
+          "text": "@员工0 你好，我完成对库存汇总产物 f3163537-11b5-4615-ae57-14b4cf4b7bbd（revision 1）的独立初审，发现期末数量错误：按已确认事实 期初100 + 入库20 − 出库30 = 90件，报告写95件，多计5件且无调整项依据。已用record_review在你名下产物revision 1上如实记录。现提出修正请求：期末应修正为90件。但按本轮团队流程，我不会改写原产物、也不会给你派任务，需待用户决定是否修改或发布后再处理。核算依据已保存为我的初审报告，并已上报用户。",
+          "runId": "e3c49d87-3355-4307-9ea9-48af351c1357",
+          "taskId": "47f9774e-813f-4b3a-8cc3-2edf8df19f54",
+          "teamId": "67e76ff2-cddf-411e-bca6-d8c32d0eb59c",
+          "replyTo": "",
+          "mentions": [
+            "2a3017c2-d320-4b3b-988b-333522e3f002"
+          ],
+          "senderId": "fec85fce-6c44-4909-88c0-57a65abd5acb",
+          "createdAt": "2026-11-17T12:35:02.321124804Z",
+          "senderType": "employee"
+        }
+      ],
+      "templates": [
+        {
+          "id": "0a535c26-a8e6-4077-912b-a33d9170b5dc",
+          "name": "开放能力模板",
+          "prompt": "核实来源并标明未验证事项。",
+          "reason": "",
+          "skills": [
+            {
+              "name": "证据核查",
+              "content": "区分来源事实与推断。"
+            }
+          ],
+          "draftId": "",
+          "revision": 1,
+          "versions": [
+            {
+              "id": "0a535c26-a8e6-4077-912b-a33d9170b5dc",
+              "name": "开放能力模板",
+              "prompt": "核实来源并标明未验证事项。",
+              "reason": "",
+              "skills": [
+                {
+                  "name": "证据核查",
+                  "content": "区分来源事实与推断。"
+                }
+              ],
+              "draftId": "",
+              "authorId": "20",
+              "revision": 1,
+              "updatedAt": "2026-11-17T12:32:26.010551009Z",
+              "authorType": "user"
+            }
+          ],
+          "updatedAt": "2026-11-17T12:32:26.010551009Z"
+        }
+      ],
+      "employeeCount": 2,
+      "knowledgeCount": 0
+    },
+    {
+      "mode": "template-self-iteration",
+      "fixture": {
+        "teamId": "621a8c50-336a-42f8-afe0-f661eb7cb37d",
+        "members": [
+          "ddc061c7-7c3c-4bf4-b776-5a4437234454"
+        ],
+        "templateId": "2d9d24fb-d850-4fb3-97ea-c5bbf83aee5e",
+        "taskId": "74bd4eab-202e-4231-938e-24b782859036",
+        "startedAt": "2026-11-17T12:32:26.167Z"
+      },
+      "runs": [
+        {
+          "id": "e7c1a50b-fc31-4a41-b470-d9c6217465a3",
+          "goal": "请自迭代你当前采用的模板：保留原工作Prompt，并新增一个通用Skill“核对数据口径”，内容是区分事实、假设和待核实事项，不包含任何业务知识正文。使用revise_template保存真实新版本，明确reason；然后保存改进记录产物（注明尚未验证真实业务效果），最后complete_task。不修改知识、团队流程或创建新员工。",
+          "calls": 3,
+          "state": "completed",
+          "limits": {
+            "maxRounds": 4,
+            "maxSeconds": 600
+          },
+          "teamId": "621a8c50-336a-42f8-afe0-f661eb7cb37d",
+          "createdAt": "2026-11-17T12:32:26.167098718Z",
+          "workItemId": "0f3ca834-d949-4c57-b0dd-c3bb636ffde0",
+          "manualPaused": false,
+          "controlRevision": 0
+        }
+      ],
+      "tasks": [
+        {
+          "id": "74bd4eab-202e-4231-938e-24b782859036",
+          "goal": "请自迭代你当前采用的模板：保留原工作Prompt，并新增一个通用Skill“核对数据口径”，内容是区分事实、假设和待核实事项，不包含任何业务知识正文。使用revise_template保存真实新版本，明确reason；然后保存改进记录产物（注明尚未验证真实业务效果），最后complete_task。不修改知识、团队流程或创建新员工。",
+          "runId": "e7c1a50b-fc31-4a41-b470-d9c6217465a3",
+          "state": "completed",
+          "teamId": "621a8c50-336a-42f8-afe0-f661eb7cb37d",
+          "revision": 1,
+          "createdAt": "2026-11-17T12:32:26.167124259Z",
+          "employeeId": "ddc061c7-7c3c-4bf4-b776-5a4437234454",
+          "workItemId": "0f3ca834-d949-4c57-b0dd-c3bb636ffde0",
+          "parentTaskId": "",
+          "teamSnapshot": {
+            "id": "621a8c50-336a-42f8-afe0-f661eb7cb37d",
+            "name": "验收团队",
+            "limits": {
+              "maxRounds": 4,
+              "maxSeconds": 600
+            },
+            "prompt": "根据事实自主协作，不确定逐级升级。",
+            "revision": 1,
+            "versions": [
+              {
+                "id": "621a8c50-336a-42f8-afe0-f661eb7cb37d",
+                "name": "验收团队",
+                "limits": {
+                  "maxRounds": 4,
+                  "maxSeconds": 600
+                },
+                "prompt": "根据事实自主协作，不确定逐级升级。",
+                "authorId": "21",
+                "revision": 1,
+                "updatedAt": "2026-11-17T12:32:26.159199593Z",
+                "authorType": "user",
+                "description": "合成资料验收"
+              }
+            ],
+            "updatedAt": "2026-11-17T12:32:26.159199593Z",
+            "receiverId": "ddc061c7-7c3c-4bf4-b776-5a4437234454",
+            "description": "合成资料验收",
+            "organization": {
+              "ddc061c7-7c3c-4bf4-b776-5a4437234454": "user"
+            }
+          },
+          "executedActions": [
+            {
+              "id": "47817b8a-3ab4-4a8d-9b8b-86ffc7c6e242",
+              "kind": "model",
+              "state": "succeeded",
+              "at": "2026-11-17T12:32:57.579198427Z",
+              "usage": {
+                "prompt": 3061,
+                "completion": 1512
+              },
+              "tools": [
+                "revise_template"
+              ]
+            },
+            {
+              "id": "c3e9959f-e63b-41cf-a45b-edfaea24723e",
+              "kind": "model",
+              "state": "succeeded",
+              "at": "2026-11-17T12:33:10.526557627Z",
+              "usage": {
+                "prompt": 3534,
+                "completion": 583
+              },
+              "tools": [
+                "record_artifact"
+              ]
+            },
+            {
+              "id": "09973a57-948c-4010-8a5b-ced4f84437f0",
+              "kind": "model",
+              "state": "succeeded",
+              "at": "2026-11-17T12:33:15.885742046Z",
+              "usage": {
+                "prompt": 4799,
+                "completion": 24
+              },
+              "tools": [
+                "complete_task"
+              ]
+            }
+          ],
+          "employeeSnapshot": {
+            "id": "ddc061c7-7c3c-4bf4-b776-5a4437234454",
+            "name": "员工0",
+            "prompt": "核实来源并标明未验证事项。",
+            "skills": [
+              {
+                "name": "证据核查",
+                "content": "区分来源事实与推断。"
+              }
+            ],
+            "status": "idle",
+            "teamId": "621a8c50-336a-42f8-afe0-f661eb7cb37d",
+            "parentId": "user",
+            "revision": 1,
+            "versions": [
+              {
+                "id": "ddc061c7-7c3c-4bf4-b776-5a4437234454",
+                "name": "员工0",
+                "prompt": "核实来源并标明未验证事项。",
+                "skills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "status": "idle",
+                "teamId": "621a8c50-336a-42f8-afe0-f661eb7cb37d",
+                "authorId": "21",
+                "parentId": "user",
+                "revision": 1,
+                "updatedAt": "2026-11-17T12:32:26.164765634Z",
+                "authorType": "user",
+                "basePrompt": "核实来源并标明未验证事项。",
+                "baseSkills": [
+                  {
+                    "name": "证据核查",
+                    "content": "区分来源事实与推断。"
+                  }
+                ],
+                "templateId": "2d9d24fb-d850-4fb3-97ea-c5bbf83aee5e",
+                "knowledgeIds": [],
+                "templateRevision": 1
+              }
+            ],
+            "updatedAt": "2026-11-17T12:32:26.164765634Z",
+            "basePrompt": "核实来源并标明未验证事项。",
+            "baseSkills": [
+              {
+                "name": "证据核查",
+                "content": "区分来源事实与推断。"
+              }
+            ],
+            "templateId": "2d9d24fb-d850-4fb3-97ea-c5bbf83aee5e",
+            "knowledgeIds": [],
+            "templateRevision": 1
+          },
+          "retainedKnowledge": {},
+          "executionId": "eb37cb28-39d6-497d-839c-72acbdcb60e1",
+          "sandboxId": ""
+        }
+      ],
+      "artifacts": [
+        {
+          "id": "790c47b3-e820-4906-ada2-8fc1a3812263",
+          "title": "模板自迭代改进记录：新增通用Skill\"核对数据口径\"（revision 1 → 2）",
+          "taskId": "74bd4eab-202e-4231-938e-24b782859036",
+          "teamId": "621a8c50-336a-42f8-afe0-f661eb7cb37d",
+          "content": "改进记录（模板自迭代）\n\n一、对象与版本\n- 模板ID：2d9d24fb-d850-4fb3-97ea-c5bbf83aee5e\n- 原版本：revision 1；新版本：revision 2（已通过 revise_template 保存，服务端回执确认）\n\n二、变更内容\n1. 工作Prompt：原样保留，未改动——\"核实来源并标明未验证事项。\"\n2. 原有Skill：保留\"证据核查\"（区分来源事实与推断），内容未变。\n3. 新增通用Skill\"核对数据口径\"（不含业务知识正文）：\n   核对数据口径：在使用或汇报任何数据前，将信息分为三类并明确标注：\n   1) 事实——有明确来源且已核实的数字或结论，须注明来源与版本；\n   2) 假设——未经核实但用于推理的前提，须显式标注为假设；\n   3) 待核实事项——缺失、冲突或无法确认的口径，须单独列出并向负责人确认后再使用。\n   禁止凭记忆或推断把假设当作事实，禁止混用不同来源或版本的数据口径。\n\n三、变更理由\n按任务要求自迭代：仅新增方法论层面的通用核对Skill，增强\"事实/假设/待核实\"三分类的执行颗粒度，与既有\"证据核查\"Skill互补；未修改知识源、未改动团队流程、未创建新员工。\n\n四、未验证与剩余事项\n- 该新增Skill尚未在真实业务任务中运行，其实际效果未经验证。\n- 快照中未提供模板原始名称字段，本次保存使用了描述性名称\"员工0模板\"，是否需恢复原名称待确认。\n- 本模板仅以当前任务快照为基线（revision 1）；若平台存在更高版本模板，未做交叉核对。",
+          "revision": 1,
+          "versions": [
+            {
+              "id": "790c47b3-e820-4906-ada2-8fc1a3812263",
+              "title": "模板自迭代改进记录：新增通用Skill\"核对数据口径\"（revision 1 → 2）",
+              "taskId": "74bd4eab-202e-4231-938e-24b782859036",
+              "teamId": "621a8c50-336a-42f8-afe0-f661eb7cb37d",
+              "content": "改进记录（模板自迭代）\n\n一、对象与版本\n- 模板ID：2d9d24fb-d850-4fb3-97ea-c5bbf83aee5e\n- 原版本：revision 1；新版本：revision 2（已通过 revise_template 保存，服务端回执确认）\n\n二、变更内容\n1. 工作Prompt：原样保留，未改动——\"核实来源并标明未验证事项。\"\n2. 原有Skill：保留\"证据核查\"（区分来源事实与推断），内容未变。\n3. 新增通用Skill\"核对数据口径\"（不含业务知识正文）：\n   核对数据口径：在使用或汇报任何数据前，将信息分为三类并明确标注：\n   1) 事实——有明确来源且已核实的数字或结论，须注明来源与版本；\n   2) 假设——未经核实但用于推理的前提，须显式标注为假设；\n   3) 待核实事项——缺失、冲突或无法确认的口径，须单独列出并向负责人确认后再使用。\n   禁止凭记忆或推断把假设当作事实，禁止混用不同来源或版本的数据口径。\n\n三、变更理由\n按任务要求自迭代：仅新增方法论层面的通用核对Skill，增强\"事实/假设/待核实\"三分类的执行颗粒度，与既有\"证据核查\"Skill互补；未修改知识源、未改动团队流程、未创建新员工。\n\n四、未验证与剩余事项\n- 该新增Skill尚未在真实业务任务中运行，其实际效果未经验证。\n- 快照中未提供模板原始名称字段，本次保存使用了描述性名称\"员工0模板\"，是否需恢复原名称待确认。\n- 本模板仅以当前任务快照为基线（revision 1）；若平台存在更高版本模板，未做交叉核对。",
+              "authorId": "ddc061c7-7c3c-4bf4-b776-5a4437234454",
+              "revision": 1,
+              "remaining": "后续可在真实业务任务中观察该Skill的实际效果，再决定是否进一步迭代；如需恢复模板原名，需先确认原始名称。",
+              "unchecked": "新增Skill\"核对数据口径\"未在真实业务场景验证效果；模板原始名称未知，本次使用\"员工0模板\"仅为描述性命名；未与其他版本的模板或团队配置做交叉核对。",
+              "updatedAt": "2026-11-17T12:33:10.542314210Z",
+              "authorType": "employee"
+            }
+          ],
+          "remaining": "后续可在真实业务任务中观察该Skill的实际效果，再决定是否进一步迭代；如需恢复模板原名，需先确认原始名称。",
+          "unchecked": "新增Skill\"核对数据口径\"未在真实业务场景验证效果；模板原始名称未知，本次使用\"员工0模板\"仅为描述性命名；未与其他版本的模板或团队配置做交叉核对。",
+          "updatedAt": "2026-11-17T12:33:10.542314210Z"
+        }
+      ],
+      "checks": [],
+      "decisions": [],
+      "messages": [
+        {
+          "id": "0aaafd5c-5b1b-4715-895f-d0836bca9efe",
+          "kind": "assignment",
+          "text": "安排 员工0：请自迭代你当前采用的模板：保留原工作Prompt，并新增一个通用Skill“核对数据口径”，内容是区分事实、假设和待核实事项，不包含任何业务知识正文。使用revise_template保存真实新版本，明确reason；然后保存改进记录产物（注明尚未验证真实业务效果），最后complete_task。不修改知识、团队流程或创建新员工。",
+          "taskId": "74bd4eab-202e-4231-938e-24b782859036",
+          "teamId": "621a8c50-336a-42f8-afe0-f661eb7cb37d",
+          "senderId": "21",
+          "createdAt": "2026-11-17T12:32:26.167139759Z",
+          "senderType": "user"
+        },
+        {
+          "id": "eb049088-7dd0-4bfe-808f-f3e8cbcd7d51",
+          "kind": "task-completed",
+          "text": "任务已完成：请自迭代你当前采用的模板：保留原工作Prompt，并新增一个通用Skill“核对数据口径”，内容是区分事实、假设和待核实事项，不包含任何业务知识正文。使用revise_template保存真实新版本，明确reason；然后保存改进记录产物（注明尚未验证真实业务效果），最后complete_task。不修改知识、团队流程或创建新员工。",
+          "taskId": "74bd4eab-202e-4231-938e-24b782859036",
+          "teamId": "621a8c50-336a-42f8-afe0-f661eb7cb37d",
+          "senderId": "system",
+          "createdAt": "2026-11-17T12:33:15.903414713Z",
+          "senderType": "system"
+        }
+      ],
+      "templates": [
+        {
+          "id": "2d9d24fb-d850-4fb3-97ea-c5bbf83aee5e",
+          "name": "员工0模板",
+          "prompt": "核实来源并标明未验证事项。",
+          "reason": "按任务要求自迭代模板：完整保留原工作Prompt“核实来源并标明未验证事项。”与原有Skill“证据核查”（区分来源事实与推断），仅新增一个通用方法论Skill“核对数据口径”，内容为区分事实、假设与待核实事项的通用核对步骤，不含任何业务知识正文。说明：快照中未提供模板原始名称字段，保存时使用描述性名称“员工0模板”。新增Skill尚未在真实业务任务中验证效果。",
+          "skills": [
+            {
+              "name": "证据核查",
+              "content": "区分来源事实与推断。"
+            },
+            {
+              "name": "核对数据口径",
+              "content": "核对数据口径：在使用或汇报任何数据前，将信息分为三类并明确标注：1) 事实——有明确来源且已核实的数字或结论，须注明来源与版本；2) 假设——未经核实但用于推理的前提，须显式标注为假设；3) 待核实事项——缺失、冲突或无法确认的口径，须单独列出并向负责人确认后再使用。禁止凭记忆或推断把假设当作事实，禁止混用不同来源或版本的数据口径。"
+            }
+          ],
+          "draftId": "",
+          "revision": 2,
+          "versions": [
+            {
+              "id": "2d9d24fb-d850-4fb3-97ea-c5bbf83aee5e",
+              "name": "开放能力模板",
+              "prompt": "核实来源并标明未验证事项。",
+              "reason": "",
+              "skills": [
+                {
+                  "name": "证据核查",
+                  "content": "区分来源事实与推断。"
+                }
+              ],
+              "draftId": "",
+              "authorId": "21",
+              "revision": 1,
+              "updatedAt": "2026-11-17T12:32:26.162434843Z",
+              "authorType": "user"
+            },
+            {
+              "id": "2d9d24fb-d850-4fb3-97ea-c5bbf83aee5e",
+              "name": "员工0模板",
+              "prompt": "核实来源并标明未验证事项。",
+              "reason": "按任务要求自迭代模板：完整保留原工作Prompt“核实来源并标明未验证事项。”与原有Skill“证据核查”（区分来源事实与推断），仅新增一个通用方法论Skill“核对数据口径”，内容为区分事实、假设与待核实事项的通用核对步骤，不含任何业务知识正文。说明：快照中未提供模板原始名称字段，保存时使用描述性名称“员工0模板”。新增Skill尚未在真实业务任务中验证效果。",
+              "skills": [
+                {
+                  "name": "证据核查",
+                  "content": "区分来源事实与推断。"
+                },
+                {
+                  "name": "核对数据口径",
+                  "content": "核对数据口径：在使用或汇报任何数据前，将信息分为三类并明确标注：1) 事实——有明确来源且已核实的数字或结论，须注明来源与版本；2) 假设——未经核实但用于推理的前提，须显式标注为假设；3) 待核实事项——缺失、冲突或无法确认的口径，须单独列出并向负责人确认后再使用。禁止凭记忆或推断把假设当作事实，禁止混用不同来源或版本的数据口径。"
+                }
+              ],
+              "draftId": "",
+              "authorId": "ddc061c7-7c3c-4bf4-b776-5a4437234454",
+              "revision": 2,
+              "updatedAt": "2026-11-17T12:32:57.597235510Z",
+              "authorType": "employee",
+              "originTeamId": "621a8c50-336a-42f8-afe0-f661eb7cb37d",
+              "authorizedTeamIds": [
+                "621a8c50-336a-42f8-afe0-f661eb7cb37d"
+              ]
+            }
+          ],
+          "updatedAt": "2026-11-17T12:32:57.597235510Z",
+          "originTeamId": "621a8c50-336a-42f8-afe0-f661eb7cb37d",
+          "authorizedTeamIds": [
+            "621a8c50-336a-42f8-afe0-f661eb7cb37d"
+          ]
+        }
+      ],
+      "employeeCount": 1,
+      "knowledgeCount": 0
+    }
+  ],
+  "template": {
+    "draft": {
+      "id": "530c311b-26a2-4b16-b282-f89f462ee81f",
+      "busy": false,
+      "name": "库存资料复核数字员工",
+      "prompt": "你是库存资料复核数字员工，具备通用业务复核能力，适用于各类单位的库存资料核对场景。工作要求：1.核实来源：对用户提供的资料逐一追溯出处与依据，确认数据可靠；2.发现错误：复算数量、单价、金额并交叉比对，标记差异与异常；3.向上级说明：汇总复核结果，简明汇报问题与建议。约束：遇到来源冲突时不得自行选择来源，须提请用户确认；最终答复须单列\"未验证事项\"。你不接入真实库存系统，仅基于用户提供资料开展复核。",
+      "skills": [
+        {
+          "name": "数字复算",
+          "content": "对库存数量、单价、金额等数字重新计算并交叉验证，发现账目差异。"
+        },
+        {
+          "name": "来源核对",
+          "content": "核对资料的单据出处与日期，确保来源一致、可追溯。"
+        }
+      ],
+      "messages": [
+        {
+          "role": "user",
+          "content": "请对话生成一位库存资料复核数字员工，保持通用业务能力。工作Prompt要核实来源、发现错误并向上级说明。给出两项简短Skills：数字复算和来源核对。总计150字左右，不能虚构已接入真实库存系统。"
+        },
+        {
+          "role": "assistant",
+          "content": "通用库存资料复核数字员工：核实来源、发现错误并向上级说明，配备数字复算与来源核对两项技能，不接入真实库存系统。"
+        },
+        {
+          "role": "user",
+          "content": "保留已有两项Skills，并补充：遇到来源冲突时不得自行选择来源，最终答复须单列“未验证事项”。总内容保持简短。"
+        },
+        {
+          "role": "assistant",
+          "content": "通用库存资料复核数字员工：核实来源、发现错误并向上级说明；遇来源冲突不得自行选源，答复单列\"未验证事项\"；配备数字复算与来源核对两项技能，不接入真实库存系统。"
+        }
+      ]
+    },
+    "template": {
+      "id": "7206ac79-1fd5-4580-a35f-f9b05e133aca",
+      "name": "库存资料复核数字员工",
+      "prompt": "你是库存资料复核数字员工，具备通用业务复核能力，适用于各类单位的库存资料核对场景。工作要求：1.核实来源：对用户提供的资料逐一追溯出处与依据，确认数据可靠；2.发现错误：复算数量、单价、金额并交叉比对，标记差异与异常；3.向上级说明：汇总复核结果，简明汇报问题与建议。约束：遇到来源冲突时不得自行选择来源，须提请用户确认；最终答复须单列\"未验证事项\"。你不接入真实库存系统，仅基于用户提供资料开展复核。",
+      "reason": "验收：两轮真实对话后人工显式保存",
+      "skills": [
+        {
+          "name": "数字复算",
+          "content": "对库存数量、单价、金额等数字重新计算并交叉验证，发现账目差异。"
+        },
+        {
+          "name": "来源核对",
+          "content": "核对资料的单据出处与日期，确保来源一致、可追溯。"
+        }
+      ],
+      "draftId": "530c311b-26a2-4b16-b282-f89f462ee81f",
+      "revision": 1,
+      "versions": [
+        {
+          "id": "7206ac79-1fd5-4580-a35f-f9b05e133aca",
+          "name": "库存资料复核数字员工",
+          "prompt": "你是库存资料复核数字员工，具备通用业务复核能力，适用于各类单位的库存资料核对场景。工作要求：1.核实来源：对用户提供的资料逐一追溯出处与依据，确认数据可靠；2.发现错误：复算数量、单价、金额并交叉比对，标记差异与异常；3.向上级说明：汇总复核结果，简明汇报问题与建议。约束：遇到来源冲突时不得自行选择来源，须提请用户确认；最终答复须单列\"未验证事项\"。你不接入真实库存系统，仅基于用户提供资料开展复核。",
+          "reason": "验收：两轮真实对话后人工显式保存",
+          "skills": [
+            {
+              "name": "数字复算",
+              "content": "对库存数量、单价、金额等数字重新计算并交叉验证，发现账目差异。"
+            },
+            {
+              "name": "来源核对",
+              "content": "核对资料的单据出处与日期，确保来源一致、可追溯。"
+            }
+          ],
+          "draftId": "530c311b-26a2-4b16-b282-f89f462ee81f",
+          "authorId": "22",
+          "revision": 1,
+          "updatedAt": "2026-11-17T12:41:41.408970836Z",
+          "authorType": "user"
+        }
+      ],
+      "updatedAt": "2026-11-17T12:41:41.408970836Z"
+    },
+    "employeeCount": 0,
+    "beforeSaveTemplateCount": 0
+  },
+  "code": {
+    "case": "E-code-first-attempt",
+    "at": "2026-11-17T12:28:16.983Z",
+    "runs": [
+      {
+        "id": "6702358f-cc8e-454d-a844-1f85870a9586",
+        "state": "needs_reconciliation",
+        "calls": 1
+      },
+      {
+        "id": "733bf81e-34dd-4ce7-b777-ea8cf2f7890d",
+        "state": "needs_reconciliation",
+        "calls": 1
+      }
+    ],
+    "tasks": [
+      {
+        "id": "9b6d9b04-4527-4e91-86b4-8776069346cb",
+        "state": "needs_reconciliation",
+        "sandboxId": "5960bb1cdf67481cbe3ffd1170a1ef60",
+        "executedActions": [
+          {
+            "at": "2026-11-17T12:22:49.956980173Z",
+            "id": "8a9316a3-6001-4df5-a2d5-472e294d061e",
+            "kind": "model",
+            "state": "succeeded",
+            "result": {
+              "usage": {
+                "prompt": 4194,
+                "completion": 2646
+              },
+              "answer": "我先查看工作区当前状态和基线内容。",
+              "cancelled": false,
+              "toolCalls": [
+                {
+                  "id": "call_bb9c49958ee7471992443f83",
+                  "type": "function",
+                  "function": {
+                    "name": "shell",
+                    "arguments": "{\"command\":\"cd /workspace && pwd && ls -la && echo '--- git status ---' && git status --porcelain=v1 && echo '--- git log ---' && git log --oneline -5 && echo '--- git branch ---' && git branch --show-current && echo '--- README ---' && cat README 2>/dev/null; echo '--- percentage.sh ---' && cat percentage.sh 2>/dev/null\"}"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "at": "2026-11-17T12:26:58.043028635Z",
+            "id": "8957e460-8515-44ea-9499-007c8aa261b3",
+            "kind": "shell",
+            "state": "unknown",
+            "result": {
+              "error": "error: RPC failed; curl 28 Failed to connect to github.com port 443 after 133840 ms: Could not connect to server\nfatal: expected 'acknowledgments'\n"
+            }
+          }
+        ]
+      },
+      {
+        "id": "f0733eb0-7fc9-4158-844b-61a17d4e683b",
+        "state": "needs_reconciliation",
+        "sandboxId": "0281ea20d1bc4c31a3f25dbf7d344db2",
+        "executedActions": [
+          {
+            "at": "2026-11-17T12:22:24.838484634Z",
+            "id": "c6bf6577-3382-4660-8876-be39cd8ac020",
+            "kind": "model",
+            "state": "succeeded",
+            "result": {
+              "usage": {
+                "prompt": 4189,
+                "completion": 1178
+              },
+              "answer": "我先查看基线工作区的现状，确认 README 与 Git 基线，再新增 percentage.sh。",
+              "cancelled": false,
+              "toolCalls": [
+                {
+                  "id": "call_0c48786beb3047b2a6ce8da4",
+                  "type": "function",
+                  "function": {
+                    "name": "shell",
+                    "arguments": "{\"command\":\"cd /workspace && pwd && ls -la && echo '--- git status ---' && git status --short --branch && echo '--- git log ---' && git log --oneline -5 && echo '--- README ---' && cat README && echo '--- sh files ---' && ls *.sh 2>/dev/null || true\"}"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "at": "2026-11-17T12:26:35.001110930Z",
+            "id": "7deda31c-01ff-4ebd-8862-1fdc3f431b92",
+            "kind": "shell",
+            "state": "unknown",
+            "result": {
+              "error": "error: RPC failed; curl 28 Failed to connect to github.com port 443 after 134470 ms: Could not connect to server\nfatal: expected flush after ref listing\n"
+            }
+          }
+        ]
+      }
+    ],
+    "versions": {},
+    "alerts": [
+      {
+        "id": "1d0d31dc-06ab-4b27-99ff-bb8b8495f4cf",
+        "kind": "attention",
+        "text": "执行未完成：工具结果未知，需核实后继续：error: RPC failed; curl 28 Failed to connect to github.com port 443 after 133840 ms: Could not connect to server\nfatal: expected 'acknowledgments'\n",
+        "status": "needs-user",
+        "teamId": "501aa431-377e-4455-9d48-9e10a13ccde6",
+        "senderId": "system",
+        "createdAt": "2026-11-17T12:26:58.049209177Z",
+        "subjectId": "9b6d9b04-4527-4e91-86b4-8776069346cb",
+        "senderType": "system",
+        "mentionUser": true
+      },
+      {
+        "id": "2d7123ce-6f21-4c7a-aaee-09d1140f3033",
+        "kind": "attention",
+        "text": "工具结果未知，已停止自动重试，请核查真实结果。",
+        "status": "needs-user",
+        "teamId": "501aa431-377e-4455-9d48-9e10a13ccde6",
+        "senderId": "system",
+        "createdAt": "2026-11-17T12:26:58.043160260Z",
+        "subjectId": "9b6d9b04-4527-4e91-86b4-8776069346cb",
+        "senderType": "system",
+        "mentionUser": true
+      },
+      {
+        "id": "8e73eb57-223b-412b-be71-274c1c5e4233",
+        "kind": "attention",
+        "text": "执行未完成：工具结果未知，需核实后继续：error: RPC failed; curl 28 Failed to connect to github.com port 443 after 134470 ms: Could not connect to server\nfatal: expected flush after ref listing\n",
+        "status": "needs-user",
+        "teamId": "501aa431-377e-4455-9d48-9e10a13ccde6",
+        "senderId": "system",
+        "createdAt": "2026-11-17T12:26:35.006910347Z",
+        "subjectId": "f0733eb0-7fc9-4158-844b-61a17d4e683b",
+        "senderType": "system",
+        "mentionUser": true
+      },
+      {
+        "id": "d988b3fb-260d-415f-865a-47a1a96b43bc",
+        "kind": "attention",
+        "text": "工具结果未知，已停止自动重试，请核查真实结果。",
+        "status": "needs-user",
+        "teamId": "501aa431-377e-4455-9d48-9e10a13ccde6",
+        "senderId": "system",
+        "createdAt": "2026-11-17T12:26:35.001344472Z",
+        "subjectId": "f0733eb0-7fc9-4158-844b-61a17d4e683b",
+        "senderType": "system",
+        "mentionUser": true
+      }
+    ]
+  },
+  "cleanup": [
+    {
+      "sandboxId": "5960bb1cdf67481cbe3ffd1170a1ef60",
+      "result": "cleanup-error",
+      "type": "SandboxNotFoundError",
+      "message": "sandbox 5960bb1cdf67481cbe3ffd1170a1ef60 not found"
+    },
+    {
+      "sandboxId": "0281ea20d1bc4c31a3f25dbf7d344db2",
+      "result": "cleanup-error",
+      "type": "SandboxNotFoundError",
+      "message": "sandbox 0281ea20d1bc4c31a3f25dbf7d344db2 not found"
+    },
+    {
+      "objectKey": "teams/b547607e-f91c-42f3-b65e-b9f6ba9d23df/versions/e4d3da616dc741f1a1e55441eb839b5e.bundle",
+      "result": "deleted unused environment seed"
+    }
+  ],
+  "facilityCorrections": [
+    {
+      "id": "C02-first-attempt",
+      "error": "Node locator matched select option text",
+      "resolution": "Match node button; fresh fixtures; original attempt retained"
+    },
+    {
+      "id": "C08-first-attempt",
+      "error": "Whole-card negative substring matched 0项任务已完成",
+      "actualCurrentState": "结果待核实",
+      "resolution": "Assert current-state dd only; same product build"
+    },
+    {
+      "id": "model-setup-first-attempt",
+      "error": "Jobs queued before all fixtures prepared; claim consumed wrong fixture",
+      "tasks": [
+        "bc49380f-b307-4d6a-8f00-6ecbcc05affa",
+        "949ca9b1-f16f-4c25-aaf9-329ab18cf4b4"
+      ],
+      "resolution": "Interrupted worker; needs_reconciliation; excluded quality sample; did not assume zero usage"
+    },
+    {
+      "id": "typecheck-default-node",
+      "error": "Old default Node SyntaxError for optional chaining",
+      "resolution": "Explicit installed Node24; typecheck and build passed"
+    }
+  ]
+}
