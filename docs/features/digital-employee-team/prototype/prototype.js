@@ -32,11 +32,11 @@ const paths = {
 const icon = (name, extra = '') => `<svg class="icon ${extra}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.grid}</svg>`;
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const button = (label, action, cls = 'secondary', extra = '') => `<button class="btn ${cls}" data-action="${action}" ${extra}>${label}</button>`;
-const defaultFlow = '围绕目标自主分工、沟通并选择工作方法，不限定固定步骤。\n重要成果交叉核查，发现问题后修正并保留复核依据。\n拿不准的方案先交直属上级评估，逐级仍无法解决再在群聊 @我。\n新增员工、修改员工模板或长期流程 Prompt，只向我提出建议。';
+const defaultFlow = '围绕目标自主分工、沟通并选择工作方法，不限定固定步骤。\n重要成果交叉核查，发现问题后修正并保留复核依据。\n拿不准的方案先交直属上级评估，逐级仍无法解决再在群聊 @我。\n知识库资料只读；员工模板可自迭代，保留版本与来源。新增员工或修改团队流程 Prompt，只向我提出建议。';
 const skill = (id,name,description,content) => ({id,name,description,content});
 function initialState() {
   const templates=[
-    {id:'lead',name:'团队协调与评估',icon:'network',color:'blue',version:1,description:'澄清目标、协调协作，评估团队拿不准的方案。',prompt:'围绕团队目标自主协调工作，与成员核对事实和方案。职责用于分工，不限制处理其他问题。下级拿不准时先评估，仍无法解决再汇总依据与方案 @用户。长期规则变化只提建议。',skills:[skill('clarify','目标澄清','补齐目标、资料与交付要求。','识别目标、已有事实、约束和期望结果。必要时提出具体问题；保留来源，不替用户作关键取舍。'),skill('coordinate','协作与评估','组织分工并评估不确定问题。','结合任务与反馈动态协调，记录依据与分工。拿不准时沿上下级继续上报。')]},
+    {id:'lead',name:'团队协调与评估',icon:'network',color:'blue',version:1,description:'澄清目标、协调协作，评估团队拿不准的方案。',prompt:'围绕团队目标自主协调工作，与成员核对事实和方案。职责用于分工，不限制处理其他问题。下级拿不准时先评估，仍无法解决再汇总依据与方案 @用户。员工模板可自迭代并保留来源；新增员工或修改团队流程仅提建议。',skills:[skill('clarify','目标澄清','补齐目标、资料与交付要求。','识别目标、已有事实、约束和期望结果。必要时提出具体问题；保留来源，不替用户作关键取舍。'),skill('coordinate','协作与评估','组织分工并评估不确定问题。','结合任务与反馈动态协调，记录依据与分工。拿不准时沿上下级继续上报。')]},
     {id:'analyse',name:'资料分析',icon:'search',color:'violet',version:1,description:'整理资料、分析事实，形成有依据的判断。',prompt:'根据目标整理和分析资料，注明事实来源，自主选择工具与方法。主动与团队交叉核查，遇到不确定方案提交直属上级。',skills:[skill('research','资料分析','提取事实、发现缺口并整理判断。','区分原始事实、推断与缺失信息。保留引用与版本，不把未经核查的结论当作已知事实。')]},
     {id:'verify',name:'独立核查',icon:'check',color:'orange',version:1,description:'核对成果、提出问题并复核修正结果。',prompt:'围绕当前目标检查具体成果及依据。发现问题后与负责员工协作修正，复核新版本并保留历史记录。拿不准则提交上级评估。',skills:[skill('review','交叉核查','检查具体产物及其依据。','明确检查对象和版本。记录问题、修正、复核与未验证范围；不以相互认可替代真实结果。')]},
     {id:'build',name:'实现与自动化',icon:'code',color:'green',version:1,description:'使用可用工具、脚本和代码完成工作。',prompt:'结合目标和环境选择方法，使用可用工具或编写辅助脚本完成工作，并保留结果。分工不限制能力；遇到拿不准的方案提交上级评估。',skills:[skill('execute','工具与自动化','组合工具、脚本或代码完成任务。','在实际环境中执行，保存产物和结果。区分成功、失败、未执行与结果未知；需要核查时主动协作。')]},
@@ -85,18 +85,18 @@ const teamStatusBadge=t=>t.members.length?statusBadge(t.status):'<span class="ba
 function availability(t) {const ps=teamPeople(t);return {idle:ps.filter(p=>p.status==='idle').length,working:ps.filter(p=>p.status==='working').length,waiting:ps.filter(p=>p.status==='waiting').length};}
 function route() {
   const [raw,id]=(location.hash.replace(/^#\/?/,'')||'overview').split('/');
-  const page=raw==='employees'?'templates':['overview','templates','template','studio','teams','team','library','project'].includes(raw)?raw:'overview';
+  const page=raw==='employees'?'templates':['overview','templates','template','studio','teams','team','library','project','knowledge','knowledge-item','employee-knowledge'].includes(raw)?raw:'overview';
   if(page!==raw)history.replaceState(null,'',`#/${page}`);
   return {page,id};
 }
 function navigate(path) {state.drawer=null;state.modal=null;state.replyTo=null;document.body.classList.remove('nav-open','channels-open');if(location.hash===`#/${path}`)render();else location.hash=`#/${path}`;}
 function render() {
   const r=route();if(r.page==='overview'&&team(r.id))state.activeTeamId=r.id;
-  const active=['template','studio'].includes(r.page)?'templates':['team','library','project'].includes(r.page)?'teams':r.page;
-  const labels={overview:'工作台',templates:'数字员工模板',template:'数字员工模板',studio:'对话创建模板',teams:'团队',team:'团队',library:'团队项目库',project:'项目'};
+  const active=['template','studio'].includes(r.page)?'templates':['team','library','project','employee-knowledge'].includes(r.page)?'teams':r.page==='knowledge-item'?'knowledge':r.page;
+  const labels={overview:'工作台',templates:'数字员工模板',template:'数字员工模板',studio:'对话创建模板',teams:'团队',team:'团队',library:'团队项目库',project:'项目',knowledge:'知识库','knowledge-item':'知识详情','employee-knowledge':'员工知识'};
   const count=state.teams.reduce((sum,t)=>sum+mentions(t).length,0);
   document.body.classList.toggle('chat-mode',r.page==='overview');
-  document.querySelector('#app').innerHTML=`<div class="shell"><aside class="sidebar"><a class="brand" href="#/overview"><span class="brand-mark">g</span><span>Gill<small>数字员工团队</small></span></a><div class="workspace-label">我的工作空间</div><nav class="nav" aria-label="主导航">${[['overview','chat','工作台'],['templates','users','数字员工模板'],['teams','network','团队']].map(([page,i,name])=>`<a href="#/${page}" class="nav-item ${active===page?'active':''}">${icon(i)}<span>${name}</span>${page==='overview'&&count?`<span class="mention-count">@${count}</span>`:''}</a>`).join('')}</nav><div class="sidebar-bottom"><button class="user" data-action="guide"><span class="avatar blue">我</span><span>团队管理者<small>交互原型 v0.4</small></span>${icon('info')}</button></div></aside><button class="sidebar-scrim" data-action="nav-toggle" aria-label="关闭导航"></button><main class="main"><header class="topbar"><div class="breadcrumbs"><button class="icon-btn mobile-menu" data-action="nav-toggle" aria-label="打开导航">${icon('menu')}</button><b>${labels[r.page]}</b></div><div class="top-actions"><span class="prototype-tag">交互原型 · 演示数据</span><button class="icon-btn" data-action="guide" aria-label="演示说明">${icon('info')}</button></div></header><div class="content ${r.page==='overview'?'chat-content':r.page==='studio'?'studio-content':''}">${renderPage(r)}</div></main></div>`;
+  document.querySelector('#app').innerHTML=`<div class="shell"><aside class="sidebar"><a class="brand" href="#/overview"><span class="brand-mark">g</span><span>Gill<small>数字员工团队</small></span></a><div class="workspace-label">我的工作空间</div><nav class="nav" aria-label="主导航">${[['overview','chat','工作台'],['templates','users','数字员工模板'],['teams','network','团队'],['knowledge','file','知识库']].map(([page,i,name])=>`<a href="#/${page}" class="nav-item ${active===page?'active':''}">${icon(i)}<span>${name}</span>${page==='overview'&&count?`<span class="mention-count">@${count}</span>`:''}</a>`).join('')}</nav><div class="sidebar-bottom"><button class="user" data-action="guide"><span class="avatar blue">我</span><span>团队管理者<small>交互原型 v0.5</small></span>${icon('info')}</button></div></aside><button class="sidebar-scrim" data-action="nav-toggle" aria-label="关闭导航"></button><main class="main"><header class="topbar"><div class="breadcrumbs"><button class="icon-btn mobile-menu" data-action="nav-toggle" aria-label="打开导航">${icon('menu')}</button><b>${labels[r.page]}</b></div><div class="top-actions"><span class="prototype-tag">交互原型 · 演示数据</span><button class="icon-btn" data-action="guide" aria-label="演示说明">${icon('info')}</button></div></header><div class="content ${r.page==='overview'?'chat-content':r.page==='studio'?'studio-content':''}">${renderPage(r)}</div></main></div>`;
   renderOverlay();
   if(r.page==='studio')scrollTemplateChat();
 }
@@ -108,6 +108,9 @@ function renderPage(r) {
   if(r.page==='team')return renderTeam(r.id);
   if(r.page==='library')return renderLibrary(r.id);
   if(r.page==='project')return renderProject(r.id);
+  if(r.page==='knowledge')return renderKnowledgeLibrary();
+  if(r.page==='knowledge-item')return renderKnowledgeItem(r.id);
+  if(r.page==='employee-knowledge')return renderEmployeeKnowledge(r.id);
   return renderOverview();
 }
 function pageHead(title,description,actions='') {return `<div class="page-head"><div><h1>${title}</h1><p class="subtitle">${description}</p></div><div class="page-actions">${actions}</div></div>`;}
@@ -162,7 +165,7 @@ function sendTemplateChat() {
 }
 function updateTemplateDraft(chat,text) {
   const nameMatch=text.match(/(?:名称(?:改为|设为|叫|是|为|[:：])|(?:改名|命名|取名)(?:为|叫)?)[“「"\s]*([^”」"\n，。；]{1,24})/);
-  if(!chat.draft)chat.draft={name:nameMatch?.[1]?.trim()||'自定义数字员工',prompt:`${text}\n\n围绕目标自主选择方法，与团队核查成果；拿不准时先向直属上级评估。组织配置调整只提出建议。`,skills:[skill('work-method','目标理解与执行','根据目标和资料选择工作方法。',text),skill('collaboration','协作与升级','与团队协作核查，拿不准时逐级评估。','保留事实依据，主动沟通；无法确定的方案先向直属上级评估。')]};
+  if(!chat.draft)chat.draft={name:nameMatch?.[1]?.trim()||'自定义数字员工',prompt:`${text}\n\n围绕目标自主选择方法，与团队核查成果；拿不准时先向直属上级评估。员工模板可自迭代并保留来源；新增员工或调整团队流程只提出建议。`,skills:[skill('work-method','目标理解与执行','根据目标和资料选择工作方法。',text),skill('collaboration','协作与升级','与团队协作核查，拿不准时逐级评估。','保留事实依据，主动沟通；无法确定的方案先向直属上级评估。')]};
   else {if(nameMatch)chat.draft.name=nameMatch[1].trim();chat.draft.prompt+=`\n\n补充要求：${text}`;chat.draft.skills[0].content+=`\n${text}`;}
   if(/核对|核查|验证|复核/.test(text)&&!chat.draft.skills.some(s=>s.id==='fact-check'))chat.draft.skills.push(skill('fact-check','事实与结果核查','核对来源、口径与结果，保留未确定内容。','针对实际资料和产物核对，不将推断或未执行检查表述为已验证。'));
   const skillMatch=text.match(/(?:新增|添加|增加|补充)(?:一个|一项)?\s*(?:skill|技能|能力)[：:\s“「"]*([^”」"\n，。；]{1,24})/i);
@@ -174,28 +177,28 @@ function saveConversationTemplate() {
   const draft=chat.draft,name=value('studio-draft-name'),prompt=value('studio-draft-prompt');
   if(!name||!prompt)return toast('请填写模板名称与工作 Prompt。');
   const tpl={id:`template-${Date.now()}`,name,description:'通过对话整理的模板，可继续编辑 Prompt 与 Skills。',icon:'person',color:'violet',version:1,prompt,skills:structuredClone(draft.skills),sourceConversation:structuredClone(chat.messages)};
-  state.templates.push(tpl);navigate(`template/${tpl.id}`);toast('对话草稿已保存为模板，可以为团队创建员工 · 演示');
+  state.templates.push(tpl);recordTemplateRevision(tpl,'user','user','对话创建模板');navigate(`template/${tpl.id}`);toast('对话草稿已保存为模板，可以为团队创建员工 · 演示');
 }
 function showTemplateDraft() {
   const draft=document.querySelector('.studio-draft');if(!draft)return;draft.open=true;if(window.innerWidth<=768)draft.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function renderTemplates() {
-  return `${pageHead('数字员工模板','通过对话创建模板，管理工作 Prompt 和能力 Skills，再为团队创建员工。',button(`${icon('spark')} 对话创建模板`,'new-template','primary'))}<div class="notice info">模板可以重复使用；每次创建的员工都是独立身份，只属于一个团队。模板更新对既有员工的同步方式待确认。</div><div class="templates-grid">${state.templates.map(t=>`<article class="card template-card"><div class="row between"><span class="template-mark ${t.color}">${icon(t.icon)}</span><span class="badge muted">v${t.version}</span></div><h3>${esc(t.name)}</h3><p class="muted small">${esc(t.description)}</p><div class="skill-pills">${t.skills.map(s=>`<span class="skill-pill">${esc(s.name)}</span>`).join('')}</div><div class="row between"><span class="small muted">已创建 ${state.people.filter(p=>p.templateId===t.id).length} 位员工</span><a class="btn secondary small" href="#/template/${t.id}">管理模板 ${icon('arrow')}</a></div></article>`).join('')}</div>`;
+  return `${pageHead('数字员工模板','通过对话创建模板，支持员工自迭代工作 Prompt 与 Skills，再为团队创建员工。',button(`${icon('spark')} 对话创建模板`,'new-template','primary'))}<div class="notice info">模板可以重复使用；每次创建的员工都是独立身份，只属于一个团队。模板更新对既有员工的同步方式待确认。</div><div class="templates-grid">${state.templates.map(t=>`<article class="card template-card"><div class="row between"><span class="template-mark ${t.color}">${icon(t.icon)}</span><span class="badge muted">v${t.version}</span></div><h3>${esc(t.name)}</h3><p class="muted small">${esc(t.description)}</p><div class="skill-pills">${t.skills.map(s=>`<span class="skill-pill">${esc(s.name)}</span>`).join('')}</div><div class="row between"><span class="small muted">已创建 ${state.people.filter(p=>p.templateId===t.id).length} 位员工</span><a class="btn secondary small" href="#/template/${t.id}">管理模板 ${icon('arrow')}</a></div></article>`).join('')}</div>`;
 }
 function renderTemplate(id) {
   const t=template(id);if(!t)return notFound();
-  return `<button class="breadcrumb-button" data-action="go-templates">${icon('back')} 返回模板</button>${pageHead(esc(t.name),`工作 Prompt 与 ${t.skills.length} 个 Skills · 模板 v${t.version}`,button(`${icon('plus')} 用模板创建员工`,'create-from-template','primary',`data-id="${t.id}"`))}<div class="notice info">模板定义能力与工作方式。已创建员工的同步策略仍待确认，本原型只演示保存模板版本。</div><div class="grid two" style="margin-top:20px"><section class="card"><div class="card-head"><h3>工作 Prompt</h3></div><form class="card-body" data-form="save-template" data-id="${t.id}"><div class="field"><label class="field-label" for="template-name">模板名称</label><input class="input" id="template-name" value="${esc(t.name)}"></div><div class="field"><label class="field-label" for="template-prompt">如何工作</label><textarea class="input" id="template-prompt" rows="12">${esc(t.prompt)}</textarea></div><button class="btn primary" type="submit">保存工作 Prompt</button></form></section><section class="card"><div class="card-head"><h3>能力 Skills</h3>${button(`${icon('plus')} 添加 Skill`,'new-skill','secondary small',`data-template="${t.id}"`)}</div><div class="card-body skill-list">${t.skills.map(s=>`<div class="skill-item"><div><h3>${esc(s.name)}</h3><p class="muted small">${esc(s.description)}</p></div><button class="btn ghost small" data-action="edit-skill" data-template="${t.id}" data-id="${s.id}">查看 / 编辑</button></div>`).join('')||'<p class="muted">还没有 Skill，可以添加自己的方法与规则。</p>'}</div><div class="card-body"><p class="demo-note">Skills 是可持续编辑的工作能力，不构成固定岗位或工具白名单。</p></div></section></div>`;
+  return `<button class="breadcrumb-button" data-action="go-templates">${icon('back')} 返回模板</button>${pageHead(esc(t.name),`可自迭代 · ${t.skills.length} 个 Skills · 模板 v${t.version}`,templateEvolutionActions(t)+button(`${icon('plus')} 用模板创建员工`,'create-from-template','primary',`data-id="${t.id}"`))}<div class="notice info">模板定义可自迭代的工作 Prompt 与 Skills，每次变更保留来源和版本。已有员工何时采用新版仍待确定。</div><div class="grid two" style="margin-top:20px"><section class="card"><div class="card-head"><h3>工作 Prompt</h3></div><form class="card-body" data-form="save-template" data-id="${t.id}"><div class="field"><label class="field-label" for="template-name">模板名称</label><input class="input" id="template-name" value="${esc(t.name)}"></div><div class="field"><label class="field-label" for="template-prompt">如何工作</label><textarea class="input" id="template-prompt" rows="12">${esc(t.prompt)}</textarea></div><button class="btn primary" type="submit">保存工作 Prompt</button></form></section><section class="card"><div class="card-head"><h3>能力 Skills</h3>${button(`${icon('plus')} 添加 Skill`,'new-skill','secondary small',`data-template="${t.id}"`)}</div><div class="card-body skill-list">${t.skills.map(s=>`<div class="skill-item"><div><h3>${esc(s.name)}</h3><p class="muted small">${esc(s.description)}</p></div><button class="btn ghost small" data-action="edit-skill" data-template="${t.id}" data-id="${s.id}">查看 / 编辑</button></div>`).join('')||'<p class="muted">还没有 Skill，可以添加自己的方法与规则。</p>'}</div><div class="card-body"><p class="demo-note">Skills 是可持续编辑的工作能力，不构成固定岗位或工具白名单。</p></div></section></div>`;
 }
 function memberRow(p) {
   const tpl=template(p.templateId);
-  return `<div class="member-row">${avatar(p.id)}<div class="member-info"><b>${esc(p.name)}</b><span>${esc(p.role)}</span><small>来自 ${esc(tpl.name)} v${p.templateVersion} · 上级：${p.parentId==='user'?'我':esc(person(p.parentId)?.name||'待配置')}</small></div><span class="member-status ${p.status}">${({working:'工作中',idle:'空闲',waiting:'等待'})[p.status]}</span><button class="icon-btn" data-action="person" data-id="${p.id}" aria-label="查看${esc(p.name)}">${icon('chevron')}</button></div>`;
+  return `<div class="member-row">${avatar(p.id)}<div class="member-info"><b>${esc(p.name)}</b><span>${esc(p.role)}</span><small>来自 ${esc(tpl.name)} v${p.templateVersion} · 最新 v${tpl.version} · 上级：${p.parentId==='user'?'我':esc(person(p.parentId)?.name||'待配置')}</small></div><span class="member-status ${p.status}">${({working:'工作中',idle:'空闲',waiting:'等待'})[p.status]}</span><button class="btn ghost small member-knowledge-button" data-action="knowledge-employee-mounts" data-employee="${p.id}">知识 ${state.knowledgeMounts.filter(m=>m.employeeId===p.id).length}</button><button class="icon-btn" data-action="person" data-id="${p.id}" aria-label="查看${esc(p.name)}">${icon('chevron')}</button></div>`;
 }
 function renderTeams() {
   return `${pageHead('团队','选择一个团队，进入详情管理员工、项目库与协作配置。',button(`${icon('plus')} 新建团队`,'new-team','primary'))}<div class="teams-grid team-directory">${state.teams.map(t=>{const projects=state.projects.filter(p=>p.teamId===t.id);return `<a class="card team-directory-card" href="#/team/${t.id}"><div class="team-directory-head"><span class="channel-icon ${t.color}">${icon(t.icon)}</span>${teamStatusBadge(t)}</div><h3>${esc(t.name)}</h3><div class="team-directory-about"><small>产品 / 模块描述</small><p>${esc(t.description)||'可在团队详情补充负责的产品、模块或业务范围。'}</p></div><div class="team-directory-projects"><small>负责项目</small><p>${projects.length?esc(projects.slice(0,2).map(p=>p.name).join('、'))+(projects.length>2?` 等 ${projects.length} 个项目`:''):'暂无项目'}</p></div><div class="team-directory-stats"><span><b>${t.members.length}</b>位数字员工</span><span><b>${projects.length}</b>个项目</span></div><div class="team-directory-foot"><span>进入团队管理</span>${icon('arrow')}</div></a>`;}).join('')}</div>`;
 }
 function teamTabs(teamId,active) {
   const count=state.projects.filter(p=>p.teamId===teamId).length;
-  return `<nav class="team-subnav" aria-label="团队内容"><a class="${active==='members'?'active':''}" href="#/team/${teamId}">团队成员</a><a class="${active==='library'?'active':''}" href="#/library/${teamId}">项目库 <span>${count}</span></a></nav>`;
+  return `<nav class="team-subnav" aria-label="团队内容"><a class="${active==='members'?'active':''}" href="#/team/${teamId}">团队成员</a><a class="${active==='library'?'active':''}" href="#/library/${teamId}">项目库 <span>${count}</span></a><a class="${active==='knowledge'?'active':''}" href="#/employee-knowledge/${teamId}">员工知识 <span>${state.knowledgeMounts.filter(m=>team(teamId).members.includes(m.employeeId)).length}</span></a></nav>`;
 }
 function renderTeam(id) {
   const t=team(id);if(!t)return notFound();
@@ -214,6 +217,8 @@ function renderOverlay() {
 }
 function messageFrom(teamId,id){return team(teamId)?.messages.find(m=>m.id===id);}
 function drawerParts(d) {
+  const knowledge=knowledgeDrawer(d);if(knowledge)return knowledge;
+  const evolution=templateEvolutionDrawer(d);if(evolution)return evolution;
   const project=projectDrawer(d);if(project)return project;
   if(d.type==='summary')return {title:esc(team(d.teamId).name),body:renderSummary(team(d.teamId)),foot:button('关闭','close')};
   if(d.type==='person')return personDrawer(person(d.id));
@@ -224,7 +229,7 @@ function drawerParts(d) {
 }
 function personDrawer(p) {
   const t=team(p.teamId),tpl=template(p.templateId);
-  return {kicker:'团队专属数字员工',title:esc(p.name),body:`<div class="row">${avatar(p.id)}<div><h3>${esc(p.role)}</h3><p class="muted small">只属于 ${esc(t.name)}</p></div></div><div class="detail-block"><h3>员工来源</h3><p>从「${esc(tpl.name)}」模板 v${p.templateVersion} 创建</p><p class="muted small">这是独立员工，其他团队使用同一模板时会创建新的身份。</p></div><div class="detail-block"><h3>直属上级</h3><p>${p.parentId==='user'?'我 · 最终决定人':esc(person(p.parentId)?.name||'待配置')}</p></div><div class="detail-block"><h3>创建时的 Skills</h3><div class="skill-pills">${p.skills.map(s=>`<span class="skill-pill">${esc(s.name)}</span>`).join('')}</div></div><div class="detail-block"><h3>工作 Prompt</h3><pre>${esc(p.prompt)}</pre></div><p class="demo-note">这里展示创建时的配置；模板更新如何同步到既有员工仍待确认。</p>`,foot:`${button('关闭','close')}<a class="btn primary" href="#/template/${p.templateId}">管理来源模板</a>`};
+  return {kicker:'团队专属数字员工',title:esc(p.name),body:`<div class="row">${avatar(p.id)}<div><h3>${esc(p.role)}</h3><p class="muted small">只属于 ${esc(t.name)}</p></div></div><div class="detail-block"><h3>员工来源</h3><p>从「${esc(tpl.name)}」模板 v${p.templateVersion} 创建 · 最新可用 v${tpl.version}</p><p class="muted small">这是独立员工，其他团队使用同一模板时会创建新的身份。</p></div><div class="detail-block"><h3>直属上级</h3><p>${p.parentId==='user'?'我 · 最终决定人':esc(person(p.parentId)?.name||'待配置')}</p></div><div class="detail-block"><h3>创建时的 Skills</h3><div class="skill-pills">${p.skills.map(s=>`<span class="skill-pill">${esc(s.name)}</span>`).join('')}</div></div><div class="detail-block"><h3>工作 Prompt</h3><pre>${esc(p.prompt)}</pre></div><div class="detail-block"><h3>挂载知识</h3>${employeeKnowledgeSummary(p.id)}${button('管理挂载','knowledge-employee-mounts','secondary small',`data-employee="${p.id}"`)}</div><p class="demo-note">这里展示创建时的配置；模板更新如何同步到既有员工仍待确认。</p>`,foot:`${button('关闭','close')}<a class="btn primary" href="#/template/${p.templateId}">管理来源模板</a>`};
 }
 function traceDrawer(t,m) {
   const trace=m.trace||[];
@@ -232,15 +237,17 @@ function traceDrawer(t,m) {
 }
 function proposalDrawer(t,m) {
   const tpl=template(m.templateId),s=m.proposedSkill;const pending=m.status==='needs-user';
-  return {kicker:'员工建议 · 尚未自动生效',title:'建议补充模板的 Skill',body:`<p>${esc(person(m.sender).name)} 在「${esc(t.name)}」中提交的建议。</p><div class="detail-block"><h3>目标模板</h3><p>${esc(tpl.name)} · 当前 v${tpl.version}</p></div><div class="detail-block"><h3>${esc(s.name)}</h3><p>${esc(s.description)}</p><pre>${esc(s.content)}</pre></div><div class="notice info">${pending?'员工只提出建议，由你决定是否保存为模板新版本。':'这项建议已经处理。'}既有员工的同步策略仍待确认；本演示不自动更新已创建员工。</div>`,foot:pending?`${button('不采纳','decline-proposal','secondary',`data-team="${t.id}" data-message="${m.id}"`)}${button('采纳为模板新版本','apply-proposal','primary',`data-team="${t.id}" data-message="${m.id}"`)}`:button('关闭','close')};
+  return {kicker:'员工建议 · 尚未自动生效',title:'建议补充模板的 Skill',body:`<p>${esc(person(m.sender).name)} 在「${esc(t.name)}」中提交的建议。</p><div class="detail-block"><h3>目标模板</h3><p>${esc(tpl.name)} · 当前 v${tpl.version}</p></div><div class="detail-block"><h3>${esc(s.name)}</h3><p>${esc(s.description)}</p><pre>${esc(s.content)}</pre></div><div class="notice info">${pending?'这条建议等待你处理；员工也可以自迭代模板并保存版本。':'这项建议已经处理。'}既有员工的同步策略仍待确认；本演示不自动更新已创建员工。</div>`,foot:pending?`${button('不采纳','decline-proposal','secondary',`data-team="${t.id}" data-message="${m.id}"`)}${button('采纳为模板新版本','apply-proposal','primary',`data-team="${t.id}" data-message="${m.id}"`)}`:button('关闭','close')};
 }
 function modalParts(m) {
+  const knowledge=knowledgeModal(m);if(knowledge)return knowledge;
+  const evolution=templateEvolutionModal(m);if(evolution)return evolution;
   const project=projectModal(m);if(project)return project;
   if(m.type==='team-profile')return teamProfileModal(team(m.teamId));
   if(m.type==='skill')return skillModal(m);
   if(m.type==='new-member')return memberModal(m);
   if(m.type==='new-team')return {kicker:'团队',title:'新建一个团队',body:`<form id="new-team-form" data-form="new-team"><div class="field"><label class="field-label" for="team-name">团队名称</label><input class="input" id="team-name" placeholder="例如：客户研究团队"></div><div class="field"><label class="field-label" for="team-description">产品 / 模块描述或业务说明</label><textarea class="input" id="team-description" placeholder="用自己的话描述目标与分工，不限制行业或岗位…"></textarea></div><p class="muted small">创建后，从数字员工模板为这个团队创建专属成员。</p></form>`,foot:`${button('取消','close')}<button class="btn primary" type="submit" form="new-team-form">创建团队</button>`};
-  return {kicker:'交互原型 v0.4',title:'三个入口，围绕团队群聊工作',body:'<div class="detail-block"><h3>工作台：群聊就是工作现场</h3><p>选择不同团队，看进展与空闲程度。需要你的事项通过 @我 消息提示，在群里回复。</p></div><div class="detail-block"><h3>数字员工模板：管理能力与 Skills</h3><p>通过对话生成并完善模板草稿，保存后管理工作 Prompt 和 Skills。模板可以复用；实际员工不跨团队。</p></div><div class="detail-block"><h3>团队：管理专属成员</h3><p>从模板创建专属员工，管理团队项目库、归档文档并查看并行需求与版本。团队流程按需展开。</p></div><div class="notice info">全部为本地合成演示；没有真实模型、后台或业务系统。刷新可重置。模板对既有员工的同步、层级及在途生效规则仍待确认。</div>',foot:`${button('重置演示','reset')}${button('开始体验','close','primary')}`};
+  return {kicker:'交互原型 v0.5',title:'围绕团队群聊组织工作',body:'<div class="detail-block"><h3>工作台：群聊就是工作现场</h3><p>选择不同团队，看进展与空闲程度。需要你的事项通过 @我 消息提示，在群里回复。</p></div><div class="detail-block"><h3>数字员工模板：管理能力与 Skills</h3><p>通过对话生成并完善模板草稿，保存后管理工作 Prompt 和 Skills。模板可以复用；实际员工不跨团队。</p></div><div class="detail-block"><h3>团队：管理专属成员</h3><p>从模板创建专属员工，管理团队项目库、归档文档并查看并行需求与版本。团队流程按需展开。</p></div><div class="detail-block"><h3>知识库：资料按员工挂载</h3><p>共享资料对员工只读，更新后挂载员工可见。员工模板可以自迭代，保留历史与来源。</p></div><div class="notice info">全部为本地合成演示；没有真实模型、后台或业务系统。刷新可重置。模板对既有员工的同步、层级及在途生效规则仍待确认。</div>',foot:`${button('重置演示','reset')}${button('开始体验','close','primary')}`};
 }
 function teamProfileModal(t) {
   return {kicker:'团队简介',title:'编辑团队简介',body:`<form id="team-profile-form" data-form="team-profile" data-team="${t.id}"><div class="field"><label class="field-label" for="team-profile-name">团队名称</label><input class="input" id="team-profile-name" value="${esc(t.name)}"></div><div class="field"><label class="field-label" for="team-profile-description">产品 / 模块描述或业务范围</label><textarea class="input" id="team-profile-description" rows="6" placeholder="可以描述负责的产品、模块或业务范围…">${esc(t.description)}</textarea></div><p class="demo-note">员工人数和负责项目根据团队当前数据展示，在各自管理页面维护。</p></form>`,foot:`${button('取消','close')}<button class="btn primary" form="team-profile-form" type="submit">保存简介</button>`};
@@ -288,14 +295,14 @@ function createMember() {
 }
 function applyProposal(teamId,messageId,accept) {
   const t=team(teamId),m=messageFrom(teamId,messageId);if(m.status!=='needs-user')return;
-  if(accept){const tpl=template(m.templateId);tpl.skills.push({...m.proposedSkill,id:`skill-${Date.now()}`});tpl.version++;m.status='accepted';}else m.status='declined';
+  if(accept){const tpl=template(m.templateId);tpl.skills.push({...m.proposedSkill,id:`skill-${Date.now()}`});tpl.version++;recordTemplateRevision(tpl,'user','user','用户采纳模板建议');m.status='accepted';}else m.status='declined';
   t.messages.push({id:`decision-${Date.now()}`,sender:'user',time:'刚刚',text:accept?'采纳这项建议，保存为模板新版本。既有员工如何同步更新，后续再明确。':'这项模板调整建议暂不采纳，保留当前配置。'});closeOverlay();render();scrollChat();toast(accept?'模板新版本已保存；没有自动更新既有员工 · 演示':'未采纳，模板保持原样');
 }
 const value=id=>document.getElementById(id)?.value.trim()||'';
 function saveTemplate(form) {
   const tpl=template(form.dataset.id),name=value('template-name'),prompt=value('template-prompt');
   if(!name||!prompt)return toast('请填写模板名称与工作 Prompt。');
-  tpl.name=name;tpl.prompt=prompt;tpl.version++;render();toast('模板新版本已保存；既有员工同步方式待确认 · 演示');
+  tpl.name=name;tpl.prompt=prompt;tpl.version++;recordTemplateRevision(tpl,'user','user','用户修改工作 Prompt');render();toast('模板新版本已保存；既有员工同步方式待确认 · 演示');
 }
 function saveSkill(form) {
   const tpl=template(form.dataset.template),name=value('skill-name'),content=value('skill-content');
@@ -303,10 +310,10 @@ function saveSkill(form) {
   const existing=tpl.skills.find(s=>s.id===form.dataset.id);
   if(existing)Object.assign(existing,{name,description:value('skill-description'),content});
   else tpl.skills.push(skill(`skill-${Date.now()}`,name,value('skill-description'),content));
-  tpl.version++;closeOverlay();render();toast('Skill 已保存为模板新版本 · 演示');
+  tpl.version++;recordTemplateRevision(tpl,'user','user','用户保存 Skill');closeOverlay();render();toast('Skill 已保存为模板新版本 · 演示');
 }
 function deleteSkill(templateId,skillId) {
-  const tpl=template(templateId);tpl.skills=tpl.skills.filter(s=>s.id!==skillId);tpl.version++;
+  const tpl=template(templateId);tpl.skills=tpl.skills.filter(s=>s.id!==skillId);tpl.version++;recordTemplateRevision(tpl,'user','user','用户删除 Skill');
   closeOverlay();render();toast('已从模板删除 Skill；既有员工保持创建时配置 · 演示');
 }
 function createTeam() {
@@ -319,6 +326,7 @@ function saveFlow(form) {
   t.flow=flow;t.flowVersion++;toast('流程 Prompt 已保存；当前工作如何采用新版本仍待确认 · 演示');
 }
 function handleAction(el) {
+  if(handleKnowledgeAction(el)||handleTemplateEvolutionAction(el))return;
   if(handleProjectAction(el))return;
   const a=el.dataset.action,d=el.dataset;
   const actions={
@@ -347,7 +355,7 @@ function handleAction(el) {
     artifact:()=>openDrawer('artifact',{id:d.id}),
     'apply-proposal':()=>applyProposal(d.team,d.message,true),
     'decline-proposal':()=>applyProposal(d.team,d.message,false),
-    reset:()=>{clearTimeout(state.toastTimer);state=initialState();state.templateChat=initialTemplateChat();initProjectLibraries();document.querySelector('#toast').hidden=true;navigate('overview');},
+    reset:()=>{clearTimeout(state.toastTimer);state=initialState();state.templateChat=initialTemplateChat();initProjectLibraries();initKnowledgeLibraries();initTemplateEvolution();document.querySelector('#toast').hidden=true;navigate('overview');},
   };
   actions[a]?.();
 }
@@ -357,7 +365,7 @@ document.addEventListener('click',event=>{
 });
 document.addEventListener('submit',event=>{
   const form=event.target;if(!form.dataset.form)return;event.preventDefault();
-  if(handleProjectForm(form))return;
+  if(handleKnowledgeForm(form)||handleTemplateEvolutionForm(form)||handleProjectForm(form))return;
   const forms={chat:sendChat,'template-chat':sendTemplateChat,'save-template':saveTemplate,'save-skill':saveSkill,'new-team':createTeam,'team-profile':saveTeamProfile,'new-member':createMember,'save-flow':saveFlow};
   forms[form.dataset.form]?.(form);
 });
@@ -379,4 +387,6 @@ document.addEventListener('keydown',event=>{
 });
 window.addEventListener('hashchange',()=>{closeOverlay();state.replyTo=null;state.mentionOnly=false;document.body.classList.remove('nav-open','channels-open');render();scrollChat();});
 initProjectLibraries();
+initKnowledgeLibraries();
+initTemplateEvolution();
 render();scrollChat();
