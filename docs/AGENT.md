@@ -8,17 +8,17 @@
 
 | 文件 | 内容 | 当前版本 |
 |---|---|---|
-| `01-requirements.md` | 统一目标基线：D18～D36；工作台决策上下文/证据/进展摘要、组织树及既有通用团队规则 | v1.14 |
-| `features/digital-employee-team/requirement_analysis.md` | 专题基线：工作台决策/交付依据/右侧摘要、组织树、知识/模板和通用团队运行；联合评审缺口保留 | v0.7 Draft |
-| `features/digital-employee-team/infrastructure_contract_candidates.md` | 补决策上下文、交付证据和工作摘要关键字段；复用既有消息/产物/事实接口，尚非批准契约 | v0.7 设计输入草案 |
+| `01-requirements.md` | 统一目标基线：D18～D37；工作台决策上下文/证据/进展摘要、组织树及既有通用团队规则 | v1.15 |
+| `features/digital-employee-team/requirement_analysis.md` | 专题基线：工作台决策/交付依据/右侧摘要、组织树、知识/模板和通用团队运行；联合评审缺口保留 | v0.8 Draft |
+| `features/digital-employee-team/infrastructure_contract_candidates.md` | 补决策上下文、交付证据和工作摘要关键字段；复用既有消息/产物/事实接口，尚非批准契约 | v0.8 设计输入草案 |
 | `features/digital-employee-team/requirement_review.md` | 产品与系统联合评审：需求/候选及实际代码只读核对、差距与下一阶段建议；核心规则及执行契约仍有缺口 | v0.1 评估记录与建议，可继续系统设计，整体未达开发交接条件 |
 | `features/digital-employee-team/prototype/index.html`、`prototype/README.md` | v0.7 围绕群聊补 @我 决策上下文、交付证据与右侧进展摘要；既有四主入口和组织树/知识/项目演示保留，模拟范围见 README | v0.7 轻量走查及独立产品复评通过，具体效果待用户确认；静态演示不等同整体可开发或真实运行验证 |
-| `features/digital-employee-team/system_design.md` | 技术评估、TR-01～10、依赖/数据/动作/控制恢复/版本与重要决策；P01～P06是待决定提案 | v0.1 设计草案，附条件可实现，未达开发交接条件 |
-| `features/digital-employee-team/design_delivery_plan.md` | T01～06任务草案、责任缺口、整合与V01～12验证计划；实际验证未执行 | v0.1 待评审，开发/集成/独立测试未指派 |
+| `features/digital-employee-team/system_design.md` | 技术评估、TR-01～10、依赖/数据/动作/控制恢复/版本、员工互相@与重要决策；P01～P06是待决定提案 | v0.2 设计草案，附条件可实现，未达开发交接条件 |
+| `features/digital-employee-team/design_delivery_plan.md` | T01～06任务草案、责任缺口、整合与V01～12验证计划；实际验证未执行 | v0.2 待评审，开发/集成/独立测试未指派 |
 | `features/digital-employee-team/product_proposal.md` | 历史产品探索、用户讨论和公开竞品调研记录，当前功能与开放事项转由需求分析维护 | v0.2 历史探索稿 |
-| `02-architecture.md` | 新团队设计入口及历史会话架构，明确目标/代码差距 | v1.4（新增设计待评审） |
+| `02-architecture.md` | 新团队设计入口及历史会话架构，明确目标/代码差距 | v1.5（补员工互相@，待评审） |
 | `03-test-cases.md` | 测试用例全集（TC-* 22 组）及历史 E2E；§23.4 单独记录 v0.7 静态原型轻量走查 | v1.3（历史系统未重验） |
-| `04-lld.md` | 历史LLD及新团队契约入口；新内核完整DDL/schema待设计收敛 | v1.2（新内核未就绪） |
+| `04-lld.md` | 历史LLD及新团队契约入口；新内核完整DDL/schema待设计收敛 | v1.3（补定向@契约，新内核未就绪） |
 | `05-deploy.md` | 一键部署手册 + 故障速查（全部来自真实事故） | v1.1 |
 
 `02/04` 已增加新团队设计入口；其历史正文及 `03/05` 记录原系统设计、历史测试和部署，不构成数字员工团队新能力已获设计批准、实现或验收的依据。待新业务边界与技术方案明确后，按实际影响同步版本及需求追溯。

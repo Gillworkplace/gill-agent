@@ -1,10 +1,10 @@
 # 通用数字员工团队基础设施：数据与接口候选
 
-日期：2026-11-17；版本：v0.7；状态：设计输入草案，已同步 D24～D36；联合评审仍有身份、版本、等待恢复及访问语义缺口，未经技术设计批准。
+日期：2026-11-17；版本：v0.8；状态：设计输入草案，已同步 D24～D37；联合评审仍有身份、版本、等待恢复及访问语义缺口，未经技术设计批准。
 
 本文服务于[需求分析](requirement_analysis.md)。以下字段、存储职责及 HTTP 路径用于检查需求是否完整，均非已批准的数据库、API 或架构契约；实现前由系统设计师评估，不能据此直接创建表或开工。
 
-设计状态补记（2026-11-17）：已形成[系统设计 v0.1](system_design.md)的核心技术契约草案及[交付计划](design_delivery_plan.md)。本候选表仍是需求覆盖检查输入，不因引用成为批准接口；实现契约收敛以有效系统设计/LLD为准，业务政策与关键前提未闭环。
+设计状态补记（2026-11-17）：已形成[系统设计 v0.2](system_design.md)的核心技术契约草案及[交付计划](design_delivery_plan.md)。本候选表仍是需求覆盖检查输入，不因引用成为批准接口；实现契约收敛以有效系统设计/LLD为准，业务政策与关键前提未闭环。
 
 ## 1. 边界与共同规则
 
@@ -105,6 +105,7 @@
 | 团队工作摘要（展示投影） | `goal_summary`, `current_work_summary`, `blocker_summary`, `next_step_summary`, `observed_at`, `source_refs`, `freshness_state` | `Text?`, `Text?`, `Text?`, `Text?`, `Time?`, `List<Ref>`, `OpenState` | 来源列表/数据状态是；未知字段可空并注明 | 按当前团队事实汇总；区分未知/过期与真实空闲，来源时间不因点击或重绘刷新；统计/过期口径见 Q-05，下一步不代表已执行 |
 | 通信消息 | `team_id`, `run_ref`, `sender`, `recipient_refs`, `content`, `related_refs` | `ID`, `Ref?`, `ActorRef`, `List<Ref>`, `Text`, `List<Ref>` | 除运行引用外是；列表可为空 | 普通群聊可尚无运行；实际员工身份与 team_id 相符，用户/系统来源真实，工作卡片关联内部事实 |
 | 通信消息 | `message_kind`, `delivery_state`, `reply_to_ref`, `correlation_id` | `String`, `OpenState`, `Ref?`, `ID?` | 前两项是 | 已发送、已送达、已响应分开；普通聊天不隐式授予决定权 |
+| 员工@收件 | message_ref, recipient_employee_ref, delivery_state, processing_state, response_refs | Ref, ActorRef(employee), OpenState, OpenState, List<Ref> | 是；回复列表可空 | D37同团队稳定员工身份，消息/接收人唯一，定向处理与群内可见分开，忙碌/暂停保留；读过不等于处理完成 |
 | 消息阅读记录 | `message_ref`, `reader`, `read_at` | `Ref`, `ActorRef`, `Time` | 是 | 只证明消息已读，不生成决定、不关闭问题或应用配置 |
 | @我事项 | `message_ref`, `team_id`, `mentioned_user_ref`, `subject_ref`, `processing_state` | `Ref`, `ID`, `ActorRef(user)`, `Ref?`, `OpenState` | 除事项引用外是 | 关联升级、建议或需关注的工作；已读与处理状态分开，处理决定仍引用对应事实 |
 | @我事项 | `decision_ref`, `handled_at`, `handling_note` | `Ref?`, `Time?`, `Text?` | 否 | 决定、仅关注/回复和变更应用分别识别，不因读过消息默认同意 |

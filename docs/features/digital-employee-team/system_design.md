@@ -1,12 +1,12 @@
 # 通用数字员工团队基础设施：系统设计
 
-日期：2026-11-17；版本：v0.1；状态：设计草案，关键业务政策待定，未达开发交接条件。
+日期：2026-11-17；版本：v0.2；状态：设计草案，关键业务政策待定，未达开发交接条件。
 
 ## 1. 范围与结论
 
 本设计采用需求分析方案 B：新增团队运行内核，复用现有技术栈与经过适配的模型、沙箱能力。流程由 Prompt 表达，模型决定计划、派工、通信、检查和下一步；内核处理真实身份、权限、持久状态、资源和执行回执。岗位、业务阶段、产物类型均开放，不配置固定研发 DAG。
 
-有效输入为[主需求 v1.14](../../01-requirements.md) D18～D36、[专题需求 v0.7](requirement_analysis.md)、[联合评审 v0.1](requirement_review.md)和[原型 v0.7](prototype/README.md)。业务含义以需求为权威；本文件维护技术派生要求及核心跨模块契约，候选附录继续保留探索身份，不自动成为批准 API。具体原型效果尚待用户查看。
+有效输入为[主需求 v1.15](../../01-requirements.md) D18～D37、[专题需求 v0.8](requirement_analysis.md)、[联合评审 v0.1](requirement_review.md)和[原型 v0.7](prototype/README.md)。业务含义以需求为权威；本文件维护技术派生要求及核心跨模块契约，候选附录继续保留探索身份，不自动成为批准 API。具体原型效果尚待用户查看。
 
 系统设计负责人：本次 Codex（依照用户调用的 system-designer 技能）。业务决定人：用户；产品规则尚未补签。开发、集成和独立测试执行人未指派，见[交付与验证计划](design_delivery_plan.md)。本次授权是调查和设计，未修改运行代码、数据库、部署或真实员工配置。
 
@@ -99,6 +99,7 @@ flowchart TB
 | 执行实例 | execution(task_id, employee_id, context_snapshot_id, workspace_id可空, attempt, state, lease_owner, lease_until, fence) | 同员工可有多个隔离实例，实际并发依执行槽配置；不共享可变 history |
 | 上下文快照 | context_snapshot(employee_revision, team_revision, task_revision, knowledge_reads, document_refs, tool_config_revision, message_cursor, model_config_hash) | 每轮记录实际送给模型的内容引用/哈希，敏感正文按权限存；精确重放思维不作保证 |
 | 通信与决定 | team_message(team_id, seq, sender_actor, visibility, reply_to, run/task_refs)；decision(problem_ref, escalation_path, current_handler, state, answer, applied_ref) | 私人执行记录不默认全发群聊；已读/回复/决定/应用是不同事实；上报保留每级意见 |
+| 员工收件与响应 | message_delivery(message_id, recipient_employee_id, delivery_state, processing_state, response_refs, task_refs) | 消息/接收员工唯一；群聊可见不等于触发执行，用户@我与员工收件分开 |
 | 动作与检查点 | action(execution_id, request_key, kind, target_refs, expected_revision, state, result_ref, external_ref)；checkpoint(execution_id, turn, model_messages_ref, pending_action_refs) | 动作身份来自执行凭证；回执绑定具体意图，工具输出视为不可信数据 |
 | 产物与核查 | artifact_revision(team_id, task_id, content_ref, hash, base_ref)；check_result(subject_revision, method, action_ref可空, result, limitations) | 模型判断、实际工具检查和用户接受分开，旧版本通过不覆盖新版本 |
 | 工作区与集成 | workspace(work_item_id, repository_binding可空, base_ref, provider_resource_ref, access_mode)；integration(source_revision, target_expected_ref, actual_result_ref, state) | 不同需求可写区隔离；同区的并行写需路径/文档所有权或独立分支后合并，不能仅隔离需求却让员工覆盖同一文件 |
@@ -119,6 +120,18 @@ MinIO 对象先写不可变键和内容哈希，再由数据库事务提交引�
 组织树保存短事务锁 team 行，核验 expected revision 和完整本队关系后追加版本；避免两次分别无环的改动组合成环。同团队关系变更串行，不把该锁用于模型调用。多上级语义未定，首期树的单直属上级表现不成为岗位能力限制。
 
 ## 7. 模型协作与执行协议
+
+### 7.1 员工互相@与定向投递（D37）
+
+员工通过message.send提交content、mentions[{type:employee,id}]、reply_to及相关run/task/work_item引用；实际发送人由执行凭证确定。界面姓名只用于展示，服务端按本团队稳定employeeId解析，校验接收资格与消息内容的可见范围。直属上级关系不限制普通协作，正式不确定问题仍通过issue.escalate保存逐级评估链。
+
+同一事务保存群聊消息、逐接收员工delivery及待处理工作项，再由通知唤醒相关员工。每个(message_id, recipient_employee_id)只产生一条收件记录，重投沿原记录处理；多次合法新发言不能因正文相同被误去重。显示@同事不会把全团队都唤醒。接收无效/停用/跨团队返回明确结果，不按同名人员或负责人静默替换；校验全部显式接收对象后才提交，避免部分成功未说明。
+
+员工忙碌时保存待处理项，按适用执行边界/依赖纳入相关上下文；暂停时不因@自动恢复。处理前再次检查任务版本及归属，回复关联原消息并更新收件响应事实；已送达、已读、处理中、已响应与任务完成分别记录。员工回复可继续@同事，携带origin_message/reply_to/causation引用，结合既有资源/无进展记录识别循环，不硬编码轮流发言或固定岗位顺序。预算和等待后果仍按P02/P05。
+
+普通未指定接收人的新目标由团队接收策略决定路由；该默认策略仍待细化，不把本次互相@确认解释为已批准任意全员广播或固定负责人。知识派生内容的传播仍按P04，@不能绕过可见范围。
+
+### 7.2 轮次与动作协议
 
 每个模型轮次取得：员工有效指令、团队流程、当前目标、相关任务与消息、显式可读知识和工具描述。团队内部协调可由配置指定的员工承担；“负责人”是可调整关系/分工，不是内核写死的专属模型或固定四岗位。
 
@@ -208,7 +221,7 @@ decision 记录 open、awaiting_superior、awaiting_user、answered、applied，
 | /employee-templates、/{id}/drafts、/{id}/revisions | 多轮来源/草稿/Prompt/Skills/原版本 → 草稿或新版本 | 保存与生成分开；worker仅可走授权的template.revise |
 | /teams/{id}/employees、/employees/{id}/revisions | 模板版本/人员配置/直属关系 → 实际身份或版本 | 新增身份仅用户；一个员工一个团队 |
 | /knowledge-sources/{id}/revisions、/employees/{id}/knowledge-mounts | 人员内容/版本/挂载操作 → 不可变源版本或挂载记录 | worker只有显式挂载源读取能力；卸载在途影响见P03 |
-| /teams/{id}/messages | text/reply_to/context_refs/request_key → 已提交message/cursor | 目标消息生成待解释工作项；普通消息不一律触发全队模型 |
+| /teams/{id}/messages | text/mentions/reply_to/context_refs/request_key → 已提交message/cursor及delivery引用 | 目标消息生成待解释工作项；普通消息不一律触发全队模型 |
 | /teams/{id}/decisions/{id}/answers | answer/原decision revision → answered记录 | 只有被授权处理者，未明确则保持待澄清；应用状态另查 |
 | /runs/{id}/controls | pause/stop/resume/expected revision → control_ref/current state | 202表示已持久接收，实际暂停/恢复需事件回执 |
 | /teams/{id}/projects、/projects/{id}/documents、/work-items | 团队/文档/目标/基线 → 当前版本与历史 | 无仓库目标同样可创建 |
@@ -262,10 +275,12 @@ digest 从事实组合目标、当前工作、阻塞、下一步、来源引用�
 
 | 环节 | 本次实际状态 |
 | --- | --- |
-| 需求和交互 | 引用既有D18～D36；v0.7原型内部复评已通过，具体用户确认范围不扩大 |
+| 需求和交互 | 引用既有D18～D37；v0.7原型内部复评已通过，具体用户确认范围不扩大 |
 | 技术评估/系统设计 | 完成本稿及代码核实；有附条件路径，不包含真实恢复/容量试验 |
 | 开发任务 | 已形成评审用任务和整合计划，全部未就绪，不能作为开工指令 |
 | 业务政策 | P01～P06等待用户/产品明确并回写需求 |
 | 开发/集成/测试/验收/发布 | 均未执行；实际开发和独立测试负责人待安排 |
 
 官方资料只用于上述存储原语核实，不证明本项目实现已经可靠。Redis通知消费需要显式确认和补查，参见 [Redis Streams 文档](https://redis.io/docs/latest/develop/data-types/streams/)；本设计的业务恢复依据来自PG事实，而非一次Stream ACK。
+
+版本记录：v0.2（2026-11-17）同步D37/需求v0.8，补员工互相@的身份、持久收件/定向投递、忙碌/暂停/失效接收者、回复因果链与权限边界。仅设计增量，未执行通信代码或真实模型验证。
