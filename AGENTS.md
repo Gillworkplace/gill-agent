@@ -6,7 +6,9 @@
 
 ## 1. 项目一句话
 
-Gill Agent = 多人协作开发平台：Java web 网关 + Python agent 守护进程 + Vue 3 前端 + CubeSandbox（E2B 兼容）云端沙箱，浏览器内完成任务对话、命令执行、CDP 画面同步、文件/知识库/扩展/协作空间。
+Gill Agent 的产品目标为 **AI Coding 数字员工团队管理平台**：一个人通过 Prompt 在平台内生成与配置数字员工、组织团队并定义协作流程，由大模型控制产品需求分析、系统设计、开发和测试的运行，员工之间相互监督。目标依据见 `docs/01-requirements.md` D18；运行机制与边界草案见 `docs/features/digital-employee-team/product_proposal.md`，尚未完成需求细化与架构评估。
+
+当前实现底座为 Java web 网关 + Python agent 守护进程 + Vue 3 前端 + CubeSandbox（E2B 兼容）云端沙箱，已有任务对话、命令执行、CDP 画面同步、文件/知识库/扩展/协作空间。不得将这些现有能力描述为新数字员工团队能力已经实现。
 
 **数据流**：浏览器 → web:8080（WS）→ agentd（FastAPI）→ GLM 流式 → 云端 MicroVM 沙箱 → Redis Streams（`gill:cmd:{sid}` / `gill:evt:{sid}`）回流 → WS 多端扇出。
 
