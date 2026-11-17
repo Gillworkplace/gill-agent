@@ -1,0 +1,75 @@
+/* v0.6: editable reporting tree; supervision and task workflows remain separate. */
+.organization-layout { display: grid; grid-template-columns: minmax(0, 1fr) 290px; align-items: start; gap: 20px; }
+.organization-tree-card, .organization-panel { min-width: 0; overflow: hidden; }
+.organization-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 19px 21px; border-bottom: 1px solid var(--line); }
+.organization-toolbar h3 { color: #526782; font-size: 13px; }
+.organization-toolbar .row { flex-wrap: wrap; gap: 7px; }
+.organization-toolbar { margin-bottom: 18px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+.organization-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+.organization-status { color: #8e9aad; font-size: 10px; }
+.organization-tree { min-width: 0; padding: 25px 22px; overflow: auto; }
+.organization-tree ul, .organization-tree ol { list-style: none; }
+.organization-branch { position: relative; padding: 0; margin: 0; list-style: none; }
+.organization-children { position: relative; padding: 0 0 0 29px; margin: 13px 0 0 16px; border-left: 1px solid #dbe4f2; list-style: none; }
+.organization-children > li { position: relative; margin: 0 0 15px; }
+.organization-children > li::before { position: absolute; top: 29px; left: -30px; width: 29px; border-top: 1px solid #dbe4f2; content: ''; }
+.organization-children > .organization-branch { margin-bottom: 15px; }
+.organization-children > .organization-branch::before { position: absolute; top: 29px; left: -30px; width: 29px; border-top: 1px solid #dbe4f2; content: ''; }
+.organization-node { position: relative; display: flex; align-items: center; gap: 10px; width: min(340px, 100%); min-width: 200px; padding: 13px 15px; border: 1px solid #e1e8f3; border-radius: 9px; background: #fff; color: #526782; text-align: left; cursor: grab; transition: border-color .12s, background .12s, box-shadow .12s; }
+.organization-node:active { cursor: grabbing; }
+.organization-node:hover { border-color: #bdd0f8; background: #fcfdff; }
+.organization-node.selected { border-color: #a9c3fb; background: #f4f8ff; box-shadow: 0 0 0 2px #eef3ff; }
+.organization-node.drag-over { border-color: var(--blue); background: #edf3ff; box-shadow: 0 0 0 3px #e5edff; }
+.organization-node.invalid { border-color: #dfa0a0; background: #fff6f6; }
+.organization-node.drag-invalid { border-color: #dfa0a0; background: #fff4f4; }
+.organization-node.dragging { opacity: .5; }
+.organization-node > div, .organization-node > span:not(.avatar):not(.badge) { flex: 1; min-width: 0; }
+.organization-node-name { display: block; color: #4f6585; font-size: 12px; font-weight: 600; }
+.organization-node-role { display: block; margin-top: 2px; color: #8a98ad; font-size: 10px; overflow-wrap: anywhere; }
+.organization-node-parent { display: block; margin-top: 4px; color: #9da8b9; font-size: 9px; }
+.organization-node-text b { display: block; color: #526987; font-size: 12px; }
+.organization-node-text small { display: block; margin-top: 3px; color: #8b9ab1; font-size: 10px; overflow-wrap: anywhere; }
+.organization-node > .organization-drag-handle { flex: 0 0 14px !important; color: #adbbcf; font-size: 20px; }
+.organization-node > .organization-root-hint { flex: 0 0 70px !important; color: #9eacc2; font-size: 9px; line-height: 1.7; text-align: right; }
+.organization-root { margin-bottom: 15px; border-style: dashed; background: #fafcff; cursor: default; }
+.organization-root .organization-node-name { color: #6d80a0; }
+.organization-hint { padding: 15px 21px; margin: 0; border-top: 1px solid var(--line); color: #97a2b2; font-size: 10px; line-height: 1.9; }
+.organization-issues { padding: 15px 20px; margin: 15px 20px; border: 1px solid #efd9b6; border-radius: 8px; background: #fffaf1; }
+.organization-issue { margin: 5px 0; color: #947845; font-size: 11px; }
+.organization-unplaced { margin-top: 20px; padding: 16px; border: 1px dashed #e0b788; border-radius: 9px; background: #fffcf6; }
+.organization-unplaced > h3 { margin-bottom: 12px; color: #a2865a; }
+.organization-unplaced .organization-node { margin: 10px 0; }
+.organization-panel-head { padding: 20px; border-bottom: 1px solid var(--line); }
+.organization-detail { min-width: 0; }
+.organization-detail .card-body { padding: 20px; }
+.organization-detail p { line-height: 1.9; }
+.organization-detail .organization-current-parent { margin: 8px 0 21px; color: #637d9f; font-size: 14px; }
+.organization-detail-actions { display: flex; flex-direction: column; gap: 4px; padding-top: 18px; margin: 18px 0; border-top: 1px solid var(--line); }
+.organization-note { margin-top: 18px; }
+.organization-panel-head h3 { color: #576c8a; }
+.organization-panel-body { padding: 20px; }
+.organization-panel-body .field-label, .organization-panel-body label { color: #7d8da4; font-size: 10px; }
+.organization-panel-body .input, .organization-panel-body .select { font-size: 11px; }
+.organization-panel-body p { margin: 10px 0; color: #8b98aa; font-size: 11px; }
+.organization-form .btn { width: 100%; margin-top: 6px; }
+.organization-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 15px 20px; border-top: 1px solid var(--line); }
+.organization-empty { padding: 35px 20px; color: #8c9bb1; text-align: center; }
+.organization-empty h3 { margin-bottom: 10px; }
+.organization-empty p { margin: 10px 0 20px; }
+@media (max-width: 1180px) {
+  .organization-layout { grid-template-columns: minmax(0, 1fr) 250px; }
+  .organization-tree { padding: 23px 17px; }
+  .organization-node { min-width: 180px; }
+}
+@media (max-width: 768px) {
+  .organization-layout { grid-template-columns: 1fr; gap: 16px; }
+  .organization-toolbar { padding: 16px; }
+  .organization-toolbar > .row { gap: 6px; }
+  .organization-tree { padding: 23px 16px; }
+  .organization-children { margin-left: 10px; padding-left: 19px; }
+  .organization-children > li::before { left: -20px; width: 19px; }
+  .organization-children > .organization-branch::before { left: -20px; width: 19px; }
+  .organization-node { min-width: 190px; padding: 12px; }
+  .organization-panel-head, .organization-panel-body { padding: 17px; }
+  .organization-panel-body .input, .organization-panel-body .select { font-size: 16px; }
+}

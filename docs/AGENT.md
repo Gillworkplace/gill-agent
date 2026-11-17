@@ -8,10 +8,11 @@
 
 | 文件 | 内容 | 当前版本 |
 |---|---|---|
-| `01-requirements.md` | 统一目标基线：D18～D34；员工知识挂载与共享源只读、模板自迭代及既有通用团队/项目协作规则 | v1.12 |
-| `features/digital-employee-team/requirement_analysis.md` | 专题基线：知识挂载/共享源与采用版本、模板/Skills 自迭代、团队群聊员工、项目版本协作及内部执行监督恢复 | v0.5 Draft |
-| `features/digital-employee-team/infrastructure_contract_candidates.md` | 知识源/版本/员工挂载/读取、模板迭代及既有团队工作字段/API 候选，尚非批准契约 | v0.5 设计输入草案 |
-| `features/digital-employee-team/prototype/index.html`、`prototype/README.md` | v0.5 新增知识库与团队详情逐员工知识视图，演示知识对 Agent 只读、共享源更新和模板自迭代；工作台对话核心及原有入口保留，具体模拟范围见 README | v0.5 产品内部评估通过，待用户确认；不代表真实模型、知识执行、Git 或后端验证 |
+| `01-requirements.md` | 统一目标基线：D18～D35；员工知识只读/模板自迭代、团队组织树与上下级管理及既有通用团队/项目规则 | v1.13 |
+| `features/digital-employee-team/requirement_analysis.md` | 专题基线：团队组织树/上下级管理、知识挂载/共享源、模板自迭代、群聊项目及运行监督恢复；联合评审缺口保留 | v0.6 Draft |
+| `features/digital-employee-team/infrastructure_contract_candidates.md` | 组织关系草稿/版本、知识源/员工挂载/读取、模板迭代及既有团队工作字段/API 候选，尚非批准契约 | v0.6 设计输入草案 |
+| `features/digital-employee-team/requirement_review.md` | 产品与系统联合评审：需求/候选及实际代码只读核对、差距与下一阶段建议；核心规则及执行契约仍有缺口 | v0.1 评估记录与建议，可继续系统设计，整体未达开发交接条件 |
+| `features/digital-employee-team/prototype/index.html`、`prototype/README.md` | v0.6 增加团队组织树与关系调整；既有工作台、模板、团队、知识库及项目演示保留，具体模拟范围见 README | v0.6 产品内部复评通过，待用户确认；此前静态原型通过不等同整体需求可开发或真实后端验证 |
 | `features/digital-employee-team/product_proposal.md` | 历史产品探索、用户讨论和公开竞品调研记录，当前功能与开放事项转由需求分析维护 | v0.2 历史探索稿 |
 | `02-architecture.md` | 总体架构、核心机制（总线/审批/扇出）、模块设计、时序 | v1.3 |
 | `03-test-cases.md` | 测试用例全集（TC-* 22 组）+ §23 浏览器黑盒 E2E 执行记录 | v1.2 |
@@ -19,6 +20,8 @@
 | `05-deploy.md` | 一键部署手册 + 故障速查（全部来自真实事故） | v1.1 |
 
 现有 `02/03/04/05` 记录现有系统设计、历史测试和部署，不构成数字员工团队新能力已经设计、实现或验收的依据。待新业务边界与技术方案明确后，按实际影响同步版本及需求追溯。
+
+联合产品/系统评审仍有模板/关系版本采用、等待与恢复、知识派生内容可见性及真实执行/隔离/版本集成等缺口；不能仅凭原型评估或候选字段齐全宣布整体可开发。
 
 ## 维护规则
 
