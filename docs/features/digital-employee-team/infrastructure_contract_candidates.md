@@ -1,6 +1,6 @@
 # 通用数字员工团队基础设施：数据与接口候选
 
-日期：2026-11-17；版本：v0.3；状态：设计输入草案，已同步 D24～D28，未经技术设计批准。
+日期：2026-11-17；版本：v0.4；状态：设计输入草案，已同步 D24～D31，未经技术设计批准。
 
 本文服务于[需求分析](requirement_analysis.md)。以下字段、存储职责及 HTTP 路径用于检查需求是否完整，均非已批准的数据库、API 或架构契约；实现前由系统设计师评估，不能据此直接创建表或开工。
 
@@ -12,10 +12,12 @@
 - 草稿、当前有效版本、运行采用的版本快照分别存在。当前运行是否应用新版本、如何迁移上下文仍未决定；本草案不默认热更新，也不替用户决定一律仅下次生效。
 - 上下级用于拿不准问题的逐级评估，监督关系用于检查工作；两者分开。逐级升级不等于每个步骤都必须审批，未答复也不等于同意。
 - 所有跨对象引用校验归属与访问权；历史执行、失败、决定和引用过的版本不能因修改定义而被覆盖。聊天不能替代任务、动作、产物和决定事实。
-- 数字员工入口管理可复用模板及 Skills；团队入口管理本团队的实际员工。实际员工只有一个 team_id（界面可映射为 teamId）；同模板在其他团队创建新的员工 ID，不能把同一员工身份挂接多个团队。
+- 数字员工入口管理可复用模板及 Skills；团队首页展示可进入的团队摘要，进入详情后管理本团队实际员工、项目库等内容，首页不直接铺开员工明细。实际员工只有一个 team_id（界面可映射为 teamId）；同模板在其他团队创建新的员工 ID，不能把同一员工身份挂接多个团队。
 - 工作台（原概览）以团队群聊为核心，右侧呈现团队状态与切换，不设置独立运行记录/我的待办顶级页面。内部运行、动作、证据及决定资源继续保留，在群聊按需展开。
 - 模板与 Skills 更新对既有员工的同步策略仍待 Q-07；当前模板版本、实际员工工作版本与运行采用版本分开。已读 @消息不等于决定或应用变更。
 - 模板创建支持多轮对话和持续修订的草稿预览；保存时保留采用草稿及其对话来源。生成反馈、草稿更新与用户明确保存分别识别，不把本地预置原型当作真实模型能力。
+- 团队项目库包含多个项目，保存文档版本、需求和版本协作关系；项目库嵌在团队内，不新增主导航。项目、文档、需求和工作分支引用校验团队归属。
+- 版本工具接入、仓库映射、合并授权和冲突政策仍待 Q-08/Q-09，不预设 Git 服务商或固定审批流；并行需求的上下文、基线及写入空间分别识别。无代码仓库的业务工作仍可运行。
 
 ## 2. 类型、公共字段与版本语义
 
@@ -48,6 +50,7 @@
 | 实际员工 | `team_id`, `source_template_revision_ref`, `working_revision_ref` | `ID`, `Ref?`, `Ref` | 团队/工作版本是 | employeeId 只对应一个 team_id；同模板在不同团队创建新 ID，不共享员工上下文。同一 team_id 可有多名员工，不能误作 team_id 全表唯一约束 |
 | 实际员工工作版本 | `work_prompt`, `skill_version_refs`, `responsibility_scope`, `context_refs` | `Text`, `List<Ref>`, `Text`, `List<Ref>` | 是；列表可为空 | 保存本员工实际采用的指令和 Skills；模板更新不自动覆盖，变更来源与同步规则见 Q-07 |
 | 团队版本 | `team_prompt`, `employee_revision_refs`, `relationship_revision_refs` | `Text`, `List<Ref>`, `List<Ref>` | 是 | 仅引用 team_id 属于本团队的实际员工；岗位、数量及协作方式开放 |
+| 团队简介与摘要 | `name`, `description`, `member_count`, `project_refs` | `String`, `Text?`, `Int`, `List<Ref>` | 名称与派生摘要是，描述可空 | 用户维护开放简介，可表达产品/模块或其他工作范围；人数和负责项目由本团队归属事实派生，不用客户端任填计数，也不作为岗位/行业限制 |
 | 上下级关系 | `team_revision_ref`, `subordinate_employee_ref`, `superior_employee_ref` | `Ref`, `Ref`, `Ref` | 是 | 同团队的实际员工，不自指、不成环；是否允许多个上级待定 |
 | 上下级关系 | `scope_description`, `source_revision_ref` | `Text`, `Ref` | 是 | 明确评估范围和关系来源；不因职位名称推断层级 |
 | 监督关系 | `team_revision_ref`, `reviewer_employee_ref`, `subject_employee_ref` | `Ref`, `Ref`, `Ref` | 是 | 校验同团队实际身份；监督可双向，不套用上下级无环约束 |
@@ -61,6 +64,15 @@
 | 生成操作 | `requested_by`, `request_prompt`, `input_refs`, `model_config_ref`, `state`, `candidate_refs` | `ActorRef`, `Text`, `List<Ref>`, `Ref?`, `OpenState`, `List<Ref>` | 除模型配置引用外是 | 追溯模板/团队/员工候选及失败；由用户发起或明确采用，模板生成不自动创建实际员工 |
 | 模板生成对话 | `initiator_user_ref`, `turn_refs`, `current_draft_revision_ref`, `state` | `ActorRef(user)`, `List<Ref>`, `Ref?`, `OpenState` | 除尚未产生的草稿外是 | 支持用户持续补充和修订，不规定固定轮数；保存与取消分别记录 |
 | 模板生成轮次 | `conversation_ref`, `speaker`, `content_ref`, `input_draft_revision_ref`, `output_draft_revision_ref` | `Ref`, `ActorRef`, `Ref`, `Ref?`, `Ref?` | 前三项是 | 保留用户要求和生成反馈；失败轮次不能伪报产出新草稿，用户来源由认证上下文确定 |
+| 团队项目 | `team_id`, `name`, `description`, `lifecycle` | `ID`, `String`, `Text?`, `OpenState` | 除描述外是 | 一个团队多个项目；projectId 归属明确，不跨团队复用项目上下文；不要求每个业务任务都关联项目 |
+| 项目文档 | `project_ref`, `title`, `current_version_ref`, `requirement_refs` | `Ref`, `String`, `Ref?`, `List<Ref>` | 项目/标题是，关联列表可为空 | 归档文档容器与确定内容版本分开；文档可关联项目内需求，不因归档自动获批准 |
+| 项目文档版本 | `document_ref`, `version_no`, `content_ref`, `provenance`, `change_summary`, `based_on_ref` | `Ref`, `Int`, `Ref`, `Object`, `Text`, `Ref?` | 除初版基线外是 | 保存内容、作者/来源和修订，不覆盖已被引用的版本；与需求/评审绑定具体版本 |
+| 项目需求 | `project_ref`, `objective`, `baseline_version_refs`, `parent_requirement_ref`, `state` | `Ref`, `Text`, `List<Ref>`, `Ref?`, `OpenState` | 除父需求外是 | 同项目可多需求并行；目标和业务阶段开放，基线包含适用文档或代码版本 |
+| 需求工作上下文 | `requirement_ref`, `input_version_refs`, `branch_refs`, `execution_context_ref` | `Ref`, `List<Ref>`, `List<Ref>`, `Ref?` | 需求/列表是，列表可为空 | 资料、分支与执行空间和需求关联；实际并行写入须有隔离安排，不能静默共用会互相覆盖的工作区 |
+| 版本工具/仓库绑定 | `project_ref`, `connection_ref`, `external_repository_ref`, `state` | `Ref`, `Ref?`, `Ref?`, `OpenState` | 项目/状态是 | 评估输入可未接入；实际操作前核实工具和访问条件，不存明文密钥，不预设服务商或项目-仓库一对一 |
+| 工作分支记录 | `project_ref`, `repository_binding_ref`, `external_branch_ref`, `head_version_ref`, `requirement_refs` | `Ref`, `Ref?`, `Ref?`, `Ref?`, `List<Ref>` | 项目/需求列表是 | 草稿引用不代表分支已真实创建；操作绑定实际仓库/分支/版本。命名与需求-分支映射不固定，校验同团队项目范围 |
+| 集成尝试 | `project_ref`, `requirement_refs`, `source_version_refs`, `target_version_ref`, `state` | `Ref`, `List<Ref>`, `List<Ref>`, `Ref`, `OpenState` | 是 | 绑定明确来源与目标版本，受理/检查中/冲突/失败/未知/集成成功分别识别；意图不证明已合并 |
+| 集成尝试 | `authorization_basis_ref`, `check_evidence_refs`, `conflict_refs`, `result_version_ref`, `source_action_ref` | `Ref?`, `List<Ref>`, `List<Ref>`, `Ref?`, `Ref?` | 列表是，可为空 | 合并授权与冲突政策见 Q-09；实际成功须有版本工具结果，检查与决定不覆盖失败事实 |
 
 ## 4. 运行、任务、通信与真实动作
 
@@ -70,6 +82,7 @@
 | 流程运行 | `manager_user_ref` | `ActorRef(user)` | 是 | 明确最终接收升级事项的人类管理者并校验空间访问权；可由发起上下文解析并保存，不从 `created_by` 或空间成员列表任意猜测 |
 | 流程运行 | `effective_snapshot_ref`, `state`, `current_plan_ref` | `Ref`, `OpenState`, `Ref?` | 前两项是 | 快照含有效员工/组织/规则引用；运行中计划可调整，规则变更另走用户决定 |
 | 流程运行 | `budget_context`, `blocker_refs`, `started_at`, `ended_at` | `Object?`, `List<Ref>`, `Time?`, `Time?` | 阻塞列表是，可为空 | 限额、等待规则待定；运行结束、结果验证、用户接受分别识别 |
+| 流程运行 | `project_ref`, `requirement_ref`, `requirement_context_ref` | `Ref?`, `Ref?`, `Ref?` | 对关联项目需求工作条件必填 | 校验与运行 team_id 一致；具体需求采用确定上下文，不将无项目业务工作强行绑定仓库 |
 | 运行计划版本 | `run_ref`, `plan_content`, `basis_refs`, `supersedes_ref` | `Ref`, `Object`, `List<Ref>`, `Ref?` | 除替代引用外是 | 记录模型动态安排及依据；内容不限定业务步骤或固定员工顺序 |
 | 员工运行实例 | `run_ref`, `employee_ref`, `employee_revision_ref` | `Ref`, `Ref`, `Ref` | 是 | 引用本团队实际员工及采用版本，不引用全局可复用员工席位；实例不改变 team_id |
 | 员工运行实例 | `state`, `context_refs`, `execution_context_ref` | `OpenState`, `List<Ref>`, `Ref?` | 前两项是 | 沙箱/工作区映射及并行实例数待设计，不预设一员工一沙箱 |
@@ -144,9 +157,9 @@
 | POST | `P/employee-templates/{id}/skills/{skillId}/revisions` | 用户修改 Skill | 模板/Skill 基线、修改内容 → 新 Skill 及模板版本引用 | K+V；保留既有采用来源，同步规则见 Q-07 |
 | POST | `P/employee-templates/{id}/skill-removals` | 用户移除模板中的 Skill 引用 | 模板基线、Skill 引用 → 新模板版本 | K+V；不删除已被实际员工或运行引用的历史内容 |
 | POST | `P/employee-templates/{id}/deactivation` | 用户停用模板 | 原因、当前版本 → 状态/影响范围 | K+V；既有员工和历史运行不因此删除 |
-| POST / GET | `P/teams` | 用户创建团队/列团队 | 团队 Prompt、用户决定或游标 → 团队/列表 | 写入 K；不固化岗位或数量，不挂接跨团队实际员工 |
+| POST / GET | `P/teams` | 用户创建团队/列团队摘要 | 名称、开放简介、团队 Prompt、用户决定或游标 → 团队/摘要列表 | 写入 K；摘要可含负责项目、人数及产品/模块描述，归属摘要由实际事实派生；首页不默认展开员工明细，不固化岗位或数量 |
 | GET | `P/teams/{id}`、`P/teams/{id}/revisions` | 查看团队及历史组织快照 | ID/游标 → 本团队员工、版本、关系 | 只读；可引用模板来源，实际员工只有本团队归属 |
-| POST | `P/teams/{id}/revisions` | 用户调整团队 Prompt 与配置 | 基线、Prompt、关系/责任要求 → 新版本 | K+V；长期配置变更不等于运行重规划 |
+| POST | `P/teams/{id}/revisions` | 用户调整团队简介、Prompt 与配置 | 基线、名称/开放简介、Prompt、关系/责任要求 → 新版本 | K+V；区分简介资料与实际工作指令，不因改简介自动修改流程；长期配置变更不等于运行重规划 |
 | POST / GET | `P/teams/{id}/employees` | 用户从模板创建实际员工/列团队员工 | 模板版本或明确生成要求、姓名/配置、用户决定或游标 → 新 employeeId、唯一 teamId、工作版本 | 写入 K；每次创建新身份，不接受其他团队 employeeId 作为挂接来源 |
 | GET | `P/teams/{id}/employees/{employeeId}`、`P/teams/{id}/employees/{employeeId}/revisions` | 查看本团队实际员工及采用版本 | 团队/员工 ID、游标 → 工作 Prompt、Skills、模板来源、版本 | 校验唯一归属；不将模板更新误作本员工已采用 |
 | POST | `P/teams/{id}/employees/{employeeId}/revisions` | 用户调整实际员工工作配置 | 当前员工基线、修改内容/决定 → 新工作版本 | K+V；仅修改该员工，不改变模板或其他同源员工 |
@@ -157,6 +170,15 @@
 | POST | `P/teams/{id}/messages/{messageId}/read-receipts` | 记录已读 | 消息/阅读位置 → 阅读记录 | K；只更新阅读，不解决问题或应用变更 |
 | GET | `P/mentions` | 工作台 @我 聚合与定位 | 当前用户、团队、状态、游标 → 消息、团队及关联事项 | 只读；定位回对应群聊，不要求独立待办页面 |
 | POST | `P/mentions/{id}/processing-records` | 记录明确处理进展或关联实际决定 | 当前状态、处理说明、决定/事项引用 → 处理记录 | K+V；已读不算决定，标记处理不能代替具体决定或应用事实 |
+| POST / GET | `P/teams/{id}/projects` | 登记团队项目/查询项目库 | 项目名称、目标/资料或游标 → 项目/列表 | 写入 K；一个团队多个项目，不新增顶级页面 |
+| GET | `P/teams/{id}/projects/{projectId}` | 查看项目资料与工作关联 | 团队/项目 ID → 文档、需求、版本协作摘要 | 只读，校验团队归属；链接回具体内容版本和事实 |
+| POST / GET | `P/teams/{id}/projects/{projectId}/documents` | 归档项目文档/列表 | 标题、内容引用、来源、关联需求或游标 → 文档/初始版本 | 写入 K；实际内容不可取得时不伪报归档成功 |
+| POST / GET | `P/project-documents/{id}/versions` | 新增文档版本/查修订历史 | 文档基线、内容、修订说明或游标 → 确定版本/历史 | 写入 K+V；校验归属，不覆盖旧内容或把旧评审当新版本通过 |
+| POST / GET | `P/teams/{id}/projects/{projectId}/requirements` | 建立并行需求/查询需求 | 需求目标、适用基线或游标 → 需求/进展与版本引用 | 写入 K；在有效流程内可动态拆分，不固定研发阶段 |
+| POST | `P/project-requirements/{id}/work-contexts` | 建立需求隔离工作上下文 | 输入版本、分支/执行空间安排 → 需求上下文引用 | K+V；上下文属于原团队项目，不静默串用其他需求写入空间 |
+| POST / GET | `P/teams/{id}/projects/{projectId}/version-bindings` | 配置/查询版本工具与仓库引用候选 | 可用工具/仓库引用或游标 → 接入状态及缺口 | 写入 K+V；服务商、账号及仓库映射见 Q-08，不等于已经接通 Git |
+| POST / GET | `P/teams/{id}/projects/{projectId}/branches` | 建立版本工作操作/查询分支状态 | 需求、基线、分支要求或游标 → 动作/分支及实际结果引用 | 写入 K+V；不固定分支名称，受理不表示分支已真实创建 |
+| POST / GET | `P/teams/{id}/projects/{projectId}/integrations` | 提出集成操作/查询结果 | 来源/目标版本、需求、检查和授权依据或游标 → 集成尝试/冲突/结果引用 | 写入 K+V+A；具体合并授权与冲突政策待 Q-09，不默认全自动或全人工审批 |
 | POST | `P/workflow-generations` | 依据用户 Prompt 生成流程候选 | Prompt、团队/上下文引用 → 操作/草稿 | K；不预设行业阶段 |
 | POST / GET | `P/workflows` | 用户保存流程草稿/列流程 | Prompt/候选引用或游标 → 定义/列表 | 写入 K；保存不自动应用 |
 | GET | `P/workflows/{id}`、`P/workflows/{id}/revisions` | 查看流程与历史 | ID/游标 → 原 Prompt、解释、版本 | 只读 |
@@ -205,6 +227,8 @@
 6. HTTP 资源拆分、认证委托、字段/状态注册、分页、错误码、数据保留与原有会话/CLI 兼容；本附录不授权删除旧能力。
 7. 模板/Skills 变更对既有实际员工的同步范围、冲突和用户决定（Q-07）；不能保存模板后默认热改所有同源员工。唯一团队归属已由 D26 明确，不作为待定项重开。
 8. 群聊中的进展/空闲摘要口径、@我 提示与已读/处理状态，以及卡片如何展开运行和证据；界面收敛已由 D24 明确，不再要求独立运行记录或我的待办入口。
+9. 团队项目库的文档存储与版本完整性、项目-仓库映射、Git 服务商/连接条件及分支与工作空间映射（Q-08）；多需求并行隔离必须有实际依据，不仅添加名称标签。
+10. 集成执行者及授权依据、检查与冲突处理、来源/目标版本变动和未知结果的核实策略（Q-09）；不以某员工职称、原型按钮或上级评估自动取得合并权限。
 
 ## 9. 变更记录
 
@@ -212,3 +236,4 @@
 | --- | --- |
 | v0.2 / 2026-11-17 | 按 D24～D26 将可复用模板/Skills 与团队唯一归属实际员工分开；新增团队群聊、空闲摘要、mentions 和阅读/处理候选，取消全局员工跨团队挂接及独立待办入口假设；内部运行与证据资源保留，字段/API 尚待技术评审 |
 | v0.3 / 2026-11-17 | 按 D27/D28 补模板生成对话、多轮来源、当前草稿和明确保存引用及候选接口；用户入口改名工作台，现有内部运行语义不变；未批准技术契约或模板自动同步规则 |
+| v0.4 / 2026-11-17 | 按 D29～D31 补团队项目、文档版本、并行需求上下文、分支/版本工具与集成候选；团队列表提供摘要，详情管理员工与项目库，三主导航不变；服务商/仓库映射/合并冲突政策未定，未执行真实 Git 操作 |

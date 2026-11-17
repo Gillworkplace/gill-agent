@@ -8,10 +8,10 @@
 
 | 文件 | 内容 | 当前版本 |
 |---|---|---|
-| `01-requirements.md` | 统一目标基线：D18～D28；含通用团队、模板 Skills、实际员工唯一归属、多轮模板对话与工作台布局/命名 | v1.10 |
-| `features/digital-employee-team/requirement_analysis.md` | 当前专题细化基线：工作台群聊/@我、持续对话模板草稿、Skills 与团队专属员工，以及内部执行监督和恢复 | v0.3 Draft |
-| `features/digital-employee-team/infrastructure_contract_candidates.md` | 模板生成多轮来源、Skills、实际员工唯一 teamId、团队群聊/mentions 和内部运行字段/API 候选，不是已批准契约 | v0.3 设计输入草案 |
-| `features/digital-employee-team/prototype/index.html`、`prototype/README.md` | 已按用户对 v0.2 的反馈突出工作台对话、右置团队状态，并支持持续对话修订模板草稿、预览和明确保存；多轮来源、模拟范围与实际走查见 README | v0.3 产品内部评估通过；用户尚未确认本版，不代表真实模型或后端验证 |
+| `01-requirements.md` | 统一目标基线：D18～D31；团队摘要/详情、多项目文档库与多需求并行，保留通用团队及工作台原则 | v1.11 |
+| `features/digital-employee-team/requirement_analysis.md` | 专题基线：模板/Skills、团队群聊与员工、团队项目文档库、需求隔离及版本集成、内部执行监督和恢复 | v0.4 Draft |
+| `features/digital-employee-team/infrastructure_contract_candidates.md` | 模板/团队/群聊及项目、文档版本、需求上下文、版本工具与集成字段/API 候选，尚非批准契约 | v0.4 设计输入草案 |
+| `features/digital-employee-team/prototype/index.html`、`prototype/README.md` | v0.4 团队首页摘要含负责项目/人数/开放简介，详情内管理成员与项目库；演示文档版本和多需求版本协作，三主导航与工作台对话核心保持，具体模拟范围见 README | v0.4 产品内部评估通过，待用户确认；不代表真实 Git、模型或后端验证 |
 | `features/digital-employee-team/product_proposal.md` | 历史产品探索、用户讨论和公开竞品调研记录，当前功能与开放事项转由需求分析维护 | v0.2 历史探索稿 |
 | `02-architecture.md` | 总体架构、核心机制（总线/审批/扇出）、模块设计、时序 | v1.3 |
 | `03-test-cases.md` | 测试用例全集（TC-* 22 组）+ §23 浏览器黑盒 E2E 执行记录 | v1.2 |
