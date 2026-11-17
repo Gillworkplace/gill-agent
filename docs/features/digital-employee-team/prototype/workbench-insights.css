@@ -1,0 +1,65 @@
+/* v0.7: actionable team digests and version-bound decision/delivery evidence. */
+.workbench-team { min-width: 0; margin-bottom: 11px; border: 1px solid #e6ebf4; border-radius: 10px; background: #fff; }
+.workbench-team.active { border-color: #cbdafc; background: #f7f9ff; }
+.workbench-team .channel, .workbench-team .channel.active { padding: 13px 11px 9px; margin: 0; border: 0; border-radius: 9px 9px 0 0; background: transparent; }
+.workbench-team .channel:hover { background: #f3f7ff; }
+.workbench-team .channel-icon { width: 28px; height: 28px; }
+.workbench-digest { min-width: 0; padding: 0 12px 12px; }
+.digest-row { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 7px; padding: 4px 0; color: #536781; font-size: 11px; line-height: 1.8; overflow-wrap: anywhere; }
+.digest-label { color: #6e8097; font-size: 10px; }
+.digest-current, .digest-next, .digest-blocker { min-width: 0; overflow-wrap: anywhere; }
+.digest-blocker { color: #94764b; }
+.digest-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding-top: 8px; margin-top: 6px; border-top: 1px solid #eaf0f8; color: #6e8097; font-size: 10px; }
+.digest-meta small { flex-basis: 100%; font-size: 10px; }
+.digest-actions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
+.digest-actions .btn { min-height: 29px; padding: 5px 6px; font-size: 10px; }
+.digest-actions .icon, .digest-meta .icon { width: 12px; height: 12px; }
+.decision-evidence-card { min-width: 0; padding: 15px; margin-top: 13px; border: 1px solid #d9e4fb; border-radius: 9px; background: #fff; color: #536781; }
+.decision-question { margin-bottom: 12px; color: #526889; font-size: 14px; font-weight: 600; line-height: 1.8; }
+.decision-evidence-card .decision-question { color: #526889; font-size: 14px; }
+.decision-evidence-card h3, .decision-evidence-card h4 { margin: 12px 0 7px; color: #6b7e98; font-size: 11px; }
+.decision-evidence-card p, .decision-evidence-card li { font-size: 12px; line-height: 1.9; }
+.decision-context { margin: 10px 0; color: #8794a8; font-size: 11px; }
+.decision-context ul { padding-left: 18px; margin: 8px 0; }
+.decision-options { display: flex; flex-direction: column; gap: 9px; margin: 12px 0; }
+.decision-option { min-width: 0; padding: 11px 12px; border: 1px solid #e5ebf5; border-radius: 8px; background: #fbfcff; font-size: 11px; line-height: 1.9; overflow-wrap: anywhere; }
+.decision-option b { color: #5d7292; }
+.decision-option .btn { margin-top: 8px; }
+.decision-cost { margin-top: 4px; color: #6e8097; font-size: 11px; }
+.decision-impact { padding: 10px 12px; margin: 12px 0; border-left: 3px solid #ddbf86; border-radius: 0 6px 6px 0; background: #fffcf6; color: #927b53; font-size: 11px; line-height: 1.9; }
+.decision-receipt { padding: 12px; margin: 12px 0; border: 1px solid #dce9e3; border-radius: 8px; background: #f7fcf9; color: #698c7b; font-size: 11px; line-height: 1.9; }
+.decision-evidence-card .decision-actions { margin-top: 13px; }
+.decision-evidence-card details { margin-top: 12px; }
+.decision-evidence-card summary { color: #8394b0; font-size: 10px; cursor: pointer; }
+.delivery-card { min-width: 0; padding: 13px; margin-top: 13px; border: 1px solid #dfe7f4; border-radius: 9px; background: #fff; color: #667b98; }
+.delivery-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.delivery-card-head > div { flex: 1; min-width: 0; }
+.delivery-card-head > span:first-child { flex: 1; min-width: 0; }
+.delivery-card-head b, .delivery-card-head h3 { color: #5c7395; font-size: 12px; line-height: 1.8; }
+.delivery-card-head .badge { flex-shrink: 0; }
+.delivery-meta { display: flex; flex-wrap: wrap; gap: 6px 12px; padding: 8px 0; color: #98a6ba; font-size: 9px; line-height: 1.8; }
+.delivery-checks { padding-top: 10px; margin-top: 3px; border-top: 1px solid #edf1f7; color: #8191a8; font-size: 10px; line-height: 1.9; }
+.delivery-checks p { font-size: 10px; }
+.delivery-limits { padding: 8px 10px; margin: 9px 0; border-radius: 6px; background: #fffaf1; color: #a28b61; font-size: 10px; line-height: 1.8; }
+.delivery-card .decision-actions { margin-top: 11px; }
+.delivery-version-tabs { display: flex; flex-wrap: wrap; gap: 7px; padding: 12px 0; margin-bottom: 12px; border-bottom: 1px solid var(--line); }
+.delivery-version-tabs .active { border-color: #c5d6fb; background: #f1f6ff; color: var(--blue); }
+.delivery-section { padding: 0 0 17px; margin: 17px 0; border-bottom: 1px solid var(--line); }
+.delivery-section h3 { margin-bottom: 11px; color: #617795; font-size: 12px; }
+.delivery-section p, .delivery-section li { color: #60718a; font-size: 12px; line-height: 1.9; }
+.delivery-section ul { padding-left: 18px; margin: 8px 0; }
+.delivery-section pre, .delivery-compare pre { max-width: 100%; padding: 13px; border: 1px solid #e6edf6; border-radius: 7px; background: #f9fbfd; color: #7284a0; font: 11px/1.9 system-ui, 'PingFang SC', sans-serif; white-space: pre-wrap; overflow-wrap: anywhere; }
+.delivery-compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 18px 0; }
+.delivery-compare > section, .delivery-compare > div { min-width: 0; padding: 13px; border: 1px solid #e4eaf4; border-radius: 8px; background: #fbfcff; }
+.delivery-compare h3 { margin-bottom: 10px; color: #6a7e9c; font-size: 12px; }
+@media (max-width: 768px) {
+  .decision-evidence-card { padding: 12px; }
+  .decision-evidence-card .decision-question { font-size: 13px; }
+  .decision-option { padding: 10px; }
+  .decision-evidence-card .decision-actions .btn { white-space: normal; }
+  .delivery-card { padding: 11px; }
+  .delivery-card-head { gap: 7px; }
+  .delivery-compare { grid-template-columns: 1fr; }
+  .workbench-team .channel { padding: 13px 12px 9px; }
+  .digest-row { font-size: 11px; }
+}

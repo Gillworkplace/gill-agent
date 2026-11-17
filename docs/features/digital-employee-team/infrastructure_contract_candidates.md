@@ -1,6 +1,6 @@
 # 通用数字员工团队基础设施：数据与接口候选
 
-日期：2026-11-17；版本：v0.6；状态：设计输入草案，已同步 D24～D35；联合评审仍有身份、版本、等待恢复及访问语义缺口，未经技术设计批准。
+日期：2026-11-17；版本：v0.7；状态：设计输入草案，已同步 D24～D36；联合评审仍有身份、版本、等待恢复及访问语义缺口，未经技术设计批准。
 
 本文服务于[需求分析](requirement_analysis.md)。以下字段、存储职责及 HTTP 路径用于检查需求是否完整，均非已批准的数据库、API 或架构契约；实现前由系统设计师评估，不能据此直接创建表或开工。
 
@@ -20,6 +20,8 @@
 - 版本工具接入、仓库映射、合并授权和冲突政策仍待 Q-08/Q-09，不预设 Git 服务商或固定审批流；并行需求的上下文、基线及写入空间分别识别。无代码仓库的业务工作仍可运行。
 - 知识对 Agent 只读，人追加内容版本后更新共享源，所有已挂载员工可见。挂载仅记录 employeeId 与知识源，不以 teamId 授权，同队或同模板新员工不自动继承；不同团队员工可各自显式挂载同一源，不扩大其他资源访问权。
 - 工作台、模板与团队入口保留，知识库新增入口；团队“员工知识”只按本队逐员工汇总挂载。知识源当前版本与实际读取/采用事实分开，采用、卸载影响见 Q-10，并发写入/模板迭代策略见 Q-11。
+
+- D36 仅补工作台决策上下文、交付证据及右侧摘要的关键读模型；复用已有消息、动作、产物和决定事实，不新增独立待办/运行服务，也不据展示卡片定稿等待、恢复、采用或成本政策。
 
 ## 2. 类型、公共字段与版本语义
 
@@ -98,11 +100,13 @@
 | 任务 | `input_version_refs`, `dependency_refs`, `expected_outputs`, `blocker_refs` | `List<Ref>`, `List<Ref>`, `Text?`, `List<Ref>` | 列表是，可为空 | 依赖引用明确对象；相互等待可被发现，不能静默标完成 |
 | 任务安排记录 | `task_ref`, `operation`, `before_ref`, `after_ref`, `reason` | `Ref`, `String`, `Ref?`, `Ref`, `Text` | 除前态外是 | 记录分派、改派、拆分及计划调整；不自动成为修改员工/流程的权力 |
 | 团队群聊 | `team_id`, `last_message_ref`, `progress_summary`, `availability_summary`, `observed_at` | `ID`, `Ref?`, `Object?`, `Object?`, `Time?` | 团队是 | 工作台按团队展示群聊与进展/空闲状态；未知或过期不能伪作空闲，统计口径见 Q-05 |
+| 团队工作摘要（展示投影） | `goal_summary`, `current_work_summary`, `blocker_summary`, `next_step_summary`, `observed_at`, `source_refs`, `freshness_state` | `Text?`, `Text?`, `Text?`, `Text?`, `Time?`, `List<Ref>`, `OpenState` | 来源列表/数据状态是；未知字段可空并注明 | 按当前团队事实汇总；区分未知/过期与真实空闲，来源时间不因点击或重绘刷新；统计/过期口径见 Q-05，下一步不代表已执行 |
 | 通信消息 | `team_id`, `run_ref`, `sender`, `recipient_refs`, `content`, `related_refs` | `ID`, `Ref?`, `ActorRef`, `List<Ref>`, `Text`, `List<Ref>` | 除运行引用外是；列表可为空 | 普通群聊可尚无运行；实际员工身份与 team_id 相符，用户/系统来源真实，工作卡片关联内部事实 |
 | 通信消息 | `message_kind`, `delivery_state`, `reply_to_ref`, `correlation_id` | `String`, `OpenState`, `Ref?`, `ID?` | 前两项是 | 已发送、已送达、已响应分开；普通聊天不隐式授予决定权 |
 | 消息阅读记录 | `message_ref`, `reader`, `read_at` | `Ref`, `ActorRef`, `Time` | 是 | 只证明消息已读，不生成决定、不关闭问题或应用配置 |
 | @我事项 | `message_ref`, `team_id`, `mentioned_user_ref`, `subject_ref`, `processing_state` | `Ref`, `ID`, `ActorRef(user)`, `Ref?`, `OpenState` | 除事项引用外是 | 关联升级、建议或需关注的工作；已读与处理状态分开，处理决定仍引用对应事实 |
 | @我事项 | `decision_ref`, `handled_at`, `handling_note` | `Ref?`, `Time?`, `Text?` | 否 | 决定、仅关注/回复和变更应用分别识别，不因读过消息默认同意 |
+| @我决策上下文（条件展示） | `problem`, `attempt_refs`, `assessment_refs`, `options`, `known_costs`, `impact_scope`, `requested_decision`, `source_refs`, `missing_context` | `Text`, `List<Ref>`, `List<Ref>`, `List<Object>`, `Object?`, `Text?`, `Text`, `List<Ref>`, `List<Text>` | 决策类事项的问题/所需决定及列表是，列表可空；缺失须说明 | 关联真实尝试、逐级意见和当前版本；候选/代价未知不编造。普通聊天不强制填写，读过不决定，回复不证明已执行或恢复 |
 | 执行动作/尝试 | `run_ref`, `task_ref`, `actor`, `operation`, `input_refs` | `Ref`, `Ref?`, `ActorRef`, `String`, `List<Ref>` | 除任务引用外是 | 工具动作、通信或其他开放动作；不按岗位给工具白名单 |
 | 执行动作/尝试 | `execution_state`, `correlation_id`, `idempotency_key`, `external_operation_ref` | `OpenState`, `ID`, `String?`, `Ref?` | 前两项是 | 必须可区分未执行/执行中/成功/失败/取消/`unknown`；未知不等于失败 |
 | 执行动作/尝试 | `result_refs`, `error_fact`, `started_at`, `ended_at`, `reconciles_ref` | `List<Ref>`, `Object?`, `Time?`, `Time?`, `Ref?` | 结果列表是，可为空 | 恢复先核对外部状态；补查通过新事实解释旧 unknown，不抹掉历史 |
@@ -114,6 +118,7 @@
 | --- | --- | --- | --- | --- |
 | 产物版本 | `artifact_id`, `version_no`, `kind`, `content_ref` | `ID`, `Int`, `String`, `Ref` | 是 | 任意工作产物，不限定文档/代码；引用某次确定内容而非只用可移动名称 |
 | 产物版本 | `run_ref`, `producer_ref`, `input_version_refs`, `content_hash` | `Ref`, `ActorRef`, `List<Ref>`, `String?` | 除哈希外是 | 记录来源和依赖；文件、外部对象或结构化内容均可，完整性按介质设计 |
+| 交付证据摘要（展示投影） | `target_version_ref`, `check_evidence_refs`, `execution_state`, `unverified_scope`, `remaining_issue_refs`, `source_refs` | `Ref`, `List<Ref>`, `OpenState`, `List<Text>`, `List<Ref>`, `List<Ref>` | 展示明确交付版本时是；列表可空并说明未取得/未执行 | 从产物、动作、检查和问题事实投影；判断、实际验证和接受决定分开，失败/未知/未执行不显示通过，不用 A 版证据覆盖 B 版 |
 | 验证证据 | `target_version_refs`, `source_action_ref`, `method`, `observed_result` | `List<Ref>`, `Ref?`, `String`, `OpenState` | 除动作引用外是 | 说明观察方式；人工提供、工具验证、模型判断和未验证需可区分 |
 | 验证证据 | `raw_content_ref`, `execution_context_ref`, `observed_at`, `limitations` | `Ref`, `Ref?`, `Time`, `Text?` | 原始依据/时间是 | 证据对应具体版本；失败、无法取得和未验证不能被互评改成成功 |
 | 评审记录 | `run_ref`, `reviewer`, `target_version_refs`, `criteria_refs`, `evidence_refs` | `Ref`, `ActorRef`, `List<Ref>`, `List<Ref>`, `List<Ref>` | 是；后两列表可为空但须说明依据 | 监督不限产物，还可针对任务、动作和流程执行事实 |
@@ -181,10 +186,10 @@
 | POST | `P/knowledge-mounts/{id}/unmounts` | 人卸载指定员工知识 | 挂载基线、原因 → 卸载记录及实际状态 | K+V；员工不可自行变更，旧读取事实保留，在途上下文影响见 Q-10 |
 | GET | `P/teams/{id}/employee-knowledge` | 人在团队详情查看逐员工知识 | 团队 ID/游标 → 本队实际员工及各自挂载摘要 | 只读管理视图；teamId 只选择展示员工，不形成知识授权或团队挂载关系 |
 | POST | `P/employees/{employeeId}/knowledge-reads` | 员工读取其已挂载知识 | 源/读取上下文 → 确定知识版本、内容/来源及读取记录 | 校验真实员工/实例和挂载，不把请求体身份当授权；失败不报已读，实际采用记录见 Q-10 |
-| GET | `P/team-chats` | 工作台聚合不同团队群聊 | 游标/当前用户 → 团队、最近消息、进展/空闲摘要、@我提示及来源时间 | 只读；未知不显示为空闲，汇总不替代原始事实 |
+| GET | `P/team-chats` | 工作台聚合不同团队群聊 | 游标/当前用户 → 团队、最近消息、目标/进展/阻塞/下一步/更新时间、数据新鲜度、@我提示和事实引用 | 只读；摘要关联实际事实，未知/过期不显示为空闲，打开界面不刷新来源时间，口径见 Q-05 |
 | POST / GET | `P/teams/{id}/messages` | 团队群聊发送和查询 | 内容、@对象、工作引用或游标 → 消息/送达状态/关联卡片 | 写入 K；普通讨论不强制 run_ref，来源由认证上下文确定 |
 | POST | `P/teams/{id}/messages/{messageId}/read-receipts` | 记录已读 | 消息/阅读位置 → 阅读记录 | K；只更新阅读，不解决问题或应用变更 |
-| GET | `P/mentions` | 工作台 @我 聚合与定位 | 当前用户、团队、状态、游标 → 消息、团队及关联事项 | 只读；定位回对应群聊，不要求独立待办页面 |
+| GET | `P/mentions` | 工作台 @我 聚合与定位 | 当前用户、团队、状态、游标 → 消息、团队、关联事项及适用决策上下文/缺失信息 | 只读；引用问题/尝试/逐级意见/候选代价/影响/所需决定，回对应群聊，不要求独立待办页面，不形成默认决定 |
 | POST | `P/mentions/{id}/processing-records` | 记录明确处理进展或关联实际决定 | 当前状态、处理说明、决定/事项引用 → 处理记录 | K+V；已读不算决定，标记处理不能代替具体决定或应用事实 |
 | POST / GET | `P/teams/{id}/projects` | 登记团队项目/查询项目库 | 项目名称、目标/资料或游标 → 项目/列表 | 写入 K；一个团队多个项目，不新增顶级页面 |
 | GET | `P/teams/{id}/projects/{projectId}` | 查看项目资料与工作关联 | 团队/项目 ID → 文档、需求、版本协作摘要 | 只读，校验团队归属；链接回具体内容版本和事实 |
@@ -233,6 +238,8 @@
 
 用户直接创建、调整或启用自己提出的具体配置时，允许一次明确操作同时记录用户决定和应用事实，不强制两次确认。群聊中的明确用户指令或处理卡片操作也可形成决定依据；普通阅读、收到提醒和员工代发消息不构成用户决定。运行中的版本采用及模板到既有员工的同步仍按待定规则处理；本候选不增加默认批量同步接口。需要自适应 API 的通用操作不等于任意写库权限，状态转换仍校验已确认的治理规则。
 
+D36 的交付证据通过既有产物版本、证据、问题与执行结果查询组合展示，不在本轮增加全套卡片服务或独立事实源。摘要读取、看证据和记录回复均不替代实际动作回执、暂停解除或恢复事实；联合评审 R-01～R-04 的未决业务政策继续有效。
+
 ## 8. 交给系统设计与产品继续明确的事项
 
 1. 当前运行采用新员工/团队/流程版本的方式、生效边界、冲突处理及用户可见影响；不能由员工建议自动触发。
@@ -260,3 +267,4 @@
 | v0.4 / 2026-11-17 | 按 D29～D31 补团队项目、文档版本、并行需求上下文、分支/版本工具与集成候选；团队列表提供摘要，详情管理员工与项目库，三主导航不变；服务商/仓库映射/合并冲突政策未定，未执行真实 Git 操作 |
 | v0.5 / 2026-11-17 | 按 D32～D34 补知识源不可变内容版本、逐 employeeId 挂载及读取事实、模板自迭代来源与候选接口；知识对 Agent 只读，团队视图不授权；共享源更新已确定，运行采用/卸载/并发恢复见 Q-10/Q-11；未批准技术契约或真实接入 |
 | v0.6 / 2026-11-17 | 按 D35 补组织关系树的上级 actor、调整草稿/基线/校验与保存候选；单直属上级为本版原型形式，监督关系独立，运行采用未定。补 Q-12 派生内容可见性与联合评审缺口，不将静态 guard 视为真实授权或整体可开发 |
+| v0.7 / 2026-11-17 | 按 D36 补决策上下文、交付证据摘要与右侧工作摘要关键字段；复用现有消息/mentions/产物/证据查询，不扩全套服务；未知/过期与真实空闲分开，读/回复不冒充决定执行或恢复，联合评审缺口保留 |
