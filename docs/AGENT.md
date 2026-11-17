@@ -2,14 +2,16 @@
 
 ## 职责
 
-五份核心文档是代码的**对等契约**：任何架构/接口/部署变更必须同步到本文档集并升版本号（AGENTS.md §9）。文档与代码不一致视同未完成。
+核心文档与专题需求共同承载需求和设计基线：任何架构/接口/部署变更必须同步到适用文档并升版本号（AGENTS.md §9）。草案、技术候选、已批准契约与已实现状态必须区分，文档与代码不一致视同未完成。
 
 ## 文档清单与版本链
 
 | 文件 | 内容 | 当前版本 |
 |---|---|---|
-| `01-requirements.md` | 统一目标基线：D18 数字员工团队新定位、D19 上下级逐级升级；保留 v1.5 需求供迁移评估 | v1.7（升级路径明确，其余机制待细化） |
-| `features/digital-employee-team/product_proposal.md` | D18/D19 产品方案：员工生成、Prompt 流程、模型运行、监督与逐级升级、竞品依据和未决事项 | v0.2 草案 |
+| `01-requirements.md` | 统一目标基线：D18～D23 通用数字员工团队基础设施、用户调整权、灵活度与逐级升级；保留旧需求供迁移评估 | v1.8 |
+| `features/digital-employee-team/requirement_analysis.md` | 当前专题细化基线：功能闭环、通用模型与接口域、依赖、非功能、开放事项、追溯与验收 | v0.1 Draft |
+| `features/digital-employee-team/infrastructure_contract_candidates.md` | 概念数据字段、存储职责和 HTTP 候选，不是已批准技术契约 | v0.1 设计输入草案 |
+| `features/digital-employee-team/product_proposal.md` | 历史产品探索、用户讨论和公开竞品调研记录，当前功能与开放事项转由需求分析维护 | v0.2 历史探索稿 |
 | `02-architecture.md` | 总体架构、核心机制（总线/审批/扇出）、模块设计、时序 | v1.3 |
 | `03-test-cases.md` | 测试用例全集（TC-* 22 组）+ §23 浏览器黑盒 E2E 执行记录 | v1.2 |
 | `04-lld.md` | 编码依据：目录树、DDL、REST/WS 协议、模块内部设计、错误矩阵 | v1.1 |
