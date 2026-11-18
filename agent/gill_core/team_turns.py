@@ -163,6 +163,9 @@ class TeamTurn:
                 receipt = intent.get("result", intent)
                 text, calls = receipt.get("answer", ""), receipt.get("toolCalls", [])
             elif intent["state"] == "dispatched":
+                self.context = await self.op("context")
+                for source in self.context.get("knowledge", []):
+                    self.read_knowledge[source["id"]] = source
                 try:
                     text, calls = await self.model_request()
                 except Exception as error:
@@ -302,6 +305,13 @@ class TeamTurn:
         :returns: Actual command/tool result dictionary.
         """
         name, args = call["name"], call["arguments"]
+        if name == "complete_task" and "artifact" in args:
+            if not isinstance(args["artifact"], dict):
+                raise ValueError("complete_task.artifact must be an object")
+            if set(args["artifact"]) - {"id", "expectedRevision", "title", "content", "unchecked", "remaining"}:
+                raise ValueError("complete_task.artifact contains unsupported fields")
+            await self.command("artifact.save", args["artifact"], call["id"] + "-artifact")
+            return await self.command("run.complete", {}, call["id"])
         if name in ACTION_NAMES:
             return await self.command(ACTION_NAMES[name], args, call["id"])
         if name == "search_knowledge":

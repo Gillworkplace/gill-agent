@@ -36,3 +36,9 @@
 只有以code-setup在主库新测试账户实际完成两项任务、生成来源版本后，才运行`regression-git-cases.mjs`，它在该专用项目构造保护/过期/未知来源拒绝、两次实际集成及故意失败检查；恢复原检查命令但保留负例问题，不替用户作决定、不推外部仓库。`regression-git-ui.mjs`只读查看此项目。每轮必须新账户/项目，不直接在已执行过的fixture上重放。
 
 Python `agent/tests/acceptance_network_probe.py`仅新建/清理自己的连通探测沙箱；`regression_git_inspect.py`只连接给定的测试合并沙箱，对实际commit和两个功能做shell核对。使用项目.venv和现有配置，不输出Key，输入/输出JSON不含登录凭据。云端公共HTTPS成功不能代替Git/实际研发通过。结果与剩余项见[11月18日回归报告](../../../../docs/features/digital-employee-team/regression_20261118.md)。
+
+## 收尾问题的开发复验
+
+`acceptance_completion_probe.py`须使用项目.venv、专用18080和Worker凭据，真实Worker关闭且队列隔离时运行；4个新账户验证复合收尾、重放、保存失败、暂停及未知动作，不调用模型。`model-cases-setup.mjs`可设`ACCEPTANCE_INVENTORY_ONLY=1`仅准备原两种库存流程，业务Prompt和8次上限不变；先完成fixture再启动Worker，不与带claim设施并跑。每个实现候选保留全部首次结果，不重复采样取最好结果。
+
+真实模型全部条件满足后，`completion-ui.mjs`读取本轮0600账户文件，只读查看桌面/390px手机的3任务完成、v2实际核查与成果；`COMPLETION_UI_MODE=review-before-human-decision`核对真正决策卡与@提示。运行completed但缺复核不得改断言通过。首次GUI发现的候选2语义失败保留在[收尾反馈](../../../../docs/features/digital-employee-team/completion_fix_feedback_20261118.md)，不等同页面实现缺陷。

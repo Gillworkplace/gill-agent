@@ -59,3 +59,7 @@ pip install -e agent/ && gill doctor
 # API 级 E2E
 docker exec gill-agentd-1 python /app/four_task_e2e.py   # 或本机直跑
 ```
+
+## 团队收尾契约（2026-11-18）
+
+`complete_task.artifact`复用产物schema，由`TeamTurn`顺序提交`artifact.save`与`run.complete`。两步独立事务、稳定幂等键；重放不得新建重复报告、跳过保存失败或绕过网关的暂停/未知动作/决定校验。不可用自然语言完成声明或已有产物自动结束任务，不提高额度掩盖未收尾。实现与真实验证见`docs/features/digital-employee-team/completion_fix_feedback_20261118.md`。

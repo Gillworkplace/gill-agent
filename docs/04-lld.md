@@ -2,7 +2,7 @@
 
 | 项 | 内容 |
 |---|---|
-| 文档版本 | v1.5（任务generation、决定revision、依赖及归档权限修复） |
+| 文档版本 | v1.6（模型最终报告与完成的可恢复顺序提交） |
 | 编写日期 | 2026-10-17（v1.1 修订 2026-10-18；v1.2/v1.3 增补 2026-11-17） |
 | 上游文档 | 当前新增设计：主需求v1.16/专题v0.9及架构v1.6的§0；历史正文关联需求v1.5/架构v1.3/测试v1.2 |
 | 读者/用途 | 新团队实现见§0；§1起保留历史会话设计 |
@@ -10,6 +10,8 @@
 ---
 
 ## 0. 新团队内核契约范围
+
+2026-11-18：团队实现契约v1.3允许complete_task携带artifact最终报告；Python使用稳定请求键先保存报告，再请求既有Java完成校验。两步独立事务、失败保留成果；不按自然语言自动完成、不扩大上限。详见[收尾修复反馈](features/digital-employee-team/completion_fix_feedback_20261118.md)。
 
 新团队的有效源码契约见[implementation.md](features/digital-employee-team/implementation.md)：包含V2真实表、JSONB逻辑对象映射、命令与权限、API、租约/检查点/未知结果核实、配置采用和Git基线。DDL及索引以V2__digital_teams.sql为准，策略以service/team目录为准；历史候选附录不作为并行运行协议。
 

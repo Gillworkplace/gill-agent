@@ -6,7 +6,9 @@
 
 `team_client` 只携带内部服务身份；`team_turns` 管理有效 Prompt、工具调用、检查点与控制；`team_sandbox` 是新运行的 CubeSDK 适配边界，资源 ID 持久化到 Java。模型和沙箱不接触网关/对象存储凭据。旧会话 SDK 适配仍在 `remote_sandbox`。
 
-模型工具`team_message`显式传requiresResponse：工作请求true，进展/收到/结束通知false；后者即使@员工也不派工。`archive_document`映射当前任务项目的文档归档，不授予项目配置或知识写权。任务代次与依赖等待由网关校验，Worker按heartbeat停止新调用，在途结果继续回存。
+模型工具`team_message`显式传requiresResponse：工作请求true，进展/收到/结束通知false；后者即使@员工也不派工。`archive_document`映射当前任务项目的文档归档，不授予项目配置或知识写权。`complete_task`可携带`artifact`最终报告：先保存、再请求完成，使用稳定请求标识支持重放；失败保留成果，网关继续拦截暂停/未决/未知动作。旧空参数仍支持已有成果。模型自主选择结束，不按自然语言自动完成。模型预留后读取共享run调用数/上限，资源信息不改变必需流程；收到核查/交接请求需requiresResponse=true，流程要求等人决定必须形成真实问题。实际外部回执与模型判断分开注入。
+
+任务代次与依赖等待由网关校验，Worker按heartbeat停止新调用，在途结果继续回存。
 
 ```mermaid
 flowchart LR

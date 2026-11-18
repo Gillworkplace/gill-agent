@@ -6,9 +6,9 @@
 
 ## 文档清单与版本链
 
-当前目标与已批准政策：主需求v1.17（D18～D39，D39记录按验收修复授权，六项政策不变）、专题requirement_analysis v0.9；系统设计v0.4、交付计划v0.4。
+当前目标与已批准政策：主需求v1.17（D18～D39，D39记录按验收修复授权，六项政策不变）、专题requirement_analysis v0.9；系统设计v0.5、交付计划v0.4。
 
-有效运行契约为专题[implementation.md](features/digital-employee-team/implementation.md) v1.2，原分项证据为verification.md。02架构v1.7、04LLDv1.5、03测试v1.7、05部署补记v1.3同步六项缺陷修复。当前修改位置、程序/真实接口/模型联调结果和剩余限制见[acceptance_fix_feedback_20261117.md](features/digital-employee-team/acceptance_fix_feedback_20261117.md)。历史正文保留旧会话语境。
+有效运行契约为专题[implementation.md](features/digital-employee-team/implementation.md) v1.3，原分项证据为verification.md。02架构v1.8、04LLDv1.6、03测试v1.8、05部署补记v1.3同步六项缺陷修复。当前修改位置、程序/真实接口/模型联调结果和剩余限制见[acceptance_fix_feedback_20261117.md](features/digital-employee-team/acceptance_fix_feedback_20261117.md)。历史正文保留旧会话语境。
 
 产品探索稿v0.2、联合评审v0.1、候选附录v0.8与原型v0.7保留讨论来源。原验收及AC01～34矩阵保留原版本事实。2026-11-18产品/测试视角已复验F01～F06，覆盖范围通过；当前03测试v1.7及[regression_20261118.md](features/digital-employee-team/regression_20261118.md)记录17条协议、12条GUI及真实并行研发/受控集成。原Git阻塞本次未复现；模型纠错仍未在8次内结束任务，广泛语义、实际冲突/unknown恢复与规模仍未全验，整体产品不判通过，不能按程序全绿自动关闭全部缺口。
 
@@ -19,3 +19,5 @@
 3. **事故入库**：每次真实故障，根因+处置落入 `05-deploy.md §4 故障速查`；涉及设计的同步固化进 `04-lld.md` 对应章节（标注「⚠ 教训」）。
 4. **测试记录**：浏览器 E2E 每轮执行在 `03 §23` 追加结果（引用 gui-test-screenshots 编号）。
 5. 编号体系（FR-/NFR-/BD-/D-/TC-/US-）一经分配不复用不改义。
+
+2026-11-18收尾回归仍失败后的修改与三个候选实际观察见[completion_fix_feedback_20261118.md](features/digital-employee-team/completion_fix_feedback_20261118.md)。新增最终报告顺序提交、共享资源快照与交接/人工决定协议澄清；历史失败及未覆盖AC保持原结论。

@@ -5,6 +5,7 @@
 Java 负责身份、业务事务、版本与持久工作队列；Python 负责模型轮次、隔离沙箱及受控 Git；Vue 提供四个主入口。旧会话保留在 `#/legacy`。
 
 - [需求与六条已批准政策](docs/features/digital-employee-team/requirement_analysis.md)
+- [收尾失败修复与验证](docs/features/digital-employee-team/completion_fix_feedback_20261118.md)
 - [实现契约、结构与边界](docs/features/digital-employee-team/implementation.md)
 - [验证记录](docs/features/digital-employee-team/verification.md)
 - [产品验收与六项缺陷修改反馈](docs/features/digital-employee-team/acceptance_fix_feedback_20261117.md)

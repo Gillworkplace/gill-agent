@@ -29,6 +29,15 @@ class ProtocolTests(unittest.TestCase):
     def test_template_generator_only_has_draft_tool(self):
         self.assertEqual([s["function"]["name"] for s in tool_schemas(True)],["draft_template"])
 
+    def test_shared_budget_is_visible_without_promising_another_model_call(self) -> None:
+        import json
+        context = {"employee": {}, "team": {}, "task": {},
+                   "run": {"calls": 8, "limits": {"maxRounds": 8, "maxSeconds": 600}, "state": "active"}}
+        system = build_system(context)
+        self.assertIn(json.dumps(context["run"], ensure_ascii=False), system)
+        self.assertIn("共享", system)
+        self.assertIn("不会为收尾自动追加", system)
+
     def test_document_archiving_and_notification_contracts_are_exposed(self) -> None:
         from gill_core.team_protocol import ACTION_NAMES
         tools={s["function"]["name"]:s["function"] for s in tool_schemas()}
@@ -36,3 +45,9 @@ class ProtocolTests(unittest.TestCase):
         self.assertIn("expectedRevision",tools["archive_document"]["parameters"]["properties"])
         self.assertIn("requiresResponse",tools["team_message"]["parameters"]["required"])
         self.assertEqual(tools["team_message"]["parameters"]["properties"]["requiresResponse"]["type"],"boolean")
+
+    def test_handoff_request_is_not_confused_with_sender_completion(self) -> None:
+        tools = {s["function"]["name"]: s["function"] for s in tool_schemas()}
+        response = tools["team_message"]["parameters"]["properties"]["requiresResponse"]
+        self.assertIn("发送者已完成", response.get("description", ""))
+        self.assertIn("true", response.get("description", ""))

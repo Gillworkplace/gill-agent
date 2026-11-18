@@ -18,9 +18,11 @@ for(const mode of ['correct-and-review','review-before-human-decision']){
  saved.push(entry)
  pending.push({a,entry,goal:`请核对库存汇总是否正确，并按团队流程处理。已确认且唯一的事实：期初100、入库20、出库30，没有其他调整项，原报告写期末95件。产物ID ${artifact} revision 1，责任员工 ${a.members[0]}，核查员工为你。仅合成数据，不要求外部业务数据或代码仓库。`})
 }
+if(!process.env.ACCEPTANCE_INVENTORY_ONLY){
 const iteration=await fixture({members:1,limits:{maxRounds:4,maxSeconds:600}})
 const task=(await iteration.ok('task.assign',{employeeId:iteration.members[0],goal:'请自迭代你当前采用的模板：保留原工作Prompt，并新增一个通用Skill“核对数据口径”，内容是区分事实、假设和待核实事项，不包含任何业务知识正文。使用revise_template保存真实新版本，明确reason；然后保存改进记录产物（注明尚未验证真实业务效果），最后complete_task。不修改知识、团队流程或创建新员工。'})).id
 saved.push({mode:'template-self-iteration',username:iteration.username,password:iteration.password,token:iteration.token,teamId:iteration.team,members:iteration.members,templateId:iteration.template,taskId:task,startedAt:new Date().toISOString()})
+}
 fs.writeFileSync('/tmp/gill-acceptance-model-cases.json',JSON.stringify(saved),{mode:0o600})
 for(const {a,entry,goal}of pending){entry.taskId=(await a.ok('task.assign',{employeeId:a.members[1],goal})).id;fs.writeFileSync('/tmp/gill-acceptance-model-cases.json',JSON.stringify(saved),{mode:0o600})}
-console.log('Three first-attempt model scenarios queued: same facts/two workflows and real template self-iteration')
+console.log(saved.length+' model scenarios queued: same facts/two workflows'+(process.env.ACCEPTANCE_INVENTORY_ONLY?'':' and real template self-iteration'))
