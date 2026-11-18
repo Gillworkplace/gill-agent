@@ -2,7 +2,7 @@ import fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import {spawn} from 'node:child_process'
-import {account,check,origin} from './harness.mjs'
+import {account,check,origin,request} from './harness.mjs'
 
 const profile=await fs.mkdtemp(path.join(os.tmpdir(),'gill-closure-chrome-'))
 const chrome=spawn(process.env.CHROME_PATH||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
@@ -61,7 +61,69 @@ try{
  const switchTo=hash=>evalJs('location.hash='+JSON.stringify(hash))
  await cdp('Runtime.enable')
  await view(1440,1040)
- if(process.argv[2]){
+ if(process.argv[2]==='--template-folder'){
+  const a=await account()
+  const team=(await a.ok('team.create',{name:'文件夹模板验收团队'})).id
+  const source=path.join(profile,'资料核查模板')
+  const samples={'AGENTS.md':'回复任务时注明主指令标记 QUARTZ_A。',
+   'prompts/quality.md':'报告里注明第二指令标记 MOSS_B。',
+   'skills/review/SKILL.md':'核查项目条件时注明标记 REVIEW_C。',
+   'references/sample.csv':'status,approved\nmarker,PAPER_D\n','assets/fixture.bin':Buffer.from([0,255,0,42])}
+  for(const [name,data] of Object.entries(samples)){
+   const dest=path.join(source,name)
+   await fs.mkdir(path.dirname(dest),{recursive:true})
+   await fs.writeFile(dest,data)
+  }
+  await cdp('Page.navigate',{url:origin+'/#/templates'})
+  await ui('!!document.querySelector("#login input[type=password]")')
+  await set('#login input',a.username);await set('#login input[type=password]',a.password);await click('#login .btn')
+  await ui('!!document.querySelector(".template-start")&&!document.querySelector(".template-preview")&&!document.querySelector(".template-conversation")')
+  await shot('template-empty-desktop')
+  await view(390,844,true)
+  await ui('document.documentElement.scrollWidth===390 && [...document.querySelectorAll(".template-start button")].some(b=>b.textContent==="导入文件夹")')
+  await shot('template-empty-mobile')
+  await view(1440,1040)
+  await cdp('DOM.enable')
+  const dom=await cdp('DOM.getDocument')
+  const input=await cdp('DOM.querySelector',{nodeId:dom.root.nodeId,selector:'input[webkitdirectory]'})
+  await cdp('DOM.setFileInputFiles',{nodeId:input.nodeId,files:[source]})
+  await ui('document.querySelectorAll(".template-file-list li").length===5',45)
+  const listed=await evalJs('[...document.querySelectorAll(".template-file-list li")].map(li=>[li.querySelector("code").textContent,li.querySelector("select").value])')
+  check(Object.keys(samples).every(key=>listed.some(([name])=>name===key)),'import removed nested paths',listed)
+  check(listed.some(([n,value])=>n==='skills/review/SKILL.md'&&value==='skill')&&
+    listed.filter(([,value])=>value==='prompt').length===2&&listed.some(([n,value])=>n==='assets/fixture.bin'&&value==='resource'),
+    'import classification did not match the selected files',listed)
+  await shot('template-folder-editor')
+  await submit('.template-preview')
+  await ui('document.querySelector(".template-preview h2")?.textContent==="模板配置"')
+  const saved=Object.values((await a.read()).templates)[0]
+  check(saved.files.length===5&&saved.prompt===''&&saved.versions[0].files.length===5,'file-only template or revision did not save')
+  const second=await account()
+  const forbidden=await second.command('template.save',{name:'错误工作区',files:saved.files})
+  check(forbidden.status===403,'foreign workspace could adopt private template objects',forbidden)
+  const wrong=await a.command('template.save',{name:'错误用途',files:saved.files.map(f=>f.path.endsWith('.bin')?{...f,purpose:'prompt'}:f)})
+  check(wrong.status===400,'binary data could be declared as a prompt',wrong)
+  const invalidPath=await request('/api/v1/team-workspace/template-files',{files:[{path:'../escape.md',data:'YQ=='}]},a.token)
+  check(invalidPath.status===400,'upload accepted an invalid relative path',invalidPath)
+  await switchTo('#/teams/'+team)
+  await view(390,844,true)
+  await ui('!!document.querySelector(".team-inline-form select")')
+  await set('.team-inline-form select',saved.id);await set('.team-inline-form input','已采用文件夹模板的员工');await submit('.team-inline-form')
+  await ui('document.querySelector(".organization-node")?.textContent.includes("已采用文件夹模板的员工")')
+  const employee=Object.values((await a.read()).employees)[0]
+  check(employee.files.length===5&&employee.templateRevision===1,'employee did not adopt the package')
+  const task=await a.ok('task.assign',{employeeId:employee.id,
+   goal:'请读取模板的 references/sample.csv，归档一份报告，将两个工作指令标记、Skill 标记和 CSV 的 marker 值原样列出。只用合成测试资料，注明未验证范围，最后明确完成。'})
+  const updated=await request('/api/v1/team-workspace/template-files',{files:[{path:'prompts/quality.md',data:Buffer.from('第二指令新版标记 MOSS_NEW。').toString('base64')}]},a.token)
+  check(updated.status===200,'could not upload the updated instruction file',updated)
+  const files=saved.files.map(f=>f.path==='prompts/quality.md'?{...updated.body.files[0],purpose:'prompt'}:f)
+  const next=await a.ok('template.save',{id:saved.id,expectedRevision:1,name:saved.name,files})
+  const state=await a.read()
+  check(next.revision===2&&state.tasks[task.id].employeeSnapshot.files.find(f=>f.path==='prompts/quality.md').key!==files.find(f=>f.path==='prompts/quality.md').key,'existing task lost the original file snapshot')
+  await fs.writeFile('/tmp/gill-template-folder-fixture.json',JSON.stringify({token:a.token,taskId:task.id,templateId:saved.id,employeeId:employee.id}),{mode:0o600})
+  check(!exceptions.length,'Chrome raised an exception during folder import')
+  console.log(JSON.stringify({case:'folder-template',passed:true,template:saved.id,task:task.id,files:listed}))
+ }else if(process.argv[2]){
   const fault=JSON.parse(await fs.readFile(process.argv[2],'utf8'))
   await cdp('Page.navigate',{url:origin+'/#/workbench'})
   await ui('location.origin==='+JSON.stringify(origin)+' && document.readyState==="complete"')
@@ -106,6 +168,8 @@ try{
  await set('#login input',a.username)
  await set('#login input[type=password]',a.password)
  await click('#login .btn')
+ await ui('!!document.querySelector(".template-start")')
+ await click('.template-start-actions button')
  await ui('!!document.querySelector("#template-chat")')
  await set('#template-chat','生成通用资料核查员工模板。工作指令区分事实与假设，包含名为“证据核查”的 Skill，要求标注出处和局限。')
  await submit('.template-conversation form')
@@ -120,7 +184,7 @@ try{
  check(!Object.keys(second.templates).length&&second.drafts[draft.id].messages.length===4,'second draft lost source or was implicitly saved')
  await shot('two-turns')
  await submit('.template-preview')
- await ui('document.querySelectorAll(".template-list > button").length===1')
+ await ui('document.querySelector(".template-preview h2")?.textContent==="模板配置"')
  const saved=Object.values((await a.read()).templates)[0]
  check(saved.draftId===draft.id&&saved.skills.some(s=>s.name==='证据核查')&&saved.skills.some(s=>s.name==='冲突上报'),'saved template lost source or skills')
  await switchTo('#/teams/'+team)

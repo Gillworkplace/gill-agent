@@ -11,6 +11,7 @@ from .team_client import TeamClient
 from .llm import LLM
 from .team_protocol import ACTION_NAMES, build_system, parse_calls, tool_schemas, search_sources
 from .team_sandbox import TeamSandbox
+from .team_template_files import TEMPLATE_DIRECTORY, TemplatePackage
 
 log = logging.getLogger(__name__)
 
@@ -30,6 +31,7 @@ class TeamTurn:
         self.control = {}
         self.lost = False
         self.sandbox = None
+        self.package: TemplatePackage | None = None
         self.context = {}
         self.history = []
         self.turn = 0
@@ -206,10 +208,24 @@ class TeamTurn:
                 messages.insert(0, {"role": "user", "content": "保留并继续完善这份当前草稿：" + json.dumps(
                     {k: draft.get(k) for k in ("name", "prompt", "skills")}, ensure_ascii=False)})
             return messages
-        payload = {"task": self.context.get("task"), "messages": self.context.get("messages"),
+        task = dict(self.context.get("task") or {})
+        task.pop("employeeSnapshot", None)
+        task.pop("teamSnapshot", None)
+        payload = {"task": task, "messages": self.context.get("messages"),
                    "decision": self.context.get("decision"), "project": self.context.get("project"),
                    "artifacts": self.context.get("artifacts")}
         return [{"role": "user", "content": json.dumps(payload, ensure_ascii=False)}]
+
+    def template_package(self) -> TemplatePackage:
+        """
+        Resolve the persistent file manifest for this execution once.
+
+        :returns: File package of the current draft or frozen employee template.
+        """
+        if self.package is None:
+            source = "draft" if self.context.get("kind") == "template" else "employee"
+            self.package = TemplatePackage(self.context.get(source, {}).get("files", []))
+        return self.package
 
     async def model_request(self) -> tuple[str, list[dict]]:
         """
@@ -231,6 +247,15 @@ class TeamTurn:
                 sources = [{"id": s["id"], "revision": s.get("revision"), "title": s.get("title"),
                             "content": s.get("content", "")[:10000]} for s in self.read_knowledge.values()]
                 system += "\n[已授权读取的资料，引用时标来源版本]\n" + json.dumps(sources, ensure_ascii=False)
+        package = self.template_package()
+        if package.files:
+            system += "\n[模板文件指令]\n" + await package.instructions()
+            manifest = [{"path": path, "purpose": entry["purpose"]} for path, entry in package.files.items()]
+            system += "\n[模板文件清单]\n" + json.dumps(manifest, ensure_ascii=False)
+            if template:
+                system += "\n保留用户导入的文件，根据其内容和用户要求补充可编辑的工作指令。"
+            else:
+                system += f"\n参考资料通过 read_template_file 按清单读取，或在任务沙箱 {TEMPLATE_DIRECTORY} 下使用相同相对路径。"
         self.model_cancelled = False
         self.last_usage = {}
         request = asyncio.create_task(self._consume_model(template, system))
@@ -434,6 +459,8 @@ class TeamTurn:
             return result
         if name == "search_knowledge":
             return search_sources(self.context.get("knowledge", []), args["query"])
+        if name == "read_template_file":
+            return await self.template_package().read_for_model(args["path"])
         key = self.key(call["id"])
         intent = await self.op("action", requestKey=key, kind=name, input=args)
         if intent["state"] in {"succeeded", "failed"}:
@@ -469,6 +496,7 @@ class TeamTurn:
             prepared = await TeamGit(self.sandbox, self.context).prepare()
             if prepared.get("exitCode", 0) != 0:
                 raise RuntimeError(prepared.get("stderr", "工作区初始化失败"))
+        await self.template_package().stage(self.sandbox)
 
     async def execute_tool(self, name: str, args: dict) -> dict:
         """

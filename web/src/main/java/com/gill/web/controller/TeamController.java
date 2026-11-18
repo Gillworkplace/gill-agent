@@ -13,6 +13,10 @@ public class TeamController {
     public TeamController(TeamService service,com.gill.web.storage.TeamBlobStore blobs){this.service=service;this.blobs=blobs;}
     @GetMapping
     public ObjectNode read(@RequestAttribute("uid") Long uid){return service.read(uid);}
+    @PostMapping("/template-files")
+    public ObjectNode uploadTemplateFiles(@RequestAttribute("uid") Long uid,@RequestBody ObjectNode body) {
+        return service.uploadTemplateFiles(uid,body.path("files"));
+    }
     @PostMapping("/commands")
     public ObjectNode command(@RequestAttribute("uid") Long uid,@RequestBody ObjectNode body){
         if(!body.path("payload").isObject())throw new IllegalArgumentException("INVALID_INPUT: payload必须为对象");

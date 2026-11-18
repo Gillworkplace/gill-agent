@@ -1,6 +1,6 @@
 # 团队基础设施实现契约
 
-2026-11-18，v1.5。需求依据为 D18～D40、专题 v0.9 及六条已批准的运行政策 P01～06。D40 增加分开的群聊操作和按工作启用的派工审批。v1.5 补齐交接与当前任务收尾、未知动作的事实展示及恢复。早期修复见[修改反馈](acceptance_fix_feedback_20261117.md)。
+2026-11-18，v1.6。需求依据为 D18～D41、专题 v0.9 及六条已批准的运行政策 P01～06。v1.6 增加模板文件夹导入和独立创建入口。D40 增加分开的群聊操作和按工作启用的派工审批，v1.5 补齐交接与当前任务收尾、未知动作展示及恢复。早期修复见[修改反馈](acceptance_fix_feedback_20261117.md)。
 
 ## 1. 组件与事实边界
 
@@ -36,6 +36,7 @@ Python `team_worker → team_turns → team_client` 通过内部 HTTP 协议领�
 | --- | --- |
 | GET /api/v1/team-workspace | document 逻辑对象 + revision、updatedAt；执行状态叠加真实 job 状态，租期过期显示未知 |
 | POST /api/v1/team-workspace/commands | `{requestKey, kind, payload}`；返回对象 id/revision/state，依动作而定 |
+| POST /api/v1/team-workspace/template-files | 仅用户上传 `{files:[{path,data}]}`，`data` 为 Base64 原始字节。返回 `{files:[{path,key,size,utf8}]}`。工作区归属由登录身份决定，上传后需明确保存模板版本。 |
 | GET /api/v1/team-workspace/events?after=0 | 持久事件游标补查 |
 | GET /api/v1/team-workspace/executions/{id} | 本用户实际执行、sandboxId、动作与回执 |
 | GET /api/v1/team-workspace/object-url?key=… | 只允许本用户已登记代码版本/项目基线对象，生成 120 秒预签名 URL |
@@ -46,9 +47,9 @@ Python `team_worker → team_turns → team_client` 通过内部 HTTP 协议领�
 | --- | --- |
 | team.create/update | name、description、prompt、receiverId、limits；仅人 |
 | team.relations | teamId、完整 relations[{id,parentId,expectedRevision}]；仅人，批次全量校验跨队/环及成员竞争 |
-| template.save/revise | name、prompt、skills[{name,content}]、reason；人可保存，员工只可迭代自身采用模板 |
+| template.save/revise | name、prompt、skills[{name,content}]、reason。用户可保存 `files[{path,key,size,utf8,purpose}]`，用途 `prompt`、`skill` 或 `resource`；有工作指令或 Skill 文件时可省略单段 prompt。员工只可迭代自身采用的模板 Prompt/Skills，文件保持该模板版本的清单。 |
 | template.share | id、expectedRevision、teamIds；仅人，授权当前派生版本跨团队采用 |
-| template.generate | 可选 id、text、当前 draft；仅人，多轮持久消息 + 异步草稿，保存模板另行明确操作 |
+| template.generate | 可选 id、text、当前 draft（含用户选择的文件清单）；仅人，多轮持久消息 + 异步草稿，保存模板另行明确操作 |
 | employee.create/update | teamId、templateId、name、role、parentId、prompt/skills；仅人，员工不能跨队移动 |
 | knowledge.save | title、content、category；仅人追加不可变内容版本 |
 | knowledge.mount/unmount | employeeId、sourceId；仅人，挂载不授予同队其他员工直接读取权限 |
@@ -65,6 +66,8 @@ Python `team_worker → team_turns → team_client` 通过内部 HTTP 协议领�
 `draft.generated`、`version.record` 和 `integration.result` 由受信执行适配器提交；模型仅得到注册工具，不可提交可信 actor。人作为管理者可以显式修改版本/状态，但不会因此生成虚假的工具通过记录。
 
 ## 4. 六条政策的生效方式
+
+上传仅保留所选文件夹内部的相对路径，管理员可调整单个文件用途。文本指令和 Skill 文件在生成草稿或执行任务时按保存版本加载。模型通过 `read_template_file` 按精确路径读取文本参考，二进制文件可在独立沙箱的 `/tmp/gill-template` 目录使用。新任务采用更新模板时同时采用文件清单，既有任务继续使用冻结版本，旧模板的清单默认为空。
 
 1. **配置采用**：任务保存 employeeSnapshot/teamSnapshot/organization，工作项保存 projectSnapshot。新任务按模板与员工 basePrompt/baseSkills 三方比较：无冲突更新、保留个性化修改；冲突留原工作版本并 @人。模板迭代不会热改当前任务。树调整仅影响新任务。
 2. **协作与升级**：通知保留接收者及 delivery=notified，不调度；核查邀请只调度指定员工收集意见，正式工作通过显式派工调度。用户未指定接收人的正式目标交配置接收员工。正式问题阻断原任务及依赖后继，当前有效上级和核查协作可提供意见，核查来源已有待决时也会拦住其正式派工。独立任务不受影响，旧数据依赖回退 parentTaskId。所有层级均校验上级是否存在、本队、启用且无环，失效转用户并说明配置异常。答复只恢复关联等待任务，人工全局暂停独立保留。允许改派时保留原任务，新建快照并令旧决定失效。

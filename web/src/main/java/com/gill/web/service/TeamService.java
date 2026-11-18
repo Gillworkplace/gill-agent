@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.*;
 import com.gill.web.repo.TeamMapper;
 import com.gill.web.service.team.*;
+import com.gill.web.storage.TeamBlobStore;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.nio.charset.StandardCharsets;
@@ -17,8 +18,9 @@ import static com.gill.web.service.team.TeamData.*;
 public class TeamService {
     private final TeamMapper db;
     private final ObjectMapper json;
+    private final TeamBlobStore blobs;
     private final TeamEngine engine=new TeamEngine();
-    public TeamService(TeamMapper db,ObjectMapper json) {this.db=db;this.json=json;}
+    public TeamService(TeamMapper db,ObjectMapper json,TeamBlobStore blobs) {this.db=db;this.json=json;this.blobs=blobs;}
 
     public ObjectNode read(long uid) {
         var row=db.selectById(uid);
@@ -44,10 +46,51 @@ public class TeamService {
     }
     public List<Map<String,Object>> events(long uid,long after) {return db.events(uid,after);}
 
+    public ObjectNode uploadTemplateFiles(long uid,JsonNode files) {
+        if(!files.isArray()||files.isEmpty()||files.size()>TemplateFiles.MAX_FILES)
+            throw new IllegalArgumentException("INVALID_INPUT: 请选择 1 到 128 个文件");
+        Map<String,byte[]> contents=new LinkedHashMap<>();
+        int total=0;
+        for(JsonNode item:files) {
+            String path=TemplateFiles.relativePath(item);
+            JsonNode encoded=item.path("data");
+            if(!encoded.isTextual()||encoded.textValue().length()>4*((TemplateFiles.MAX_FILE_BYTES+2)/3))
+                throw new IllegalArgumentException("INVALID_INPUT: 单个文件上限为 8 MB");
+            byte[] data;
+            try {data=Base64.getDecoder().decode(encoded.textValue());}
+            catch(IllegalArgumentException error){throw new IllegalArgumentException("INVALID_INPUT: 文件编码无效");}
+            total+=data.length;
+            if(data.length>TemplateFiles.MAX_FILE_BYTES||total>TemplateFiles.MAX_PACKAGE_BYTES||contents.putIfAbsent(path,data)!=null)
+                throw new IllegalArgumentException("INVALID_INPUT: 重复路径或文件大小超限");
+        }
+        ObjectNode result=node();
+        ArrayNode manifest=result.putArray("files");
+        contents.forEach((path,data)->{
+            var blob=blobs.saveTemplateFile(uid,data);
+            manifest.add(node("path",path,"key",blob.key()).put("size",blob.size()).put("utf8",blob.utf8()));
+        });
+        return result;
+    }
+
+    private void verifyTemplateFiles(long uid,JsonNode files) {
+        TemplateFiles.validateManifest(files);
+        Map<String,TeamBlobStore.TemplateBlob> verified=new HashMap<>();
+        for(JsonNode file:files) {
+            String key=required(file,"key");
+            var blob=verified.computeIfAbsent(key,ref->blobs.templateFile(uid,ref));
+            if(blob.size()!=file.path("size").asLong()||
+                (!text(file,"purpose").equals("resource")&&(!blob.utf8()||blob.size()==0)))
+                throw new IllegalArgumentException("INVALID_INPUT: 指令和 Skill 需要非空 UTF-8 文件，文件大小需与上传一致");
+            ((ObjectNode)file).put("utf8",blob.utf8()).retain("path","purpose","key","size","utf8");
+        }
+    }
+
     @Transactional
     public ObjectNode command(long uid,String key,String kind,ObjectNode payload) {
         if(Set.of("integration.result","version.record").contains(kind))
             throw new IllegalArgumentException("SCOPE_FORBIDDEN: 版本与集成结果由实际执行器提交");
+        if(kind.equals("template.save")&&payload.has("files"))verifyTemplateFiles(uid,payload.path("files"));
+        if(kind.equals("template.generate")&&payload.path("draft").has("files"))verifyTemplateFiles(uid,payload.path("draft").path("files"));
         return execute(uid,new TeamActor("user",Long.toString(uid),null),key,kind,payload);
     }
     private ObjectNode execute(long uid,TeamActor actor,String key,String kind,ObjectNode payload) {

@@ -58,6 +58,7 @@ final class TaskAdoption {
         }
         if(old.equals(base))e.put("prompt",next);
         if(skills.equals(baseSkills))e.set("skills",nextSkills.deepCopy());
+        if(tpl.has("files"))e.set("files",tpl.get("files").deepCopy());
         e.put("basePrompt",next).set("baseSkills",nextSkills.deepCopy());e.put("templateRevision",latest);
         save(s,"employees",e,new TeamActor("system","template-adoption",text(e,"teamId")));
     }

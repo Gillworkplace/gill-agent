@@ -27,9 +27,9 @@ const observations=JSON.parse(await fs.readFile('/tmp/gill-reacceptance-extra-mo
 if(mode==='archive-document'){
  await go('#/teams/'+account.teamId);await wait('!!document.querySelector(".organization-node")');await button('项目库');await button('本轮文档归档验收');await ev('Array.from(document.querySelectorAll(".template-select")).find(b=>b.textContent.includes("归档回归记录")).click()');await wait('document.querySelector(".knowledge-layout textarea")?.value.includes("合成资料")');await check('actual archived document and version shown','document.querySelector(".knowledge-layout").textContent.includes("v1")&&document.querySelector(".knowledge-layout textarea").value.includes("合成资料")');
 }else{
- await go('#/templates');await wait('!!document.querySelector(".template-list > button.template-select")');await click('.template-list > button.template-select');await wait('!!document.querySelector("#template-prompt").value');
+ await go('#/templates');await wait('!!document.querySelector(".template-list > button")');await click('.template-list > button');await wait('!!document.querySelector("#template-prompt").value');
  await check('actual saved model Skills shown','Array.from(document.querySelectorAll(".skill-editor input")).some(x=>x.value==="证据核查")&&Array.from(document.querySelectorAll(".skill-editor input")).some(x=>x.value==="冲突上报")');
- await ev('document.querySelector(".template-list details").open=true');await click('.template-list details button');await wait('document.querySelectorAll(".template-messages article").length>=4');await check('actual two-turn sources visible','document.querySelectorAll(".template-messages article").length>=4');
+ await click('.template-page-head .text-button');await click('.template-drafts button');await wait('document.querySelectorAll(".template-messages article").length>=4');await check('actual two-turn sources visible','document.querySelectorAll(".template-messages article").length>=4');
 }
 await shot(mode+'-desktop');await view(390,844,true);await check('mobile page fits viewport','document.documentElement.scrollWidth===390');await shot(mode+'-mobile');if(errors.length)throw Error(JSON.stringify(errors));console.log(JSON.stringify({mode,uiStatus:'passed',checks,browserExceptions:errors}));
 }finally{ws?.close();chrome.kill();await sleep(120);await fs.rm(dir,{recursive:true,force:true,maxRetries:5,retryDelay:100});}

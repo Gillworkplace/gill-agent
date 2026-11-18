@@ -44,9 +44,9 @@ await scenario('C03-per-employee-mount',['AC-26','AC-27'],async()=>{
  await button('卸载');const s=await state();ensure(!s.employees[account.members[2]].knowledgeIds.includes(account.sourceId)&&s.employees[account.members[0]].knowledgeIds.includes(account.sourceId),'unmount affected a different employee')
 })
 await scenario('C04-template-preview-and-Skills',['AC-01','AC-19','AC-20'],async()=>{
- await go('#/templates');await check('conversation and draft entry',`!!document.querySelector('#template-chat')&&!!document.querySelector('#template-prompt')`)
- await set('#template-name','GUI验收新模板');await set('#template-prompt','核对资料，缺少依据则向上级说明。');await button('＋ 添加 Skill');await set('.skill-editor input','来源核查');await set('.skill-editor textarea','保留资料出处与未验证范围。')
- await submit('.template-preview');await wait('document.querySelector(".template-list").textContent.includes("GUI验收新模板")')
+ await go('#/templates');await button('新建模板');await check('conversation entry without a blank preview',`!!document.querySelector('#template-chat')&&!document.querySelector('#template-prompt')`);await button('手动填写')
+ await set('#template-name','GUI验收新模板');await set('#template-prompt','核对资料，缺少依据则向上级说明。');await button('添加 Skill');await set('.skill-editor input','来源核查');await set('.skill-editor textarea','保留资料出处与未验证范围。')
+ await submit('.template-preview');await wait('document.querySelector(".template-preview h2")?.textContent==="模板配置"');await button('← 返回模板库');await wait('document.querySelector(".template-list")?.textContent.includes("GUI验收新模板")')
  const created=Object.values((await state()).templates).find(t=>t.name==='GUI验收新模板');ensure(created?.skills[0]?.name==='来源核查','saved Skills not persisted');await shot('templates')
 })
 await scenario('C05-shared-knowledge-version',['AC-27','AC-29'],async()=>{

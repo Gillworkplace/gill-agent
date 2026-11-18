@@ -54,6 +54,7 @@ final class DefinitionPolicy {
         String id=text(p,"id");ObjectNode n=id.isEmpty()?node("id",id()):get(s,"templates",id).deepCopy();
         if(!a.human()) {
             if(id.isEmpty())throw new IllegalArgumentException("SCOPE_FORBIDDEN: 员工只能迭代已有模板");
+            if(p.has("files"))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 仅用户可以调整模板文件");
             ObjectNode employee=get(s,"employees",a.id());
             if(!id.equals(text(employee,"templateId")))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 非本员工采用的模板");
             if(p.path("knowledgeRefs").size()>0)
@@ -61,7 +62,14 @@ final class DefinitionPolicy {
         }
         if(!a.human())guardKnowledgeCopy(s,a,p);
         if(!id.isEmpty())revision(n,p);
-        n.put("name",required(p,"name")).put("prompt",required(p,"prompt"));
+        if(p.has("files")) {
+            TemplateFiles.validateManifest(p.path("files"));
+            n.set("files",p.get("files").deepCopy());
+        }
+        String prompt=text(p,"prompt");
+        if(prompt.length()>100000||(prompt.isBlank()&&!TemplateFiles.hasInstructions(n.path("files"))&&p.path("skills").isEmpty()))
+            throw new IllegalArgumentException("INVALID_INPUT: 请提供工作指令或 Skill");
+        n.put("name",required(p,"name")).put("prompt",prompt);
         n.set("skills",p.path("skills").isArray()?p.get("skills").deepCopy():JsonNodeFactory.instance.arrayNode());
         if(!a.human()){n.put("originTeamId",a.teamId());n.putArray("authorizedTeamIds").add(a.teamId());}
         n.put("reason",text(p,"reason")).put("draftId",text(p,"draftId"));
@@ -104,6 +112,7 @@ final class DefinitionPolicy {
             n.put("templateId",text(tpl,"id")).put("templateRevision",tpl.path("revision").asInt());
             n.put("prompt",text(tpl,"prompt")).put("basePrompt",text(tpl,"prompt"));
             n.set("skills",tpl.path("skills").deepCopy());n.set("baseSkills",tpl.path("skills").deepCopy());
+            if(tpl.has("files"))n.set("files",tpl.get("files").deepCopy());
             n.putArray("knowledgeIds");n.put("parentId","user").put("status","idle");
         }
         for(String f:List.of("name","role","prompt","parentId","lifecycle"))if(p.has(f))n.put(f,text(p,f));
@@ -180,7 +189,7 @@ final class DefinitionPolicy {
             return node("id",a.id());
         }
         human(a);ObjectNode d=id.isBlank()?node("id",id()):get(s,"drafts",id);
-        if(p.path("draft").isObject())for(String f:List.of("name","prompt","skills"))if(p.path("draft").has(f))d.set(f,p.path("draft").get(f).deepCopy());
+        if(p.path("draft").isObject())for(String f:List.of("name","prompt","skills","files"))if(p.path("draft").has(f))d.set(f,p.path("draft").get(f).deepCopy());
         if(d.path("busy").asBoolean())throw new IllegalArgumentException("BUSY: 正在生成，请等待");
         d.remove("error");
         list(d,"messages").add(node("role","user","content",required(p,"text")));d.put("busy",true);

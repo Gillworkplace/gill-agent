@@ -19,6 +19,10 @@ const template=computed(()=>store.data.templates[props.task.employeeSnapshot?.te
    <p>员工工作配置 {{task.employeeSnapshot.name}} v{{task.employeeSnapshot.revision}}</p>
    <p>采用模板 {{template?.name||task.employeeSnapshot.templateId}} v{{task.employeeSnapshot.templateRevision}}</p>
    <p v-if="task.employeeSnapshot.skills.length">采用的 Skills {{task.employeeSnapshot.skills.map(skill=>skill.name).join('、')}}</p>
+   <details v-if="task.employeeSnapshot.files?.length">
+    <summary>采用的模板文件（{{task.employeeSnapshot.files.length}}）</summary>
+    <ul><li v-for="file in task.employeeSnapshot.files" :key="file.path"><code>{{file.path}}</code></li></ul>
+   </details>
   </template>
   <p v-else>未记录员工工作配置快照</p>
   <ul v-if="reads.length">

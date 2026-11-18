@@ -74,6 +74,8 @@ def tool_schemas(template: bool = False) -> list[dict]:
          {}, []),
         ("search_knowledge", "检索本轮显式挂载的共享源，返回来源和实际版本；没有挂载不能读取。",
          {"query": string}, ["query"]),
+        ("read_template_file", "按当前模板清单的完整相对路径读取参考文件。二进制文件可在任务沙箱的模板目录使用。",
+         {"path": string}, ["path"]),
         ("shell", "在本任务隔离沙箱的/workspace执行命令；结果以真实回执为准。",
          {"command": string, "timeout": {"type": "integer"}}, ["command"]),
         ("file_write", "在隔离沙箱写文本文件，路径限制在/workspace内。",

@@ -88,6 +88,27 @@ class TeamEngineTest {
         assertEquals("根据事实工作",state.path("employees").path(a).path("prompt").asText());
         assertEquals(2,state.path("templates").path(tpl).path("revision").asInt());
     }
+
+    @Test void folderFilesHaveIndependentPathsAndFollowTheAdoptedTemplateRevision() {
+        String t=setup("文件夹团队");
+        ObjectNode first=body("name","多文件模板");
+        first.putArray("files")
+            .add(body("path","AGENTS.md","purpose","prompt","key","first").put("size",12))
+            .add(body("path","skills/review/SKILL.md","purpose","skill","key","second").put("size",20));
+        String template=call("template.save",first).path("id").asText();
+        String employee=call("employee.create",body("teamId",t,"templateId",template,"name","文件员工")).path("id").asText();
+        String oldTask=call("task.assign",body("employeeId",employee,"goal","固定旧文件")).path("id").asText();
+        ObjectNode second=first.deepCopy().put("id",template).put("expectedRevision",1);
+        ((ObjectNode)second.path("files").get(0)).put("key","updated");
+        assertThrows(IllegalArgumentException.class,()->engine.apply(state,new TeamActor("employee",employee,t),"template.revise",second));
+        call("template.save",second);
+        String nextTask=call("task.assign",body("employeeId",employee,"goal","采用新文件")).path("id").asText();
+        var old=state.path("tasks").path(oldTask).path("employeeSnapshot");
+        var next=state.path("tasks").path(nextTask).path("employeeSnapshot");
+        assertEquals("first",old.path("files").get(0).path("key").asText());
+        assertEquals("updated",next.path("files").get(0).path("key").asText());
+        assertEquals("skills/review/SKILL.md",next.path("files").get(1).path("path").asText());
+    }
     @Test void retryingTemplateGenerationClearsThePreviousFailure() {
         String draft=call("template.generate",body("text","创建模板")).path("id").asText();
         ObjectNode saved=(ObjectNode)state.path("drafts").path(draft);
