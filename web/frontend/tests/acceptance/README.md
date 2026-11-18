@@ -42,3 +42,13 @@ Python `agent/tests/acceptance_network_probe.py`仅新建/清理自己的连通�
 `acceptance_completion_probe.py`须使用项目.venv、专用18080和Worker凭据，真实Worker关闭且队列隔离时运行；4个新账户验证复合收尾、重放、保存失败、暂停及未知动作，不调用模型。`model-cases-setup.mjs`可设`ACCEPTANCE_INVENTORY_ONLY=1`仅准备原两种库存流程，业务Prompt和8次上限不变；先完成fixture再启动Worker，不与带claim设施并跑。每个实现候选保留全部首次结果，不重复采样取最好结果。
 
 真实模型全部条件满足后，`completion-ui.mjs`读取本轮0600账户文件，只读查看桌面/390px手机的3任务完成、v2实际核查与成果；`COMPLETION_UI_MODE=review-before-human-decision`核对真正决策卡与@提示。运行completed但缺复核不得改断言通过。首次GUI发现的候选2语义失败保留在[收尾反馈](../../../../docs/features/digital-employee-team/completion_fix_feedback_20261118.md)，不等同页面实现缺陷。
+
+## 1075be9再次回归设施
+
+新独立库的原A/B/G按既有步骤运行，使用ACCEPTANCE_RESULTS和ACCEPTANCE_BROWSER_RESULTS分别选择本轮结果文件；GUI设ACCEPTANCE_SCREENSHOT_PREFIX避免覆盖旧图。reacceptance-definitions.mjs只改新账户定义，不claim队列，可补跨队显式知识挂载及非法树批次原子拒绝。
+
+两组库存按原model-cases-setup依次执行，分别备份0600账户文件；每组结束/待决且无queued/running后停止测试Worker，才能准备下一组。reacceptance-model-observe.mjs接收账户文件及匿名输出路径；只支持原三种场景，保存确切版本、作者及完整工作状态，语义判断和等待窗口单独核对。reacceptance-extra-models.mjs在其后执行当前项目真实归档和两轮真实模板生成/明确保存/创建采用，沿用已有2槽Worker，总调用仍受本轮计划限制。
+
+reacceptance-results-ui.mjs按ACCEPTANCE_MODEL_FIXTURES只读查看实际模型结果；界面正确显示失败不等于业务通过。reacceptance-extra-ui.mjs查看真实额外模型产物。reacceptance-native-drag.mjs读取本轮3员工专用账户文件gill-reacceptance-drag-accounts.json，用原生CDP鼠标事件并检查可信drag/drop及保存，非手工派发DragEvent；手机物理拖动不在该设施覆盖范围。
+
+Python reacceptance_git_sources.py读取本轮匿名代码快照及输出路径，经TeamSandbox重连两个源，检查分支/commit/各自文件及功能；用agent/.venv和已有配置。Git页面须等负例实际检查结束后运行，首次提前等待超时保留。所有实际结果与测试设施修正见[再次验收](../../../../docs/features/digital-employee-team/reacceptance_20261118.md)，不修改产品实现来换取通过。

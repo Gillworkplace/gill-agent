@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import crypto from 'node:crypto'
 
 export const origin=process.env.ACCEPTANCE_URL||'http://127.0.0.1:18080'
-export const results='/tmp/gill-acceptance-results.jsonl'
+export const results=process.env.ACCEPTANCE_RESULTS||'/tmp/gill-acceptance-results.jsonl'
 const values={}
 for(const line of fs.readFileSync('deploy/.env','utf8').split('\n')){
  const m=line.match(/^([A-Z_][A-Z0-9_]*)=(.*)$/)
