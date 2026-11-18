@@ -2,22 +2,23 @@
 import { computed, ref, watch } from 'vue'
 import { useTeams } from './store'
 import ProjectLibrary from './ProjectLibrary.vue'
+import TeamEmptyState from './TeamEmptyState.vue'
 import { employeeActivity, stateLabel } from './presentation'
 const props=defineProps<{selectedId:string}>()
-defineEmits<{(e:'enter-chat',id:string):void;(e:'navigate',path:string):void}>()
-const store=useTeams(),creating=ref(false),name=ref(''),description=ref(''),prompt=ref(''),receiver=ref(''),maxRounds=ref(25),maxSeconds=ref(900)
+defineEmits<{(e:'enter-chat',id:string):void;(e:'navigate',path:string):void;(e:'create-team'):void}>()
+const store=useTeams(),name=ref(''),description=ref(''),prompt=ref(''),receiver=ref(''),maxRounds=ref(25),maxSeconds=ref(900)
 const allowCrossTeamAdoption=ref(false)
 const templateId=ref(''),memberName=ref(''),role=ref(''),parentId=ref('user'),editing=ref(''),editPrompt=ref(''),editRole=ref('')
 const tab=ref('members'),dragged=ref(''),parents=ref<Record<string,string>>({}),dirty=ref(false),mountSource=ref<Record<string,string>>({})
 const baseTeamRevision=ref(0),baseEmployeeRevision=ref(0),baseRelations=ref<Record<string,number>>({})
 const team=computed(()=>store.data.teams[props.selectedId])
+const teams=computed(()=>Object.values(store.data.teams))
 const members=computed(()=>Object.values(store.data.employees).filter(e=>e.teamId===props.selectedId))
 const currentEmployee=computed(()=>store.data.employees[editing.value])
 function reset(){if(team.value){baseTeamRevision.value=team.value.revision;name.value=team.value.name;description.value=team.value.description;prompt.value=team.value.prompt;receiver.value=team.value.receiverId||'';maxRounds.value=team.value.limits?.maxRounds||25;maxSeconds.value=team.value.limits?.maxSeconds||900}parents.value=Object.fromEntries(members.value.map(e=>[e.id,e.parentId]));baseRelations.value=Object.fromEntries(members.value.map(e=>[e.id,e.revision]));dirty.value=false}
 watch(()=>props.selectedId,()=>{reset();tab.value='members';editing.value=''},{immediate:true})
 watch(()=>members.value.length,()=>{if(!dirty.value){parents.value=Object.fromEntries(members.value.map(e=>[e.id,e.parentId]));baseRelations.value=Object.fromEntries(members.value.map(e=>[e.id,e.revision]))}})
 watch(()=>team.value?.id,()=>{if(team.value&&!baseTeamRevision.value)reset()})
-async function create(){try{const t=await store.command('team.create',{name:name.value,description:description.value,prompt:prompt.value});creating.value=false;location.hash='/teams/'+t.id}catch{}}
 async function save(){if(!team.value)return;try{await store.command('team.update',{id:team.value.id,expectedRevision:baseTeamRevision.value,name:name.value,description:description.value,prompt:prompt.value,receiverId:receiver.value,limits:{maxRounds:maxRounds.value,maxSeconds:maxSeconds.value}});reset()}catch{}}
 async function addMember(){try{await store.command('employee.create',{teamId:props.selectedId,templateId:templateId.value,name:memberName.value,role:role.value,parentId:parentId.value,allowCrossTeamAdoption:allowCrossTeamAdoption.value});memberName.value='';role.value='';reset()}catch{}}
 function drop(target:string){if(dragged.value&&target!==dragged.value){parents.value[dragged.value]=target;dirty.value=true}dragged.value=''}
@@ -30,11 +31,21 @@ async function mount(id:string,source:string,remove=false){if(!source)return;try
 </script>
 <template>
  <div class="team-page">
-  <template v-if="!team">
-   <header class="team-page-head"><div><h1>团队</h1><p class="team-muted">每位员工只属于一个团队。进入详情后管理员工、项目和工作规则。</p></div><button @click="creating=!creating;name='';description='';prompt=''">＋ 新建团队</button></header>
-   <form v-if="creating" class="team-card team-create" @submit.prevent="create"><label>团队名称<input v-model="name" required/></label><label>负责的产品、模块或业务范围<textarea v-model="description"/></label><label>协作流程 Prompt<textarea v-model="prompt" placeholder="用自然语言定义协作、监督和上报要求…"/></label><button :disabled="store.busy||!name.trim()">创建团队</button></form>
-   <section class="team-grid"><article v-for="t in Object.values(store.data.teams)" :key="t.id" class="team-card team-directory-card"><h2>{{t.name}}</h2><p>{{t.description||'尚未填写简介'}}</p><p class="team-muted">{{Object.values(store.data.employees).filter(e=>e.teamId===t.id).length}} 位员工 · {{Object.values(store.data.projects).filter(p=>p.teamId===t.id).length}} 个项目</p><p>{{Object.values(store.data.projects).filter(p=>p.teamId===t.id).map(p=>p.name).join('、')||'尚未归档项目'}}</p><div class="team-row"><button @click="$emit('navigate','/teams/'+t.id)">管理团队 →</button><button class="secondary" @click="$emit('enter-chat',t.id)">进入群聊</button></div></article></section>
-  </template>
+  <div v-if="!team" class="team-directory">
+   <header class="team-page-head team-directory-head">
+    <div><h1>团队</h1><p>管理员工、项目和协作规则。</p></div>
+    <button v-if="teams.length" type="button" class="team-entry-primary" @click="$emit('create-team')"><span aria-hidden="true">＋</span> 新建团队</button>
+   </header>
+   <TeamEmptyState v-if="!teams.length" heading="h2" title="还没有团队" description="创建团队后，就可以从模板添加专属员工。" action="新建团队" @create="$emit('create-team')"/>
+   <section v-else class="team-grid" aria-label="团队列表">
+    <article v-for="t in teams" :key="t.id" class="team-card team-directory-card">
+     <h2>{{t.name}}</h2><p class="team-directory-description">{{t.description||'尚未填写简介'}}</p>
+     <p class="team-muted">{{Object.values(store.data.employees).filter(e=>e.teamId===t.id).length}} 位员工 · {{Object.values(store.data.projects).filter(p=>p.teamId===t.id).length}} 个项目</p>
+     <p>{{Object.values(store.data.projects).filter(p=>p.teamId===t.id).map(p=>p.name).join('、')||'尚未归档项目'}}</p>
+     <div class="team-row"><button @click="$emit('navigate','/teams/'+t.id)">管理团队 →</button><button class="secondary" @click="$emit('enter-chat',t.id)">进入群聊</button></div>
+    </article>
+   </section>
+  </div>
   <template v-else>
    <button class="text-button" @click="$emit('navigate','/teams')">← 返回团队</button><header class="team-page-head"><div><h1>{{team.name}}</h1><p>{{team.description}}</p></div><button @click="$emit('enter-chat',team.id)">进入群聊 →</button></header>
    <nav class="team-tabs"><button v-for="[id,label] in [['members','团队成员'],['projects','项目库'],['settings','团队配置']]" :key="id" :class="{active:tab===id}" class="secondary" @click="tab=id">{{label}}</button></nav>

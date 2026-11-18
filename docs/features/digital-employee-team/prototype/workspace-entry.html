@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>工作台与新建团队 · Gill 交互原型</title>
+<style>
+ :root{font:14px/1.65 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;color:#19243b;background:#f7f8fc}
+ *{box-sizing:border-box}body,h1,h2,p{margin:0}button,input,textarea{font:inherit}button{cursor:pointer}
+ :focus-visible{outline:3px solid #8295f6;outline-offset:3px}[hidden]{display:none!important}
+ body{display:grid;grid-template-columns:200px minmax(0,1fr);min-height:100dvh}
+ aside{background:#fff;border-right:1px solid #e4e9f4;padding:28px 15px}
+ .brand{display:flex;align-items:center;gap:10px;font-size:22px;font-weight:750;padding:0 8px 28px}
+ .mark{display:grid;place-items:center;width:32px;height:34px;border-radius:9px;background:#3e55de;color:white;font-size:20px}
+ nav{display:grid;gap:5px}nav button,nav span{border:0;border-radius:8px;background:none;padding:10px 12px;color:#53617b;text-align:left;white-space:nowrap}
+ nav button.selected{background:#edf0ff;color:#3045c5;font-weight:700}
+ main{min-width:0;display:flex;flex-direction:column}
+ .bar{height:61px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;background:#fff;border-bottom:1px solid #e4e9f4;font-size:13px}
+ .sample{font-size:11px;color:#62708a}
+ .workbench{flex:1;display:grid;place-items:center;padding:32px;background:radial-gradient(ellipse at 50% 41%,#edf1ff 0%,#f7f8fc 64%)}
+ .entry{width:min(100%,520px);border:1px solid #e0e6f4;border-radius:18px;background:#fff;text-align:center;padding:45px 26px 40px}
+ .entry-icon{display:grid;place-items:center;width:62px;height:62px;margin:0 auto 21px;border-radius:17px;background:#edf0ff;color:#3e55de}
+ .organization{width:34px;height:30px;position:relative}
+ .organization i{position:absolute;width:8px;height:8px;border:1.6px solid currentColor;border-radius:2px}
+ .organization i:nth-child(1){top:1px;left:13px}.organization i:nth-child(2){bottom:1px;left:3px}.organization i:nth-child(3){bottom:1px;right:3px}
+ .organization::before{content:"";position:absolute;top:9px;left:16px;border-left:1.6px solid currentColor;height:6px}
+ .organization::after{content:"";position:absolute;top:14px;left:6px;width:22px;height:7px;border:1.6px solid currentColor;border-bottom:0;border-radius:2px 2px 0 0}
+ .entry h1,.entry h2{font-size:clamp(21px,3vw,29px);line-height:1.3;font-weight:760;letter-spacing:-.035em}
+ .entry p{max-width:360px;margin:10px auto 23px;color:#53617b}
+ button.primary,button.secondary{min-height:42px;padding:9px 15px;border-radius:8px;font-weight:650}
+ .primary{border:1px solid #3e55de;background:#3e55de;color:#fff}.primary:hover{background:#3045c5}
+ .secondary{border:1px solid #dce3f1;background:#fff;color:#273751}
+ .teams{width:min(1120px,100% - 64px);margin:0 auto;padding:39px 0}
+ .teams-head{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:25px}
+ .teams-head h1{font-size:32px}.teams-head p{color:#53617b;margin-top:4px}
+ .teams .entry{margin:0 auto}
+ .list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+ .team-card{background:white;border:1px solid #e0e6f4;border-radius:14px;padding:20px}
+ .team-card h2{font-size:18px}.team-card p{color:#53617b;margin:6px 0}
+ .team-card small{color:#53617b}
+ .team-card button{display:block;margin-top:10px}
+ .preview-chat{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 248px;background:white}
+ .preview-chat section,.preview-chat aside{padding:24px;border:0;border-left:1px solid #e4e9f4;display:block}
+ .preview-chat p{color:#53617b;margin-top:8px}
+ dialog{position:fixed;inset:0;margin:auto;width:min(520px,100% - 30px);height:fit-content;max-height:calc(100% - 30px);overflow:auto;border:1px solid #dce3f1;border-radius:16px;padding:0;color:#19243b;box-shadow:0 18px 70px #14234c33}
+ dialog::backdrop{background:#17213c58}
+ form{padding:25px 27px}
+ .modal-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:17px}
+ .modal-head h2{font-size:23px}.close{width:33px;height:33px;padding:0;border:1px solid #dce3f1;border-radius:8px;background:white;color:#273751;font-size:19px}
+ .field{display:block;font-size:13px;font-weight:650;margin:0 0 14px}
+ .optional{margin-left:5px;color:#62708a;font-size:12px;font-weight:400}
+ input,textarea{display:block;width:100%;margin-top:5px;border:1px solid #dce3f1;border-radius:8px;padding:9px 10px;color:#19243b;background:white;font-weight:400;resize:vertical}
+ details{border-top:1px solid #e7edf6;padding-top:13px;margin-top:2px}
+ summary{font-weight:650;cursor:pointer;color:#344565}details label{margin:8px 0 0}
+ .actions{display:flex;justify-content:flex-end;gap:9px;margin-top:20px}
+ @media(max-width:760px){
+  body{display:flex;flex-direction:column}
+  aside{display:flex;align-items:center;gap:10px;padding:9px 10px;border-right:0;border-bottom:1px solid #e4e9f4}
+  .brand{padding:0}.brand strong{display:none}nav{display:flex;gap:2px}nav button,nav span{font-size:11px;padding:7px 6px}
+  main{flex:1}.bar{height:42px;padding:0 15px}.workbench{padding:20px 16px}
+  .entry{padding:33px 16px 30px}.teams{width:calc(100% - 32px);padding:24px 0}.list{grid-template-columns:1fr}
+  .preview-chat{grid-template-columns:1fr}
+  form{padding:21px 17px}
+ }
+</style>
+</head>
+<body>
+<aside><div class="brand"><span class="mark">g</span><strong>Gill</strong></div><nav aria-label="主导航">
+ <button class="selected" id="workbench-link" type="button">工作台</button><span>数字员工模板</span><button id="teams-link" type="button">团队</button><span>知识库</span>
+</nav></aside>
+<main>
+ <header class="bar"><strong id="section-title">工作台</strong><span class="sample">交互原型 · 示例数据</span></header>
+ <section class="workbench" id="workbench">
+  <div class="entry">
+   <div class="entry-icon" aria-hidden="true"><span class="organization"><i></i><i></i><i></i></span></div>
+   <h1>创建第一个团队</h1><p>添加数字员工后，就能在群聊中交办任务。</p>
+   <button class="primary" data-create type="button">＋ 创建团队</button>
+  </div>
+ </section>
+ <div class="preview-chat" id="workbench-chat" hidden>
+  <section><h1 id="chat-name"></h1><p>暂无群聊消息。</p></section>
+  <aside><h2>团队状态</h2><p id="chat-team"></p><p>暂无员工。</p></aside>
+ </div>
+ <section class="teams" id="teams" hidden>
+  <header class="teams-head"><div><h1>团队</h1><p>管理员工、项目和协作规则。</p></div><button class="primary" id="directory-create" data-create type="button" hidden>＋ 新建团队</button></header>
+  <div class="entry" id="teams-empty">
+   <div class="entry-icon" aria-hidden="true"><span class="organization"><i></i><i></i><i></i></span></div>
+   <h2>还没有团队</h2><p>创建团队后，就可以从模板添加专属员工。</p><button class="primary" data-create type="button">＋ 新建团队</button>
+  </div>
+  <div class="list" id="team-list"></div>
+ </section>
+ <section class="teams" id="team-detail" hidden>
+  <button type="button" class="secondary" id="detail-back">← 返回团队</button>
+  <header class="teams-head"><div><h1 id="detail-name"></h1><p id="detail-description"></p></div><button type="button" class="primary" id="enter-chat">进入群聊</button></header>
+  <div class="team-card"><h2>团队成员</h2><p>暂无员工。可以从模板创建专属员工。</p></div>
+ </section>
+</main>
+<dialog aria-labelledby="dialog-title">
+ <form>
+  <header class="modal-head"><h2 id="dialog-title">新建团队</h2><button type="button" class="close" data-close aria-label="关闭">×</button></header>
+  <label class="field">团队名称<input name="name" placeholder="例如：产品研发团队" required></label>
+  <label class="field">团队简介<span class="optional">选填</span><textarea name="description" rows="2" placeholder="一句话描述团队负责的产品、模块或业务"></textarea></label>
+  <details><summary>协作规则<span class="optional">选填</span></summary>
+   <label class="field">协作 Prompt<textarea name="prompt" rows="3" placeholder="描述团队如何分工、复核和上报"></textarea></label>
+  </details>
+  <div class="actions"><button class="secondary" data-close type="button">取消</button><button class="primary" type="submit">创建团队</button></div>
+ </form>
+</dialog>
+<script>
+ const id=name=>document.getElementById(name)
+ const modal=document.querySelector('dialog')
+ const form=modal.querySelector('form')
+ let activeTeam=null
+ function navigate(target){
+  const workbench=target==='workbench'
+  id('workbench').hidden=!workbench||Boolean(activeTeam)
+  id('workbench-chat').hidden=!workbench||!activeTeam
+  id('teams').hidden=target!=='teams'
+  id('team-detail').hidden=target!=='detail'
+  id('section-title').textContent=workbench?'工作台':'团队'
+  id('teams-link').classList.toggle('selected',!workbench)
+  id('workbench-link').classList.toggle('selected',workbench)
+ }
+ function openTeam(team){
+  activeTeam=team
+  id('detail-name').textContent=team.name
+  id('detail-description').textContent=team.description
+  id('chat-name').textContent=team.name
+  id('chat-team').textContent=team.name
+  navigate('detail')
+ }
+ id('workbench-link').onclick=()=>navigate('workbench')
+ id('teams-link').onclick=()=>navigate('teams')
+ id('detail-back').onclick=()=>navigate('teams')
+ id('enter-chat').onclick=()=>navigate('workbench')
+ document.querySelectorAll('[data-create]').forEach(button=>button.onclick=()=>{
+  form.reset()
+  form.querySelector('details').open=false
+  modal.showModal()
+  form.elements.name.focus()
+ })
+ document.querySelectorAll('[data-close]').forEach(button=>button.onclick=()=>modal.close())
+ form.onsubmit=event=>{
+  event.preventDefault()
+  const {name,description}=Object.fromEntries(new FormData(form))
+  if(!name.trim())return
+  const team={name:name.trim(),description:description.trim()||'尚未填写简介'}
+  const card=document.createElement('article')
+  card.className='team-card'
+  for(const [tag,text] of [['h2',team.name],['p',team.description],['small','0 位员工 · 0 个项目']]){
+   const item=document.createElement(tag)
+   item.textContent=text
+   card.append(item)
+  }
+  const manage=document.createElement('button')
+  manage.type='button';manage.className='secondary';manage.textContent='管理团队 →'
+  manage.onclick=()=>openTeam(team)
+  card.append(manage)
+  id('team-list').append(card)
+  id('teams-empty').hidden=true
+  id('directory-create').hidden=false
+  modal.close()
+  openTeam(team)
+ }
+</script>
+</body>
+</html>

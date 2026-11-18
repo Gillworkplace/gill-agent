@@ -4,6 +4,8 @@
 
 `TeamChat` 是对话主区，`TaskControls` 提供任务阻断、恢复、改派与人工核实；右侧为团队摘要。`TeamDirectory` 首页只展示团队简介，详情管理组织树和员工；项目库在团队详情。`TemplateLibrary` 支持多轮生成草稿、编辑和明确保存；`KnowledgeLibrary` 管理 Agent 只读的知识版本。
 
+工作台没有团队时显示创建引导。工作台和团队目录共用 `CreateTeamDialog`，提交沿用 `team.create`。简介和协作规则选填，协作规则可展开编辑，创建成功后进入团队详情。已有团队的工作台显示群聊及右侧团队状态。
+
 模板首页展示已有模板或创建引导。创建时可选择对话、导入文件夹或手动填写。同一模板支持连续导入多个 Skill 目录，也支持一次导入目录集合。单个 Skill 保存到 `skills/<目录名>/`，包含原有的入口文件与附件。编辑区按 Skill 展开各自的文件，可以设置文件用途后保存为模板版本。
 
 已保存模板的卡片、搜索和只读详情由 `TemplateCatalog` 负责，视觉基线为[模板库原型 v0.1](../../docs/features/digital-employee-team/prototype/template-library/index.html)。搜索匹配模板名和实际 Skill 名称。卡片摘要优先取工作指令的首行内容，其次取已有的文本 Skill 描述。创建、目录导入和编辑弹层由 `TemplateLibrary` 继续调用模板接口，提交成功后回到模板库。

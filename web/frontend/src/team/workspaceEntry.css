@@ -1,0 +1,78 @@
+.team-app {
+ --entry-ink:#19243b;
+ --entry-muted:#53617b;
+ --entry-accent:#3e55de;
+ --entry-accent-hover:#3045c5;
+}
+.workbench-welcome {
+ flex:1;min-height:0;overflow:auto;display:grid;place-items:center;padding:32px;
+ background:radial-gradient(ellipse at 50% 41%,#edf1ff 0%,#f7f8fc 64%);
+}
+.team-empty-state {
+ width:min(100%,520px);margin:0 auto;padding:45px 26px 40px;text-align:center;
+ background:#fff;border:1px solid #e0e6f4;border-radius:18px;
+}
+.team-entry-icon {
+ display:grid;place-items:center;width:62px;height:62px;margin:0 auto 21px;border-radius:17px;
+ color:var(--entry-accent);background:#edf0ff;
+}
+.team-entry-organization {position:relative;width:34px;height:30px}
+.team-entry-organization i {position:absolute;width:8px;height:8px;border:1.6px solid currentColor;border-radius:2px}
+.team-entry-organization i:nth-child(1) {top:1px;left:13px}
+.team-entry-organization i:nth-child(2) {bottom:1px;left:3px}
+.team-entry-organization i:nth-child(3) {bottom:1px;right:3px}
+.team-entry-organization::before {content:"";position:absolute;top:9px;left:16px;height:6px;border-left:1.6px solid currentColor}
+.team-entry-organization::after {
+ content:"";position:absolute;top:14px;left:6px;width:22px;height:7px;
+ border:1.6px solid currentColor;border-bottom:0;border-radius:2px 2px 0 0;
+}
+.team-app .team-empty-state :is(h1,h2) {
+ margin:0;color:var(--entry-ink);font-size:clamp(21px,3vw,29px);line-height:1.3;
+ font-weight:760;letter-spacing:-.035em;
+}
+.team-app .team-empty-state p {max-width:360px;margin:10px auto 23px;color:var(--entry-muted);font-size:14px}
+.team-app .team-entry-primary {
+ min-height:42px;padding:9px 15px;border:1px solid var(--entry-accent);border-radius:8px;
+ color:#fff;background:var(--entry-accent);font-size:14px;font-weight:650;white-space:nowrap;
+}
+.team-app .team-entry-primary:not(:disabled):hover {filter:none;background:var(--entry-accent-hover)}
+.team-directory {max-width:1120px;margin:0 auto;padding-top:8px}
+.team-directory-head {align-items:center;margin-bottom:25px}
+.team-app .team-directory-head h1 {margin:0;color:var(--entry-ink);font-size:32px;line-height:1.2}
+.team-app .team-directory-head p {margin:8px 0 0;color:var(--entry-muted);font-size:14px}
+.team-directory .team-directory-card {
+ padding:20px;border-color:#e0e6f4;border-radius:14px;min-height:0;
+}
+.team-directory-card .team-directory-description {color:var(--entry-muted)}
+.team-directory-card .team-row {margin-top:14px}
+
+.team-app .team-create-dialog {
+ position:fixed;inset:0;margin:auto;width:min(520px,100% - 30px);max-width:none;
+ height:fit-content;max-height:calc(100% - 30px);overflow:auto;padding:0;
+ border:1px solid #dce3f1;border-radius:16px;background:#fff;color:var(--entry-ink);
+ box-shadow:0 18px 70px #14234c33;font-size:14px;
+}
+.team-create-dialog::backdrop {background:#17213c58}
+.team-create-dialog form {padding:25px 27px}
+.team-create-header {display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.team-app .team-create-header h2 {margin:0;font-size:23px;line-height:1.3}
+.team-app .team-create-close {
+ flex:none;width:33px;height:33px;min-height:0;padding:0;border:1px solid #dce3f1;border-radius:8px;
+ background:#fff;color:#273751;font-size:19px;
+}
+.team-app .team-create-dialog label {margin:14px 0 5px;color:var(--entry-ink);font-size:13px;font-weight:650}
+.team-app .team-create-dialog textarea {min-height:0;line-height:1.65}
+.team-create-optional {margin-left:6px;color:var(--entry-muted);font-size:12px;font-weight:400}
+.team-create-rules {margin-top:15px;padding-top:12px;border-top:1px solid #e7edf6}
+.team-app .team-create-rules summary {padding:0;color:#344565;font-size:14px;font-weight:650}
+.team-create-actions {display:flex;justify-content:flex-end;gap:9px;margin-top:20px}
+.team-app .team-create-actions .secondary {min-height:42px;padding-inline:15px;font-size:14px}
+.team-app .team-create-error {margin:8px 0}
+
+@media(max-width:768px) {
+ .workbench-welcome {padding:20px 16px}
+ .team-empty-state {padding:33px 16px 30px}
+ .team-directory {padding-top:4px}
+ .team-app .team-directory-head h1 {font-size:27px}
+ .team-create-dialog form {padding:21px 17px}
+}

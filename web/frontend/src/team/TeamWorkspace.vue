@@ -4,14 +4,17 @@ import { useTeams } from './store'
 import { useAuth } from '../stores/auth'
 import { mentionsForUser, employeeActivity, stateLabel, latestForTeam, workspaceFreshness } from './presentation'
 import TeamChat from './TeamChat.vue'
+import TeamEmptyState from './TeamEmptyState.vue'
+import CreateTeamDialog from './CreateTeamDialog.vue'
 import TeamDirectory from './TeamDirectory.vue'
 import TemplateLibrary from './TemplateLibrary.vue'
 import KnowledgeLibrary from './KnowledgeLibrary.vue'
 import './team.css'
 import './templateCatalog.css'
+import './workspaceEntry.css'
 
 const store=useTeams(), auth=useAuth()
-const route=ref(location.hash.slice(1)||'/workbench'), active=ref(''), panel=ref(false)
+const route=ref(location.hash.slice(1)||'/workbench'), active=ref(''), panel=ref(false),creatingTeam=ref(false)
 const nav=[['/workbench','◉','工作台'],['/templates','◇','数字员工模板'],['/teams','♧','团队'],['/knowledge','▤','知识库']]
 const teams=computed(()=>Object.values(store.data.teams))
 const selected=computed(()=>store.data.teams[active.value]||teams.value[0])
@@ -20,8 +23,13 @@ const unread=computed(()=>mentionsForUser(store.data.messages))
 const freshness=computed(()=>workspaceFreshness(store.observedAt,Boolean(store.refreshError)))
 let timer: ReturnType<typeof setInterval>
 function navigate(path:string){location.hash=path;panel.value=false}
-function syncRoute(){route.value=location.hash.slice(1)||'/workbench'}
+function syncRoute(){
+ const next=location.hash.slice(1)||'/workbench'
+ if(next!==route.value&&!store.busy)creatingTeam.value=false
+ route.value=next
+}
 function select(id:string){active.value=id;panel.value=false;navigate('/workbench')}
+function teamCreated(id:string){creatingTeam.value=false;navigate('/teams/'+id)}
 async function refresh(){try{await store.refresh();if(!active.value&&teams.value.length)active.value=teams.value[0].id}catch{}}
 function blockers(id:string){return Object.values(store.data.tasks).filter(t=>t.teamId===id&&['blocked','needs_reconciliation','unknown','failed'].includes(t.state))}
 function members(id:string){return Object.values(store.data.employees).filter(e=>e.teamId===id)}
@@ -53,8 +61,11 @@ onUnmounted(()=>{clearInterval(timer);window.removeEventListener('hashchange',sy
    <div v-if="store.error||store.refreshError" class="team-error" role="alert">{{store.error||store.refreshError}} <button class="text-button" @click="refresh">重新读取</button></div>
    <div v-if="!store.loaded" class="team-empty">正在读取工作空间…</div>
    <template v-else-if="section==='workbench'">
-    <div class="workbench-layout">
-     <section class="chat-core"><TeamChat v-if="selected" :team="selected" @show-teams="panel=!panel"/><div v-else class="team-empty"><h1>从一个团队开始</h1><p>创建团队，再从模板创建专属员工。</p><button @click="navigate('/teams')">创建团队</button></div></section>
+    <section v-if="!selected" class="workbench-welcome" aria-label="工作台">
+     <TeamEmptyState heading="h1" title="创建第一个团队" description="添加数字员工后，就能在群聊中交办任务。" action="创建团队" @create="creatingTeam=true"/>
+    </section>
+    <div v-else class="workbench-layout">
+     <section class="chat-core"><TeamChat :team="selected" @show-teams="panel=!panel"/></section>
      <button v-if="panel" class="team-panel-backdrop" aria-label="关闭团队状态" @click="panel=false"/>
      <aside class="team-status-panel" :class="{open:panel}" aria-label="团队状态">
       <h3>团队状态 <button class="text-button" @click="navigate('/teams')">管理</button></h3>
@@ -76,7 +87,8 @@ onUnmounted(()=>{clearInterval(timer);window.removeEventListener('hashchange',sy
    </template>
    <TemplateLibrary v-else-if="section==='templates'"/>
    <KnowledgeLibrary v-else-if="section==='knowledge'"/>
-   <TeamDirectory v-else :selected-id="route.split('/')[2]||''" @enter-chat="select" @navigate="navigate"/>
+   <TeamDirectory v-else :selected-id="route.split('/')[2]||''" @enter-chat="select" @navigate="navigate" @create-team="creatingTeam=true"/>
   </main>
+  <CreateTeamDialog :open="creatingTeam" @close="creatingTeam=false" @created="teamCreated"/>
  </div>
 </template>

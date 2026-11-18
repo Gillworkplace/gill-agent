@@ -4,6 +4,10 @@
 
 ## 打开与体验
 
+[工作台空态与新建团队原型](workspace-entry.html)对应 D24、D28、D31，演示两个入口共用表单、取消、创建后进入详情及回到工作台。原型使用内存中的示例数据。产品视角代理复核了创建后的状态切换，Chrome 走查通过。
+
+真实页面在 1440 × 1040 和 390 × 844 验证了工作台空态和新建团队表单。真实创建持久化名称、简介及折叠后的协作规则，跳转到团队详情后，工作台重新显示群聊和右侧状态。前端 18 项单测、类型检查、构建、模板交互及 7 项基础浏览器回归通过。[工作台桌面](../../../../gui-test-screenshots/v20261118-full-closure-workbench-empty-desktop.png) · [工作台手机](../../../../gui-test-screenshots/v20261118-full-closure-workbench-empty-mobile.png) · [新建团队桌面](../../../../gui-test-screenshots/v20261118-full-closure-team-create-desktop.png) · [新建团队手机](../../../../gui-test-screenshots/v20261118-full-closure-team-create-mobile.png)
+
 直接打开 [index.html](index.html)，无需安装、构建或后台。本机预览：[工作台](http://127.0.0.1:4173/?v=0.7#/overview)、[研发团队组织树](http://127.0.0.1:4173/?v=0.7#/team/dev)。版本参数用于避免旧资源缓存。
 
 主入口保留**工作台 / 数字员工模板 / 团队 / 知识库**；本轮不新增独立运行记录或我的待办页面。工作台仍以对话为核心，团队状态在右侧，手机通过抽屉查看。
