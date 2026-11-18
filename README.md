@@ -8,6 +8,7 @@ Java 负责身份、业务事务、版本与持久工作队列；Python 负责�
 - [实现契约、结构与边界](docs/features/digital-employee-team/implementation.md)
 - [验证记录](docs/features/digital-employee-team/verification.md)
 - [产品验收与六项缺陷修改反馈](docs/features/digital-employee-team/acceptance_fix_feedback_20261117.md)
+- [2026-11-18产品/测试回归结果](docs/features/digital-employee-team/regression_20261118.md)
 - [Java 网关](web/README.md) · [前端](web/frontend/README.md) · [Python 执行器](agent/README.md)
 - [开发规范](AGENTS.md) · [部署配置](docs/05-deploy.md)
 

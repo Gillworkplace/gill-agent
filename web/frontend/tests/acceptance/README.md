@@ -28,3 +28,11 @@
 沿用原A/B用例，不放宽旧失败断言。新独立数据库先执行协议，再准备GUI数据并运行`repair-browser-cases.mjs`：原7项加通知无派工、失效决定、当前/历史核查、失效上级异常及已完成工作引用续接，共12项，截图前缀v20261117-repair-*。用例组间保留60秒间隔以遵守现有限流，续接使用独立新账号；不要在真实Worker运行期间执行这些带claim的设施。
 
 模型对照沿用原model-cases-setup，不改业务Prompt取较好回答；另以无仓库的当前项目文档归档任务检查archive_document实际保存/来源/完成。等待案例用两次只读投影核对超过60秒无额外调用，不能靠睡眠或模型自称证明。当前源码程序测试、所有首次结果、模型上限内未收尾和未复验范围见[修改反馈](../../../../docs/features/digital-employee-team/acceptance_fix_feedback_20261117.md)。这些是开发整合验证，不能代测试/产品正式重验。
+
+## 2026-11-18复验设施
+
+`regression-boundaries.mjs`补直属解决、改派失效、同员工跨任务归档、依赖/独立/暂停及恢复、更高上级失效、版本边界；仍须独立库、无真实Worker，和A/B顺序运行。`regression-browser-cases.mjs`沿用12条GUI场景，但每次重载后明确选择测试团队，保留首轮错误定位记录，不依赖团队列表随机顺序。
+
+只有以code-setup在主库新测试账户实际完成两项任务、生成来源版本后，才运行`regression-git-cases.mjs`，它在该专用项目构造保护/过期/未知来源拒绝、两次实际集成及故意失败检查；恢复原检查命令但保留负例问题，不替用户作决定、不推外部仓库。`regression-git-ui.mjs`只读查看此项目。每轮必须新账户/项目，不直接在已执行过的fixture上重放。
+
+Python `agent/tests/acceptance_network_probe.py`仅新建/清理自己的连通探测沙箱；`regression_git_inspect.py`只连接给定的测试合并沙箱，对实际commit和两个功能做shell核对。使用项目.venv和现有配置，不输出Key，输入/输出JSON不含登录凭据。云端公共HTTPS成功不能代替Git/实际研发通过。结果与剩余项见[11月18日回归报告](../../../../docs/features/digital-employee-team/regression_20261118.md)。
