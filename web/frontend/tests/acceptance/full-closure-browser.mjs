@@ -61,7 +61,67 @@ try{
  const switchTo=hash=>evalJs('location.hash='+JSON.stringify(hash))
  await cdp('Runtime.enable')
  await view(1440,1040)
- if(process.argv[2]==='--template-folder'){
+ if(process.argv[2]==='--multiple-skills'){
+  const a=await account()
+  const writeSkill=async (root,name,marker)=>{
+   const folder=path.join(root,name)
+   await fs.mkdir(path.join(folder,'references'),{recursive:true})
+   await fs.writeFile(path.join(folder,'SKILL.md'),`# ${name}\nRead references/guide.md when using this Skill.`)
+   await fs.writeFile(path.join(folder,'references','guide.md'),marker)
+   return folder
+  }
+  const first=await writeSkill(profile,'frontend-engineer','FRONTEND_GUIDE')
+  const second=await writeSkill(profile,'test-engineer','TEST_GUIDE')
+  const bundle=path.join(profile,'team-template')
+  await writeSkill(path.join(bundle,'skills'),'product-manager','PRODUCT_GUIDE')
+  await writeSkill(path.join(bundle,'skills'),'system-designer','SYSTEM_GUIDE')
+  await fs.writeFile(path.join(bundle,'AGENTS.md'),'Shared template instructions.')
+  await cdp('Page.navigate',{url:origin+'/#/templates'})
+  await ui('!!document.querySelector("#login input[type=password]")')
+  await set('#login input',a.username);await set('#login input[type=password]',a.password);await click('#login .btn')
+  await ui('!!document.querySelector(".template-start")')
+  await cdp('DOM.enable')
+  const importFolder=async(folder,count)=>{
+   const dom=await cdp('DOM.getDocument')
+   const input=await cdp('DOM.querySelector',{nodeId:dom.root.nodeId,selector:'input[webkitdirectory]'})
+   await cdp('DOM.setFileInputFiles',{nodeId:input.nodeId,files:[folder]})
+   await ui(`document.querySelectorAll('.template-skill-package').length===${count}`)
+  }
+  await importFolder(first,1)
+  check(await evalJs('document.querySelector("#template-name").value===""'),'first Skill named the template')
+  await importFolder(second,2)
+  await importFolder(bundle,4)
+  await set('#template-name','软件交付团队模板')
+  await click('.template-skill-package summary')
+  await ui('document.querySelector(".template-skill-package[open]").textContent.includes("references/guide.md")')
+  await shot('multiple-skills')
+  await view(390,844,true)
+  await ui('document.documentElement.scrollWidth===390')
+  await shot('multiple-skills-mobile')
+  await evalJs(`[...document.querySelectorAll('.template-skill-package summary')].find(summary=>summary.textContent.includes('test-engineer')).click()`)
+  await click('[aria-label="移除 Skill test-engineer"]')
+  await ui(`document.querySelectorAll('.template-skill-package').length===3&&document.querySelectorAll('.template-file-list li').length===7`)
+  await importFolder(second,4)
+  await submit('.template-preview')
+  await ui('document.querySelector(".template-preview h2")?.textContent==="模板配置"')
+  const saved=Object.values((await a.read()).templates)[0]
+  const names=['frontend-engineer','test-engineer','product-manager','system-designer']
+  check(saved.files.length===9&&saved.files.some(f=>f.path==='AGENTS.md'&&f.purpose==='prompt')&&names.every(name=>
+   saved.files.some(f=>f.path===`skills/${name}/SKILL.md`&&f.purpose==='skill')&&
+   saved.files.some(f=>f.path===`skills/${name}/references/guide.md`&&f.purpose==='resource')),
+   'Skill folders or their same-named references were overwritten',saved.files.map(f=>f.path))
+  check(new Set(saved.files.filter(f=>f.path.endsWith('guide.md')).map(f=>f.key)).size===4,'Skill references did not keep their original content')
+  const team=(await a.ok('team.create',{name:'四项 Skill 验收团队'})).id
+  const employee=await a.ok('employee.create',{teamId:team,templateId:saved.id,name:'多 Skill 员工'})
+  check((await a.read()).employees[employee.id].files.length===9,'employee did not adopt all Skill files')
+  if(process.env.MULTIPLE_SKILLS_RUNTIME_FIXTURE){
+   const task=await a.ok('task.assign',{employeeId:employee.id,goal:
+    '逐一用 read_template_file 读取四项 Skill 各自 references/guide.md。报告逐项写出 Skill 名及文件的实际标记，注明未验证范围，然后完成任务。'})
+   await fs.writeFile(process.env.MULTIPLE_SKILLS_RUNTIME_FIXTURE,JSON.stringify({token:a.token,taskId:task.id}),{mode:0o600})
+  }
+  check(!exceptions.length,'Chrome raised an exception during Skill imports')
+  console.log(JSON.stringify({case:'multiple-skills',passed:true,skills:names.length,files:saved.files.length}))
+ }else if(process.argv[2]==='--template-folder'){
   const a=await account()
   const team=(await a.ok('team.create',{name:'文件夹模板验收团队'})).id
   const source=path.join(profile,'资料核查模板')
@@ -88,7 +148,7 @@ try{
   const input=await cdp('DOM.querySelector',{nodeId:dom.root.nodeId,selector:'input[webkitdirectory]'})
   await cdp('DOM.setFileInputFiles',{nodeId:input.nodeId,files:[source]})
   await ui('document.querySelectorAll(".template-file-list li").length===5',45)
-  const listed=await evalJs('[...document.querySelectorAll(".template-file-list li")].map(li=>[li.querySelector("code").textContent,li.querySelector("select").value])')
+  const listed=await evalJs('[...document.querySelectorAll(".template-file-list li")].map(li=>[li.querySelector("code").title,li.querySelector("select").value])')
   check(Object.keys(samples).every(key=>listed.some(([name])=>name===key)),'import removed nested paths',listed)
   check(listed.some(([n,value])=>n==='skills/review/SKILL.md'&&value==='skill')&&
     listed.filter(([,value])=>value==='prompt').length===2&&listed.some(([n,value])=>n==='assets/fixture.bin'&&value==='resource'),

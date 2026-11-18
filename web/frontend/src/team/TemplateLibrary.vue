@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
 import { useTeams } from './store'
+import TemplateFileList from './TemplateFileList.vue'
+import { groupTemplateFiles } from './templateFileLayout'
 import { uploadTemplateFiles } from './templateFiles'
-import type { Skill, TemplateFile } from './types'
+import type { Skill, TemplateFile, TemplateFilePurpose } from './types'
 
 const store=useTeams()
 const mode=ref<'library'|'chat'|'edit'>('library')
@@ -16,8 +18,9 @@ const draft=computed(()=>store.data.drafts[draftId.value])
 const templates=computed(()=>Object.values(store.data.templates))
 const drafts=computed(()=>Object.values(store.data.drafts))
 const hasConfig=computed(()=>Boolean(prompt.value.trim()||skills.value.length||files.value.some(f=>f.purpose!=='resource')))
-const hasPreview=computed(()=>mode.value==='edit'||Boolean(name.value||hasConfig.value||files.value.length))
+const hasPreview=computed(()=>mode.value==='edit'||Boolean(name.value||hasConfig.value||files.value.length||uploading.value||importError.value))
 const pageBusy=computed(()=>store.busy||uploading.value||draft.value?.busy)
+const fileGroups=computed(()=>groupTemplateFiles(files.value))
 
 function start(next:'library'|'chat'|'edit'){
  importSequence++
@@ -64,7 +67,7 @@ async function importFiles(event:Event){
   if(packageFiles.length>128||packageFiles.reduce((sum,file)=>sum+file.size,0)>20*1024*1024)
    throw new Error('当前模板最多可保留 128 个文件，合计不超过 20 MB。')
   files.value=packageFiles.sort((a,b)=>a.path.localeCompare(b.path))
-  if(!name.value&&result.root)name.value=result.root
+  if(!name.value&&result.suggestedName)name.value=result.suggestedName
  }catch(error){
   if(sequence===importSequence)importError.value=error instanceof Error?error.message:'导入失败，请重试。'
  }finally{
@@ -92,6 +95,17 @@ async function share(){
  try{await store.command('template.share',{id:current.value.id,expectedRevision:baseRevision.value,teamIds:sharing.value})}catch{}
 }
 function removeFile(path:string){files.value=files.value.filter(file=>file.path!==path)}
+function removeSkill(groupFiles:TemplateFile[]){
+ const removed=new Set(groupFiles.map(file=>file.path))
+ files.value=files.value.filter(file=>!removed.has(file.path))
+}
+function changeFilePurpose(path:string,purpose:TemplateFilePurpose){
+ const file=files.value.find(file=>file.path===path)
+ if(file)file.purpose=purpose
+}
+function skillLabel(directory:string){
+ return directory.replace(/^skills\//,'')||name.value||'根目录 Skill'
+}
 function skillsCount(template:{skills:Skill[];files?:TemplateFile[]}){
  return template.skills.length+(template.files?.filter(file=>file.purpose==='skill').length||0)
 }
@@ -175,25 +189,29 @@ watch(()=>draft.value?.busy,(busy,previous)=>{
     <input id="template-name" v-model="name" required/>
     <div class="template-package">
      <div class="team-row between">
-      <h3>模板文件<span v-if="files.length" class="team-muted"> · {{files.length}}</span></h3>
+      <h3>Skills 与模板文件</h3>
       <div class="team-row">
        <button type="button" class="secondary small" :disabled="pageBusy" @click="folderInput?.click()">导入文件夹</button>
        <button type="button" class="text-button small" :disabled="pageBusy" @click="fileInput?.click()">添加文件</button>
       </div>
      </div>
+     <p v-if="!files.length&&!uploading" class="team-muted template-import-hint">可连续导入多个含 SKILL.md 的目录，也可一次导入整个 Skills 文件夹。</p>
      <p v-if="uploading" role="status">正在导入文件…</p>
      <p v-if="importError" class="team-error" role="alert">{{importError}}</p>
-     <ul v-if="files.length" class="template-file-list">
-      <li v-for="file in files" :key="file.path">
-       <code>{{file.path}}</code>
-       <select v-model="file.purpose" :aria-label="'文件用途 '+file.path" :disabled="pageBusy">
-        <option value="prompt" :disabled="!file.utf8||!file.size">工作指令</option>
-        <option value="skill" :disabled="!file.utf8||!file.size">Skill</option>
-        <option value="resource">参考文件</option>
-       </select>
-       <button type="button" class="text-button small" :disabled="pageBusy" :aria-label="'移除 '+file.path" @click="removeFile(file.path)">移除</button>
-      </li>
-     </ul>
+     <div v-if="fileGroups.packages.length" class="template-skill-packages">
+      <details v-for="group in fileGroups.packages" :key="group.directory" class="template-skill-package">
+       <summary><strong>{{skillLabel(group.directory)}}</strong><small class="team-muted">{{group.files.length}} 个文件</small></summary>
+       <div class="team-row between template-skill-location">
+        <code v-if="group.directory" class="team-muted">{{group.directory}}/</code>
+        <button type="button" class="text-button small" :aria-label="'移除 Skill '+skillLabel(group.directory)" :disabled="pageBusy" @click="removeSkill(group.files)">移除 Skill</button>
+       </div>
+       <TemplateFileList :files="group.files" :directory="group.directory" :disabled="pageBusy" @purpose="changeFilePurpose" @remove="removeFile"/>
+      </details>
+     </div>
+     <section v-if="fileGroups.shared.length" class="template-shared-files">
+      <h4 v-if="fileGroups.packages.length">模板公共文件</h4>
+      <TemplateFileList :files="fileGroups.shared" :disabled="pageBusy" @purpose="changeFilePurpose" @remove="removeFile"/>
+     </section>
     </div>
     <label for="template-prompt">补充工作指令</label>
     <textarea id="template-prompt" v-model="prompt" rows="5" placeholder="可填写适用于这个模板的补充说明"/>
@@ -251,17 +269,17 @@ watch(()=>draft.value?.busy,(busy,previous)=>{
 .template-messages{min-height:0}
 .template-package{margin:20px 0 12px;padding:13px;border:1px solid var(--team-line);border-radius:9px;background:#f8faff}
 .template-package h3,.template-skills h3{margin:0}
-.template-file-list{list-style:none;margin:8px 0 0;padding:0;max-height:330px;overflow:auto}
-.template-file-list li{display:grid;grid-template-columns:minmax(0,1fr) minmax(96px,116px) auto;align-items:center;gap:7px;border-top:1px solid var(--team-line);padding:7px 0}
-.template-file-list code{overflow-wrap:anywhere;color:#385078}
-.template-file-list select{padding:3px 5px}
-.template-file-list .small{white-space:nowrap}
+.template-import-hint{margin:10px 0 0}
+.template-skill-packages{display:grid;gap:6px;margin-top:12px}
+.template-skill-package{padding:8px 10px;background:#fff;border:1px solid var(--team-line);border-radius:7px}
+.template-skill-package summary{cursor:pointer;overflow-wrap:anywhere}
+.template-skill-package summary small{margin-left:8px}
+.template-skill-location{margin-top:8px;overflow-wrap:anywhere}
+.template-shared-files h4{font-size:13px;margin:12px 0 2px}
 .template-skills{margin-top:14px}
 @media(max-width:900px){.template-editor.split{grid-template-columns:1fr}}
 @media(max-width:520px){
  .template-start{padding:45px 14px 38px}
  .team-page-head{flex-wrap:wrap}
- .template-file-list li{grid-template-columns:minmax(0,1fr) auto}
- .template-file-list code{grid-column:1 / -1}
 }
 </style>

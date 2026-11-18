@@ -39,3 +39,9 @@
 | 员工按固定版本执行 | 任务启动后发布模板 v2。真实模型两次调用完成报告，报告包含 v1 两份指令、Skill 及 `read_template_file` 读取的 CSV 标记。任务采用版本仍为 v1。下一项任务采用 v2，在独立云沙箱读取二进制模板文件，命令返回 0 并读出全部原始字节。 |
 
 本次团队 Java 41 项、Python 41 项和前端 10 项通过，类型检查和生产构建通过。另复跑 11 项 HTTP/PG、7 项浏览器基础场景。截图见[桌面空白](../../../gui-test-screenshots/v20261118-full-closure-template-empty-desktop.png)、[手机空白](../../../gui-test-screenshots/v20261118-full-closure-template-empty-mobile.png)和[文件夹导入](../../../gui-test-screenshots/v20261118-full-closure-template-folder-editor.png)。
+
+### 多 Skill 导入回归
+
+旧版单独选择 Skill 后去掉源根目录，第二个 Skill 的 `SKILL.md` 和同名附件与第一个使用相同路径。新版通过 Chrome 连续导入两个独立 Skill，再从一个父目录一次导入两个 Skill，保存四组共九个文件。每组包含一个 `SKILL.md` 和一个 `references/guide.md`，公共 `AGENTS.md` 保留在模板层。手机端移除并重新导入一组后，保存结果与员工采用清单一致。真实模型调用 `read_template_file` 读取四份同名参考文件，报告包含各自的原始标记并完成任务。
+
+前端 14 项单测、类型检查、生产构建、7 项基础浏览器回归及原有整目录导入通过。原有两轮对话回归首次遇到模型接口超时，用新测试账号在最终镜像复跑后，生成、保存及手机端采用均通过。截图见[桌面 Skill 分组](../../../gui-test-screenshots/v20261118-full-closure-multiple-skills.png)和[手机 Skill 分组](../../../gui-test-screenshots/v20261118-full-closure-multiple-skills-mobile.png)。
