@@ -22,7 +22,7 @@ class ProtocolTests(unittest.TestCase):
         for required in ["核对出处","比较来源","不确定时逐级上报","task1"]:
             self.assertIn(required,system)
         names={s["function"]["name"] for s in tool_schemas(False)}
-        self.assertIn("team_message",names)
+        self.assertIn("notify_team",names)
         self.assertIn("record_artifact",names)
         self.assertNotIn("knowledge_save",names)
 
@@ -43,11 +43,11 @@ class ProtocolTests(unittest.TestCase):
         tools={s["function"]["name"]:s["function"] for s in tool_schemas()}
         self.assertEqual(ACTION_NAMES.get("archive_document"),"document.save")
         self.assertIn("expectedRevision",tools["archive_document"]["parameters"]["properties"])
-        self.assertIn("requiresResponse",tools["team_message"]["parameters"]["required"])
-        self.assertEqual(tools["team_message"]["parameters"]["properties"]["requiresResponse"]["type"],"boolean")
+        self.assertNotIn("team_message",tools)
+        self.assertNotIn("requiresResponse",tools["notify_team"]["parameters"]["properties"])
+        self.assertIn("employeeId",tools["request_peer_review"]["parameters"]["required"])
 
     def test_handoff_request_is_not_confused_with_sender_completion(self) -> None:
         tools = {s["function"]["name"]: s["function"] for s in tool_schemas()}
-        response = tools["team_message"]["parameters"]["properties"]["requiresResponse"]
-        self.assertIn("发送者已完成", response.get("description", ""))
-        self.assertIn("true", response.get("description", ""))
+        self.assertIn("不会启动核查或正式任务", tools["notify_team"]["description"])
+        self.assertIn("正式向本团队员工分派", tools["assign_task"]["description"])

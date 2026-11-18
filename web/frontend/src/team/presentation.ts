@@ -1,6 +1,13 @@
+import type { ChatIntent, KnowledgeRead } from './types'
+
+export function chatRouting(intent:ChatIntent,approval:boolean,replying:boolean){
+ return intent==='assign'&&approval&&!replying?{intent,requireDispatchApproval:true}:{intent}
+}
+
 interface Mention { teamId: string; mentionUser?: boolean; status?: string }
 interface Dated { teamId: string; createdAt: string }
 interface Activity { employeeId: string; state: string }
+interface DecisionRecord extends Dated { decisionId?: string; kind: string }
 export function latestForTeam<T extends Dated>(items: Record<string,T>, teamId: string): T | undefined {
  return Object.values(items).filter(x=>x.teamId===teamId).sort((a,b)=>a.createdAt.localeCompare(b.createdAt)).at(-1)
 }
@@ -26,6 +33,22 @@ export function stateLabel(state: string): string {
 }
 export function decisionStateLabel(state: string): string {
  return ({open:'等待评估',applied:'已记录并应用决定',superseded:'已失效，未应用'} as Record<string,string>)[state]||'决定状态待核实'
+}
+export function decisionOpinions<T extends DecisionRecord>(messages:Record<string,T>,decision:{id:string;teamId:string}):T[] {
+ return Object.values(messages).filter(m=>m.teamId===decision.teamId&&m.decisionId===decision.id&&m.kind==='decision-response')
+  .sort((a,b)=>a.createdAt.localeCompare(b.createdAt))
+}
+export function workspaceFreshness(observedAt:string,refreshFailed:boolean):'unknown'|'stale'|'fresh' {
+ if (!Number.isFinite(Date.parse(observedAt))) return 'unknown'
+ return refreshFailed?'stale':'fresh'
+}
+export function latestKnowledgeReads(reads:KnowledgeRead[] = []):KnowledgeRead[] {
+ const latest = new Map<string,KnowledgeRead>()
+ for (const read of reads) {
+  const key = `${read.sourceId}:${read.revision}`
+  if ((latest.get(key)?.readAt ?? '') < read.readAt) latest.set(key,read)
+ }
+ return [...latest.values()].sort((a,b)=>a.readAt.localeCompare(b.readAt))
 }
 export function checksForVersion<T extends {artifactId:string;subjectRevision:number}>(checks:Record<string,T>,artifactId:string,revision:number):T[] {
  return Object.values(checks).filter(c=>c.artifactId===artifactId&&Number.isInteger(c.subjectRevision)&&c.subjectRevision>0&&c.subjectRevision===revision)

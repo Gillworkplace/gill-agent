@@ -41,7 +41,7 @@ export async function fixture({members=2,limits}={}){
  return a
 }
 export async function claim(){
- if(origin!=='http://127.0.0.1:18080')throw Error('Simulated claims are restricted to the dedicated acceptance instance')
+ if(!['http://127.0.0.1:18080','http://127.0.0.1:18081'].includes(origin))throw Error('Simulated claims are restricted to the dedicated acceptance instances')
  const r=await request('/internal/team-worker/claim',{workerId},undefined,values.GILL_TEAM_WORKER_SECRET)
  check(r.status===200,'claim failed',r)
  const job=r.body;if(typeof job.payload==='string')job.payload=JSON.parse(job.payload)

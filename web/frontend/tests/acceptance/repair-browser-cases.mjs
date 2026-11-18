@@ -73,8 +73,8 @@ await scenario('C07-decision-view-is-not-consent',['AC-18','AC-31'],async()=>{
 
 await scenario('R-C09-notification-with-mentions-does-not-dispatch',['AC-34'],async()=>{
  await sleep(60000); // Respect the unchanged 60 requests/min/user limit before the next GUI group.
- await view(1440,1040);await send('Page.reload',{ignoreCache:true});await sleep(500);await go('#/workbench');await wait('!!document.querySelector("#message-requires-response")');
- const before=await state();await ev('document.getElementById("message-requires-response").click()');await set('#team-chat-input','收到本轮结果，仅通知员工，不再派发工作。');
+ await view(1440,1040);await send('Page.reload',{ignoreCache:true});await sleep(500);await go('#/workbench');await wait('!!document.querySelector("#team-message-intent")');
+ const before=await state();await set('#team-message-intent','notify');await set('#team-chat-input','收到本轮结果，仅通知员工，不再派发工作。');
  await ev('(()=>{const e=document.querySelector(".composer-routing select[multiple]");e.options[0].selected=true;e.dispatchEvent(new Event("change",{bubbles:true}));})()');
  await submit('.team-composer');await wait('document.querySelector(".team-chat-feed").textContent.includes("收到本轮结果，仅通知员工")');
  const after=await state();ensure(Object.keys(after.tasks).length===Object.keys(before.tasks).length,'notification spawned a task');

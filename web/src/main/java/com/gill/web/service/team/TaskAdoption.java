@@ -13,6 +13,7 @@ final class TaskAdoption {
             run.put("manualPaused",false).put("controlRevision",0).put("calls",0);
             run.set("limits",get(s,"teams",tid).path("limits").deepCopy());map(s,"runs").set(runId,run);
             String wi=id();ObjectNode work=node("id",wi,"teamId",tid,"runId",runId,"goal",goal,"projectId",text(p,"projectId"),"state","active");
+            if(p.path("requireDispatchApproval").asBoolean())work.put("requireDispatchApproval",true);
             String projectId=text(p,"projectId");
             if(!projectId.isBlank()){ObjectNode project=get(s,"projects",projectId);if(!tid.equals(text(project,"teamId")))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 项目跨团队");work.set("projectSnapshot",project.deepCopy());}
             map(s,"workItems").set(wi,work);run.put("workItemId",wi);

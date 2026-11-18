@@ -182,6 +182,8 @@ public class TeamService {
         if(task.has("assessmentDecisionId"))out.set("decision",get(s,"decisions",text(task,"assessmentDecisionId")).deepCopy());
         if(task.has("decisionId"))out.set("decision",get(s,"decisions",text(task,"decisionId")).deepCopy());
         ObjectNode wi=get(s,"workItems",text(run,"workItemId"));String project=text(wi,"projectId");
+        if(wi.path("requireDispatchApproval").asBoolean())
+            out.put("dispatchApprovalPending",TaskFlow.needsDispatchApproval(s,task));
         if(!project.isBlank())out.set("project",wi.has("projectSnapshot")?wi.path("projectSnapshot").deepCopy():get(s,"projects",project).deepCopy());
         if(text(p,"kind").equals("integration")){ObjectNode request=get(s,"integrations",text(p,"integrationId"));out.set("integration",request.deepCopy());out.set("sourceVersion",get(s,"codeVersions",text(request,"sourceVersionId")).deepCopy());out.set("project",get(s,"projects",text(request,"projectId")).deepCopy());}
         ArrayNode artifacts=out.putArray("artifacts");
@@ -199,14 +201,14 @@ public class TeamService {
             if(kind.equals("run.control")||kind.equals("employee.create")||kind.equals("knowledge.save"))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 员工无权执行");
             if(!body.has("teamId"))body.put("teamId",text(p,"teamId"));
             if(!body.has("taskId"))body.put("taskId",text(p,"taskId"));
-            if(kind.equals("document.save")&&!text(body,"taskId").equals(text(p,"taskId")))
-                throw new IllegalArgumentException("SCOPE_FORBIDDEN: 归档必须使用当前执行任务");
+            if(Set.of("document.save","message.send","task.assign","issue.escalate","integration.request").contains(kind)&&!text(body,"taskId").equals(text(p,"taskId")))
+                throw new IllegalArgumentException("SCOPE_FORBIDDEN: 此动作必须使用当前执行任务");
             ObjectNode run=get(s,"runs",text(p,"runId"));
             ObjectNode task=get(s,"tasks",text(p,"taskId"));
             if(text(p,"kind").equals("turn")&&!TaskFlow.current(task,p)&&!Set.of("version.record","integration.result").contains(kind))
                 throw new IllegalArgumentException("VERSION_CONFLICT: 原执行的调度版本已失效");
-            if(!TaskFlow.blockingDecision(s,task).isBlank()&&!Set.of("decision.respond","issue.escalate","version.record","integration.result").contains(kind)&&
-                !(kind.equals("message.send")&&!body.path("requiresResponse").asBoolean(true)))
+            boolean communication=kind.equals("message.send")&&Set.of("notify","review","").contains(text(body,"intent"));
+            if(!TaskFlow.blockingDecision(s,task).isBlank()&&!Set.of("decision.respond","issue.escalate","version.record","integration.result","artifact.save","check.record").contains(kind)&&!communication)
                 throw new IllegalArgumentException("DEPENDENCY_UNRESOLVED: 相关事项等待明确决定");
             if(run.path("manualPaused").asBoolean()&&!Set.of("version.record","integration.result").contains(kind))throw new IllegalArgumentException("PAUSED: 团队目标已暂停");
         }

@@ -6,9 +6,13 @@
 
 `team_client` 只携带内部服务身份；`team_turns` 管理有效 Prompt、工具调用、检查点与控制；`team_sandbox` 是新运行的 CubeSDK 适配边界，资源 ID 持久化到 Java。模型和沙箱不接触网关/对象存储凭据。旧会话 SDK 适配仍在 `remote_sandbox`。
 
-模型工具`team_message`显式传requiresResponse：工作请求true，进展/收到/结束通知false；后者即使@员工也不派工。`archive_document`映射当前任务项目的文档归档，不授予项目配置或知识写权。`complete_task`可携带`artifact`最终报告：先保存、再请求完成，使用稳定请求标识支持重放；失败保留成果，网关继续拦截暂停/未决/未知动作。旧空参数仍支持已有成果。模型自主选择结束，不按自然语言自动完成。模型预留后读取共享run调用数/上限，资源信息不改变必需流程；收到核查/交接请求需requiresResponse=true，流程要求等人决定必须形成真实问题。实际外部回执与模型判断分开注入。
+模型用 `notify_team` 发通知和意见、`request_peer_review` 邀请核查、`assign_task` 正式派工。旧员工 `team_message` 聊天请求按通知收件，重放保留原请求参数和标识。用户启用派工审批时，以当前上下文和网关为准，主任务用 `ask_superior(dispatchApproval=true)` 发起许可申请。模型预留后读取共享运行调用数和上限。实际外部回执与模型判断分开注入。
+
+`archive_document` 归档当前关联项目的文档。`complete_task` 可携带 `artifact` 最终报告，先保存再请求完成，使用稳定请求标识支持重放。失败保留成果，网关继续拦截暂停、未决问题和未知动作。已有合格成果可用空参数提交完成。
 
 任务代次与依赖等待由网关校验，Worker按heartbeat停止新调用，在途结果继续回存。
+
+Worker 在执行模型的一组工具调用前识别同轮上报。依赖派工与完成留待决定，明确提交的新报告仍可先保存。评审回执使用 `reviewId` 并注明被评审的产物及版本，任务上下文显示剩余的共享调用次数。跨轮行为和回归证据见[闭环记录](../docs/features/digital-employee-team/closure_20261118.md)。
 
 ```mermaid
 flowchart LR

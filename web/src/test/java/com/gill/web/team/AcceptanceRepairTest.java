@@ -99,9 +99,9 @@ class AcceptanceRepairTest {
         String t=team(),a=employee(t),b=employee(t),source=task(a);escalate(t,a,source);
         TeamActor actor=new TeamActor("employee",a,t);
         assertThrows(IllegalArgumentException.class,()->engine.apply(state,actor,"task.assign",body("taskId",source,"employeeId",b,"goal","绕过等待")));
-        ObjectNode p=body("teamId",t,"taskId",source,"text","请继续同一问题");p.putArray("mentions").add(b);
-        assertThrows(IllegalArgumentException.class,()->engine.apply(state,actor,"message.send",p));
-        p.put("requiresResponse",false).put("text","仅通知等待人工，不派工");
+        ObjectNode p=body("teamId",t,"taskId",source,"text","请继续同一问题","intent","assign");p.putArray("mentions").add(b);
+        assertThrows(IllegalArgumentException.class,()->call("message.send",p));
+        p.put("intent","notify").put("text","仅通知等待人工，不派工");
         assertDoesNotThrow(()->engine.apply(state,actor,"message.send",p));
     }
     @Test void superiorMayDelegateAssessmentButThoseHelpersWaitWhenItEscalates() {

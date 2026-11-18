@@ -4,7 +4,7 @@ import { emptyWorkspace } from './types'
 import type { Workspace } from './types'
 
 export const useTeams = defineStore('teams', {
- state: () => ({ data: emptyWorkspace(), loaded: false, busy: false, error: '', observedAt: '', requestCount: 0 }),
+ state: () => ({ data: emptyWorkspace(), loaded: false, busy: false, error: '', refreshError: '', observedAt: '', requestCount: 0 }),
  actions: {
   async refresh() {
    const request = ++this.requestCount
@@ -13,7 +13,11 @@ export const useTeams = defineStore('teams', {
     if (request < this.requestCount || (this.loaded && next.revision < this.data.revision)) return
     this.data = { ...emptyWorkspace(), ...next }; this.loaded = true
     this.observedAt = new Date().toISOString()
-   } catch (error: unknown) { this.error = error instanceof Error ? error.message : '读取失败'; throw error }
+    this.refreshError = ''
+   } catch (error: unknown) {
+    if (request === this.requestCount) this.refreshError = error instanceof Error ? error.message : '读取失败'
+    throw error
+   }
   },
   async command(kind: string, payload: Record<string, unknown>, requestKey = crypto.randomUUID()) {
    this.busy = true; this.error = ''

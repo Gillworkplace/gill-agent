@@ -2,7 +2,7 @@
 
 新团队接口按 `TeamController / TeamWorkerController → TeamService → TeamEngine → 下层策略` 编排；`TeamService → TeamMapper → TeamWorkspaceRow` 持久化。纯策略互不形成循环，公共任务快照、权限与依赖下沉到 `TaskAdoption / TaskAccess / TaskFlow / TeamData`。
 
-TaskFlow查询因果依赖及有效评估豁免、记录等待和旧决定失效；TeamService在聚合锁内补齐就绪任务的持久工作。generation隔离新旧调度，PG领取同时检查当前代次、同任务并发和未决动作；不是仅恢复一个UI标签。通知与工作请求分开，文档写入仅授权当前任务项目。
+TaskFlow 查询因果依赖、派工许可及评估豁免，记录等待和旧决定失效。TeamService 在聚合锁内补齐已就绪任务。generation 隔离新旧调度，PG 领取检查代次、同任务并发和未决动作。群聊通知只保留投递，核查单独调度，正式派工校验同一工作许可。文档只允许写入当前关联项目。
 
 ```mermaid
 flowchart TD

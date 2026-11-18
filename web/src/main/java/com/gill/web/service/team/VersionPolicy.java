@@ -33,6 +33,7 @@ final class VersionPolicy {
  }
  private static ObjectNode request(ObjectNode s,TeamActor a,ObjectNode p) {
   ObjectNode task=get(s,"tasks",required(p,"taskId"));TaskAccess.authorize(s,a,task);
+  TaskFlow.requireDispatchAllowed(s,task,p);
   ObjectNode project=get(s,"projects",required(p,"projectId"));
   if(!text(project,"teamId").equals(text(task,"teamId")))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 项目跨团队");
   String target=text(project,"targetBranch");if(target.isBlank())target="main";

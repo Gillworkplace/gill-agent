@@ -17,7 +17,7 @@ async function scenario(id,ac,body){
 }
 function ensure(condition,message){if(!condition)throw Error(message)}
 async function chooseMainTeam(){await wait('!!document.querySelector(".team-switch")');await ev('Array.from(document.querySelectorAll(".team-switch")).find(b=>b.textContent.includes("验收业务团队")).click()');await wait('document.querySelector(".team-chat-header h2")?.textContent.includes("验收业务团队")')}
-await send('Page.navigate',{url:'http://127.0.0.1:18080/#/workbench'});await sleep(500)
+await send('Page.navigate',{url:remote.origin+'/#/workbench'});await sleep(500)
 await set('#login input',account.username);await set('#login input[type="password"]',account.password);await click('#login .btn');await wait('!!document.querySelector(".team-nav")')
 
 await scenario('C01-navigation-and-team-directory',['AC-18','AC-21','AC-25'],async()=>{
@@ -74,9 +74,10 @@ await scenario('C07-decision-view-is-not-consent',['AC-18','AC-31'],async()=>{
 
 await scenario('R-C09-notification-with-mentions-does-not-dispatch',['AC-34'],async()=>{
  await sleep(60000); // Respect the unchanged 60 requests/min/user limit before the next GUI group.
- await view(1440,1040);await send('Page.reload',{ignoreCache:true});await sleep(500);await go('#/workbench');await wait('!!document.querySelector("#message-requires-response")');await chooseMainTeam();
- const before=await state();await ev('document.getElementById("message-requires-response").click()');await set('#team-chat-input','收到本轮结果，仅通知员工，不再派发工作。');
+ await view(1440,1040);await send('Page.reload',{ignoreCache:true});await sleep(500);await go('#/workbench');await wait('!!document.querySelector("#team-message-intent")');await chooseMainTeam();
+ const before=await state();await set('#team-chat-input','收到本轮结果，仅通知员工，不再派发工作。');
  await ev('(()=>{const e=document.querySelector(".composer-routing select[multiple]");e.options[0].selected=true;e.dispatchEvent(new Event("change",{bubbles:true}));})()');
+ await check('addressing an employee defaults to a notice','document.querySelector("#team-message-intent").value==="notify"');
  await submit('.team-composer');await wait('document.querySelector(".team-chat-feed").textContent.includes("收到本轮结果，仅通知员工")');
  const after=await state();ensure(Object.keys(after.tasks).length===Object.keys(before.tasks).length,'notification spawned a task');
  ensure(Object.values(after.deliveries).some(d=>d.state==='notified'),'directed notification not tracked');await shot('notification');
@@ -112,9 +113,48 @@ await scenario('R-C13-follow-up-to-completed-work-creates-a-new-task',['AC-16','
  await set('#login input',follow.username);await set('#login input[type="password"]',follow.password);await click('#login .btn');await wait('!!document.querySelector(".team-switch")');
  await wait('document.querySelector(".team-chat-feed")?.textContent.includes("任务已完成：引用回复回归")');
  const before=await follow.read();await ev('Array.from(document.querySelectorAll(".real-message")).find(x=>x.textContent.includes("任务已完成：引用回复回归")).querySelector(".text-button").click()');
+ await check('quoting a message does not implicitly dispatch','document.querySelector("#team-message-intent").value==="notify"');
+ await set('#team-message-intent','assign');
  await set('#team-chat-input','请基于刚才已完成的结果继续补充下一项分析。');await submit('.team-composer');await wait('document.querySelector(".team-chat-feed")?.textContent.includes("请基于刚才已完成的结果继续")');
  const after=await follow.read(),child=Object.values(after.tasks).find(t=>t.parentTaskId===task);ensure(Object.keys(after.tasks).length===Object.keys(before.tasks).length+1&&child?.state==='queued','follow-up did not create queued work');ensure(after.tasks[task].state==='completed'&&after.runs[child.runId].state==='active','old completed task was reopened');await shot('completed-reply');
  const next=await remote.claim();ensure(next.payload.taskId===child.id,'follow-up work not executable');await remote.operation(next,'finish',{state:'stopped',result:{reason:'fixture teardown; no model invoked'}});
+});
+
+await scenario('D40-C14-workbench-dispatch-approval',['AC-09','AC-16','AC-34'],async()=>{
+ const a=await remote.fixture();await a.ok('team.update',{id:a.team,expectedRevision:1,name:'派工回归团队',receiverId:a.members[0]})
+ await view(1440,1040);await click('.team-nav footer button');await wait('!!document.querySelector("#login input")')
+ await set('#login input',a.username);await set('#login input[type="password"]',a.password);await click('#login .btn')
+ await wait('document.querySelector(".team-chat-header h2")?.textContent==="派工回归团队"')
+ await set('#team-message-intent','review')
+ await ev('(()=>{const e=document.querySelector(".composer-routing select[multiple]");e.options[1].selected=true;e.dispatchEvent(new Event("change",{bubbles:true}));})()')
+ await set('#team-chat-input','独立核查本期明细');await submit('.team-composer')
+ await wait('document.querySelector(".real-message")?.textContent.includes("独立核查本期明细")')
+ const review=await remote.claim()
+ ensure((await a.read()).tasks[review.payload.taskId].purpose==='review','browser review became a formal assignment')
+ await remote.operation(review,'finish',{state:'stopped',result:{reason:'GUI review fixture'}})
+
+ await set('#team-message-intent','assign');await click('#team-dispatch-approval')
+ await set('#team-chat-input','先拟方案，后续派工等我确认');await submit('.team-composer')
+ await wait('document.querySelector(".team-chat-feed").textContent.includes("先拟方案，后续派工等我确认")')
+ const job=await remote.claim(),work=await a.read(),task=work.tasks[job.payload.taskId]
+ ensure(work.workItems[task.workItemId].requireDispatchApproval===true,'GUI did not persist approval policy')
+ const rejected=await a.command('task.assign',{taskId:task.id,employeeId:a.members[1],goal:'抢先派工'})
+ ensure(rejected.body.error?.code==='DISPATCH_APPROVAL_REQUIRED','early GUI work could already dispatch')
+ await check('the work message shows it needs approval','document.querySelector(".team-chat-feed").textContent.includes("正式派工需你许可")')
+ const d=await remote.workerCommand(job,'issue.escalate',{problem:'是否允许团队继续派工',dispatchApproval:true,attempts:['已准备证据'],options:['继续','暂缓']})
+ await remote.operation(job,'finish',{state:'done',result:{}})
+ await wait('document.querySelector(".real-decision")?.textContent.includes("申请派工许可")')
+ await ev('document.querySelector(".real-decision").scrollIntoView({block:"start"})')
+ await shot('approval-desktop')
+ await view(390,844,true)
+ await check('mobile decision fits and explains both choices','document.documentElement.scrollWidth===390&&document.querySelector(".real-decision").textContent.includes("保持派工限制")')
+ await ev('document.querySelector(".real-decision .team-row").scrollIntoView({block:"end"})')
+ await shot('approval-mobile')
+ await set('.real-decision textarea','方案通过，允许正式派工');await button('提交决定并允许派工')
+ await wait('document.querySelector(".real-decision")?.textContent.includes("派工已获许可")')
+ const settled=await a.read()
+ ensure(settled.decisions[d.body.id].dispatchApproved===true&&settled.workItems[task.workItemId].dispatchApprovalDecisionId===d.body.id,'approval control did not unlock the selected work')
+ await remote.drain()
 });
 console.log(JSON.stringify({browserExceptions:errors}))
 

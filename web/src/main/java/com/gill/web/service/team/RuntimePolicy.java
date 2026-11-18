@@ -24,8 +24,12 @@ final class RuntimePolicy {
         String target=required(p,"employeeId"),tid=teamOf(s,target);team(a,tid);
         ObjectNode parent=p.has("taskId")?get(s,"tasks",text(p,"taskId")):null;
         if(!a.human()&&(parent==null||!tid.equals(text(parent,"teamId"))))throw new IllegalArgumentException("INVALID_INPUT: 派工需要当前任务");
-        if(parent!=null)TaskFlow.requireHandoffAllowed(s,parent);
+        if(parent!=null&&!tid.equals(text(parent,"teamId")))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 派工必须属于同一团队");
+        TaskFlow.validateApprovalSetting(a,p,parent==null);
+        if(parent!=null)TaskFlow.requireDispatchAllowed(s,parent,p);
+        else if(p.has("decisionId"))throw new IllegalArgumentException("INVALID_INPUT: 新工作没有可引用的已有决定");
         ObjectNode task=TaskAdoption.createTask(s,tid,target,required(p,"goal"),parent,p);
+        TaskFlow.recordDispatchDependencies(s,task,parent,p);
         enqueue(s,node("kind","turn","teamId",tid,"employeeId",target,"taskId",text(task,"id"),"runId",text(task,"runId")));
         message(s,tid,a.type(),a.id(),"安排 "+text(get(s,"employees",target),"name")+"："+text(task,"goal"),"assignment").put("taskId",text(task,"id"));
         return node("id",text(task,"id"));
@@ -34,6 +38,7 @@ final class RuntimePolicy {
         ObjectNode task=get(s,"tasks",required(p,"taskId"));TaskAccess.authorize(s,a,task);
         String state=required(p,"state");
         if(p.has("employeeId")&&!text(p,"employeeId").equals(text(task,"employeeId"))) {
+            TaskFlow.requireDispatchApproval(s,task);
             String target=required(p,"employeeId");if(!text(task,"teamId").equals(teamOf(s,target)))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 改派员工需属于本团队");
             ObjectNode next=TaskAdoption.createTask(s,text(task,"teamId"),target,text(task,"goal"),task,p);
             next.put("replacesTaskId",text(task,"id"));task.put("state","cancelled").put("replacementTaskId",text(next,"id"));
@@ -58,11 +63,17 @@ final class RuntimePolicy {
     }
     private static ObjectNode escalate(ObjectNode s,TeamActor a,ObjectNode p) {
         ObjectNode task=get(s,"tasks",required(p,"taskId"));TaskAccess.authorize(s,a,task);
+        if(TaskFlow.terminal(task))throw new IllegalArgumentException("INVALID_STATE: 已结束的任务不能提交新问题");
         if(task.has("assessmentDecisionId")){ObjectNode reply=p.deepCopy();reply.put("decisionId",text(task,"assessmentDecisionId")).put("answer",required(p,"problem")).put("escalate",true).put("resolved",false);return respond(s,a,reply);}
         if(task.has("decisionId")&&text(get(s,"decisions",text(task,"decisionId")),"state").equals("open"))
             throw new IllegalArgumentException("DEPENDENCY_UNRESOLVED: 当前任务已有待处理问题");
         String id=id();
         ObjectNode d=node("id",id,"teamId",text(task,"teamId"),"taskId",text(task,"id"),"problem",required(p,"problem"),"state","open","createdAt",now());
+        if(p.path("dispatchApproval").asBoolean()) {
+            if(!TaskFlow.needsDispatchApproval(s,task)||!text(task,"parentTaskId").isBlank())
+                throw new IllegalArgumentException("INVALID_INPUT: 只有启用审批的新工作主任务可申请派工审批");
+            d.put("dispatchApproval",true);
+        }
         d.put("originEmployeeId",text(task,"employeeId")).put("revision",1);
         d.put("taskRevision",task.path("revision").asInt());
         d.set("options",p.path("options").deepCopy());d.set("attempts",p.path("attempts").deepCopy());d.putArray("path").add(a.id());
@@ -98,6 +109,13 @@ final class RuntimePolicy {
         ObjectNode d=get(s,"decisions",required(p,"decisionId"));team(a,text(d,"teamId"));
         if(!a.human()&&!a.id().equals(text(d,"handlerId")))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 非当前评估者");
         if(!text(d,"state").equals("open"))throw new IllegalArgumentException("VERSION_CONFLICT: 问题已有明确处理");
+        boolean approval=d.path("dispatchApproval").asBoolean(),resolved=p.path("resolved").asBoolean();
+        if(p.has("approveDispatch")&&(!a.human()||!approval||!resolved||!p.path("approveDispatch").isBoolean()))
+            throw new IllegalArgumentException("SCOPE_FORBIDDEN: 只有用户提交明确决定时可以处理派工审批");
+        if(a.human()&&approval&&resolved&&!text(d,"handlerId").equals("user"))
+            throw new IllegalArgumentException("DEPENDENCY_UNRESOLVED: 派工审批仍在上级评估，等待上报给你");
+        if(a.human()&&approval&&resolved&&!p.has("approveDispatch"))
+            throw new IllegalArgumentException("INVALID_INPUT: 请明确选择是否允许本次工作继续派工");
         if(p.has("expectedRevision"))revision(d,p);
         ObjectNode task=get(s,"tasks",text(d,"taskId"));
         if(!text(task,"state").equals("blocked")||!text(task,"decisionId").equals(text(d,"id"))||task.has("replacementTaskId")||
@@ -106,15 +124,20 @@ final class RuntimePolicy {
         String answer=required(p,"answer");d.put("answer",answer);
         d.put("revision",d.path("revision").asInt()+1);
         message(s,text(d,"teamId"),a.type(),a.id(),answer,"decision-response").put("decisionId",text(d,"id"));
-        if(p.path("escalate").asBoolean()&&!a.human()) {
+        if(!a.human()&&(p.path("escalate").asBoolean()||approval&&resolved)) {
             list(d,"path").add(a.id());String parent=nextSuperior(s,task,a.id(),d);
             for(JsonNode assessment:map(s,"tasks"))
                 if(text(assessment,"assessmentDecisionId").equals(text(d,"id"))&&text(assessment,"employeeId").equals(a.id())&&!Set.of("completed","cancelled").contains(text(assessment,"state")))
                     ((ObjectNode)assessment).put("state","blocked").put("reason","已向上级升级，等待明确决定");
             d.put("handlerId",parent);deliverDecision(s,d,parent);TaskFlow.holdDependents(s,text(task,"runId"));return node("id",text(d,"id"),"state","open");
         }
-        if(!p.path("resolved").asBoolean())return node("id",text(d,"id"),"state","open");
+        if(!resolved)return node("id",text(d,"id"),"state","open");
         d.put("state","applied").put("appliedAt",now());
+        if(approval) {
+            boolean approved=p.path("approveDispatch").asBoolean();
+            d.put("dispatchApproved",approved);
+            if(approved)get(s,"workItems",text(task,"workItemId")).put("dispatchApprovalDecisionId",text(d,"id"));
+        }
         for(JsonNode assessment:map(s,"tasks"))if(text(assessment,"assessmentDecisionId").equals(text(d,"id")))((ObjectNode)assessment).put("state","completed").put("decisionResultId",text(d,"id"));
         for(JsonNode m:map(s,"messages"))if(text(m,"decisionId").equals(text(d,"id")))((ObjectNode)m).put("status","responded");
         ObjectNode run=get(s,"runs",text(task,"runId"));

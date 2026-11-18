@@ -29,7 +29,7 @@ class TeamEngineTest {
 
     @Test void directedMentionCreatesDurableRecipientWithoutWakingEveryone() {
         String t=setup("研究组"), a=employee(t), b=employee(t);
-        ObjectNode p=body("teamId",t,"text","请核查这份结果","requestKey","m1");
+        ObjectNode p=body("teamId",t,"text","请核查这份结果","requestKey","m1","intent","review");
         p.putArray("mentions").add(b);
         ObjectNode result=engine.apply(state,new TeamActor("employee",a,t),"message.send",p);
         String id=result.path("id").asText();

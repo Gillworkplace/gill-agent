@@ -1,0 +1,3632 @@
+{
+  "base": "2acb77d",
+  "state": "open",
+  "candidate2Agent": "sha256:0998aa5d19386c7ec2b34daed3dac68071f5c53558b84c91e2a5d80ef783699e",
+  "finalCandidateWeb": "sha256:8f34149a2ed16ef581ca97ba21f1277ee5142e5b37dcb704ae79cfdbf681ad4c",
+  "model": "glm-4.6",
+  "agentHashes": {
+    "agent/gill_core/team_protocol.py": "3ee19fd312f36077d229fbe5d9c74766174f0e7012225e1aa366d0d1db5337cf",
+    "agent/gill_core/team_turns.py": "4b361566a8264c8ab8241a348b8e0bbfffd65cb834b06450365f139a151c4319"
+  },
+  "totalModelCalls": 24,
+  "groups": [
+    {
+      "group": 1,
+      "projection": [
+        {
+          "at": "2026-11-18T03:16:43.236Z",
+          "mode": "correct-and-review",
+          "fixture": {
+            "teamId": "541f11d1-89a0-4d5e-acef-0f0f8e334142",
+            "taskId": "bc0d69a7-5bd1-46aa-b704-cbe1670b8e04",
+            "artifactId": "e77b8249-301d-4629-836d-8d57f8ee2895",
+            "templateId": "5aa25175-5d4d-4aa9-afed-19bc2b7ebb55",
+            "members": [
+              "fe59185e-efe5-4fcd-b213-8bbdbee34cda",
+              "35092fa1-68fc-4ea3-9c88-1679a07f6400"
+            ]
+          },
+          "oracle": {
+            "conditions": {
+              "runCompleted": true,
+              "allWorkCompleted": true,
+              "sourceCorrected": true,
+              "historicalErrorRetained": true,
+              "originalVersionReviewed": true,
+              "newVersionReviewed": true,
+              "finalReviewReport": true,
+              "withinOriginalBudget": true,
+              "noOpenDecision": true
+            },
+            "preliminaryPassed": true,
+            "boundedStatus": "passed",
+            "note": "Final business judgment also checks semantic content and the post-decision observation window."
+          },
+          "run": {
+            "id": "29cb9205-a61f-43b7-b70f-32637a2b7a90",
+            "state": "completed",
+            "calls": 6,
+            "limits": {
+              "maxRounds": 8,
+              "maxSeconds": 600
+            },
+            "createdAt": "2026-11-18T03:11:27.620695420Z"
+          },
+          "tasks": [
+            {
+              "id": "4c3a22e0-4222-4b86-acdf-08dc398e8803",
+              "employeeId": "fe59185e-efe5-4fcd-b213-8bbdbee34cda",
+              "parentTaskId": "bc0d69a7-5bd1-46aa-b704-cbe1670b8e04",
+              "state": "completed",
+              "createdAt": "2026-11-18T03:12:39.493049926Z",
+              "sourceMessageId": "177d9659-d368-4e76-9eaa-c505ce64184e"
+            },
+            {
+              "id": "ac1a7470-7c60-4781-9bb1-0943f0bf091f",
+              "employeeId": "35092fa1-68fc-4ea3-9c88-1679a07f6400",
+              "parentTaskId": "4c3a22e0-4222-4b86-acdf-08dc398e8803",
+              "state": "completed",
+              "createdAt": "2026-11-18T03:13:40.162799593Z",
+              "sourceMessageId": "024f46a3-4de8-41cd-a92f-6ece48dda2ce"
+            },
+            {
+              "id": "bc0d69a7-5bd1-46aa-b704-cbe1670b8e04",
+              "employeeId": "35092fa1-68fc-4ea3-9c88-1679a07f6400",
+              "parentTaskId": "",
+              "state": "completed",
+              "createdAt": "2026-11-18T03:11:27.620750545Z"
+            }
+          ],
+          "artifacts": [
+            {
+              "id": "30372c61-9752-49f6-b828-48183695807c",
+              "taskId": "ac1a7470-7c60-4781-9bb1-0943f0bf091f",
+              "title": "库存汇总产物复核报告（revision 2 复核通过）",
+              "revision": 1,
+              "content": "## 库存汇总产物复核报告（核查员工1）\n\n**一、复核对象**\n产物 e77b8249-301d-4629-836d-8d57f8ee2895（revision 2），责任员工：员工0；对应初审不通过记录 reviewId fb695bf2-58b5-4c75-8926-90f99122c69d（核查员工1，针对 revision 1）。\n\n**二、复核依据（已确认且唯一的事实，任务给定）**\n- 期初库存：100 件\n- 入库：20 件\n- 出库：30 件\n- 其他调整项：无\n\n**三、核对过程与结论**\n1. 版本核对：产物当前实际 revision 为 2，与员工0修正通知一致。\n2. 逐项比对：明细（期初100件、入库20件、出库30件、无其他调整项）与已确认事实一致，其余内容未引入新错误。\n3. 独立重算：期末 = 100 + 20 − 30 = 90 件；revision 2 报告期末写 90 件，与重算结果一致，初审指出的\"多计5件\"计算错误已修正。\n4. 性质说明保留：报告保留\"合成数据、未验证真实业务、未对接外部库存系统\"说明，表述属实。\n5. **复核结论：通过**。\n\n**四、已执行的处理动作（真实回执）**\n1. record_review 登记复核通过记录（对应产物 revision 2）。\n2. complete_task 提交本复核报告并完成本任务。\n\n**五、性质说明**\n本复核为基于合成数据的人工逐项比对与独立重算（模型文本核对），不构成外部库存系统核验。",
+              "unchecked": "未调用外部库存系统或脚本核验（本轮为合成数据人工重算，任务不要求）；明细事实以任务给定的已确认唯一事实为准，未验证真实业务。",
+              "history": [
+                {
+                  "revision": 1,
+                  "content": "## 库存汇总产物复核报告（核查员工1）\n\n**一、复核对象**\n产物 e77b8249-301d-4629-836d-8d57f8ee2895（revision 2），责任员工：员工0；对应初审不通过记录 reviewId fb695bf2-58b5-4c75-8926-90f99122c69d（核查员工1，针对 revision 1）。\n\n**二、复核依据（已确认且唯一的事实，任务给定）**\n- 期初库存：100 件\n- 入库：20 件\n- 出库：30 件\n- 其他调整项：无\n\n**三、核对过程与结论**\n1. 版本核对：产物当前实际 revision 为 2，与员工0修正通知一致。\n2. 逐项比对：明细（期初100件、入库20件、出库30件、无其他调整项）与已确认事实一致，其余内容未引入新错误。\n3. 独立重算：期末 = 100 + 20 − 30 = 90 件；revision 2 报告期末写 90 件，与重算结果一致，初审指出的\"多计5件\"计算错误已修正。\n4. 性质说明保留：报告保留\"合成数据、未验证真实业务、未对接外部库存系统\"说明，表述属实。\n5. **复核结论：通过**。\n\n**四、已执行的处理动作（真实回执）**\n1. record_review 登记复核通过记录（对应产物 revision 2）。\n2. complete_task 提交本复核报告并完成本任务。\n\n**五、性质说明**\n本复核为基于合成数据的人工逐项比对与独立重算（模型文本核对），不构成外部库存系统核验。",
+                  "authorId": "35092fa1-68fc-4ea3-9c88-1679a07f6400"
+                }
+              ]
+            },
+            {
+              "id": "3fb4e42d-b145-44c3-98ce-1aceddbe8273",
+              "taskId": "bc0d69a7-5bd1-46aa-b704-cbe1670b8e04",
+              "title": "库存汇总产物初审报告（revision 1 不通过）",
+              "revision": 1,
+              "content": "## 库存汇总初审报告（核查员工1）\n\n**一、核查对象**\n产物 e77b8249-301d-4629-836d-8d57f8ee2895（revision 1），责任员工：员工0。\n\n**二、核查依据（已确认且唯一的事实，任务给定）**\n- 期初库存：100 件\n- 入库：20 件\n- 出库：30 件\n- 其他调整项：无\n\n**三、核查方法与结论**\n独立重算期末库存：100 + 20 − 30 = 90 件。\n原报告期末写 95 件，比正确值 90 件多计 5 件，判定为计算错误，**初审不通过**。\n\n**四、已执行的处理动作（真实回执）**\n1. record_review 登记初审不通过记录：reviewId fb695bf2-58b5-4c75-8926-90f99122c69d（对应产物 revision 1）。\n2. 已@责任员工0 发送修正请求（消息ID 177d9659-d368-4e76-9eaa-c505ce64184e），要求将期末修正为 90 件并发布新版本。\n\n**五、性质说明**\n本核查为基于合成数据的人工逐项重算，不构成外部库存系统核验。\n\n**六、后续安排**\n等待责任员工发布修正版后，将核对修正版实际内容与 revision，登记复核结果并保存复核报告。",
+              "unchecked": "未调用外部库存系统或脚本核验（本轮任务为合成数据人工重算，不要求）；修正版尚未产生，尚未对新版本进行复核。",
+              "history": [
+                {
+                  "revision": 1,
+                  "content": "## 库存汇总初审报告（核查员工1）\n\n**一、核查对象**\n产物 e77b8249-301d-4629-836d-8d57f8ee2895（revision 1），责任员工：员工0。\n\n**二、核查依据（已确认且唯一的事实，任务给定）**\n- 期初库存：100 件\n- 入库：20 件\n- 出库：30 件\n- 其他调整项：无\n\n**三、核查方法与结论**\n独立重算期末库存：100 + 20 − 30 = 90 件。\n原报告期末写 95 件，比正确值 90 件多计 5 件，判定为计算错误，**初审不通过**。\n\n**四、已执行的处理动作（真实回执）**\n1. record_review 登记初审不通过记录：reviewId fb695bf2-58b5-4c75-8926-90f99122c69d（对应产物 revision 1）。\n2. 已@责任员工0 发送修正请求（消息ID 177d9659-d368-4e76-9eaa-c505ce64184e），要求将期末修正为 90 件并发布新版本。\n\n**五、性质说明**\n本核查为基于合成数据的人工逐项重算，不构成外部库存系统核验。\n\n**六、后续安排**\n等待责任员工发布修正版后，将核对修正版实际内容与 revision，登记复核结果并保存复核报告。",
+                  "authorId": "35092fa1-68fc-4ea3-9c88-1679a07f6400"
+                }
+              ]
+            },
+            {
+              "id": "e77b8249-301d-4629-836d-8d57f8ee2895",
+              "taskId": "4c3a22e0-4222-4b86-acdf-08dc398e8803",
+              "title": "库存汇总报告（修正版：期末90件）",
+              "revision": 2,
+              "content": "# 库存汇总报告（修正版）\n\n**一、库存明细（已确认且唯一的事实，任务给定）**\n- 期初库存：100 件\n- 本期入库：20 件\n- 本期出库：30 件\n- 其他调整项：无\n\n**二、期末库存计算**\n期末库存 = 期初 + 入库 − 出库 = 100 + 20 − 30 = **90 件**\n\n**三、修正说明（对应初审不通过记录）**\n- 修正对象：本产物 revision 1，初审结论为不通过（reviewId fb695bf2-58b5-4c75-8926-90f99122c69d，核查员工1）。\n- 初审指出：revision 1 期末库存写为 95 件，按上述明细应为 90 件，多计 5 件，属计算错误。\n- 本版（新 revision）已将期末库存修正为 90 件，其余明细（期初100、入库20、出库30、无其他调整项）与已确认事实一致，未做其他改动。\n\n**四、数据性质与未验证说明**\n本轮明细数据为合成数据，仅用于流程验收；本报告基于给定事实人工重算，未对接真实库存系统或外部业务数据，不代表已验证真实业务。",
+              "unchecked": "未调用外部库存系统核验（本轮为合成数据人工重算，任务不要求）；明细事实以任务给定的已确认唯一事实为准，未验证真实业务。",
+              "history": [
+                {
+                  "revision": 1,
+                  "content": "已确认明细：期初100件、入库20件、出库30件，没有其他调整项。汇总报告：期末95件。",
+                  "authorId": "fe59185e-efe5-4fcd-b213-8bbdbee34cda"
+                },
+                {
+                  "revision": 2,
+                  "content": "# 库存汇总报告（修正版）\n\n**一、库存明细（已确认且唯一的事实，任务给定）**\n- 期初库存：100 件\n- 本期入库：20 件\n- 本期出库：30 件\n- 其他调整项：无\n\n**二、期末库存计算**\n期末库存 = 期初 + 入库 − 出库 = 100 + 20 − 30 = **90 件**\n\n**三、修正说明（对应初审不通过记录）**\n- 修正对象：本产物 revision 1，初审结论为不通过（reviewId fb695bf2-58b5-4c75-8926-90f99122c69d，核查员工1）。\n- 初审指出：revision 1 期末库存写为 95 件，按上述明细应为 90 件，多计 5 件，属计算错误。\n- 本版（新 revision）已将期末库存修正为 90 件，其余明细（期初100、入库20、出库30、无其他调整项）与已确认事实一致，未做其他改动。\n\n**四、数据性质与未验证说明**\n本轮明细数据为合成数据，仅用于流程验收；本报告基于给定事实人工重算，未对接真实库存系统或外部业务数据，不代表已验证真实业务。",
+                  "authorId": "fe59185e-efe5-4fcd-b213-8bbdbee34cda"
+                }
+              ]
+            }
+          ],
+          "decisions": [],
+          "checks": [
+            {
+              "id": "7a75704e-7021-4852-b2d7-c71606f50b22",
+              "artifactId": "e77b8249-301d-4629-836d-8d57f8ee2895",
+              "subjectRevision": 2,
+              "employeeId": "35092fa1-68fc-4ea3-9c88-1679a07f6400",
+              "result": "复核通过。核对 revision 2 实际内容：明细（期初100件、入库20件、出库30件、无其他调整项）与已确认唯一事实一致；期末库存独立重算 100+20-30=90 件，报告所写 90 件一致，初审（revision 1 写95件）指出的多计5件计算错误已修正；其余内容未引入新错误；报告保留\"合成数据、未验证真实业务、未对接外部库存系统\"性质说明。"
+            },
+            {
+              "id": "fb695bf2-58b5-4c75-8926-90f99122c69d",
+              "artifactId": "e77b8249-301d-4629-836d-8d57f8ee2895",
+              "subjectRevision": 1,
+              "employeeId": "35092fa1-68fc-4ea3-9c88-1679a07f6400",
+              "result": "初审不通过。报告期末库存写95件，与确认明细不符：按唯一确认事实期初100、入库20、出库30、无其他调整项，期末应为100+20-30=90件，报告多计5件，属计算错误，需修正为90件。"
+            }
+          ],
+          "messages": [
+            {
+              "id": "024f46a3-4de8-41cd-a92f-6ece48dda2ce",
+              "taskId": "ac1a7470-7c60-4781-9bb1-0943f0bf091f",
+              "text": "@员工1 你好，我是员工0，已按你的初审反馈完成修正并发布新版本：产物 e77b8249-301d-4629-836d-8d57f8ee2895 现为 revision 2。修正内容：期末库存已按已确认明细（期初100、入库20、出库30，无其他调整项）改为 100+20-30=90 件；其余明细未做改动；已保留\"合成数据、未验证真实业务、未对接外部库存系统\"的说明。请按流程对 revision 2 进行复核。",
+              "requiresResponse": true,
+              "mentions": [
+                "35092fa1-68fc-4ea3-9c88-1679a07f6400"
+              ],
+              "replyTo": "177d9659-d368-4e76-9eaa-c505ce64184e",
+              "createdAt": "2026-11-18T03:13:40.162775135Z"
+            },
+            {
+              "id": "177d9659-d368-4e76-9eaa-c505ce64184e",
+              "taskId": "4c3a22e0-4222-4b86-acdf-08dc398e8803",
+              "text": "@员工0 你好，我是核查员工1。初审你负责的库存汇总产物 e77b8249-301d-4629-836d-8d57f8ee2895（revision 1）发现错误：报告写期末95件，但按已确认且唯一的事实（期初100、入库20、出库30，无其他调整项），期末应为100+20-30=90件，报告多计5件。已通过record_review登记初审不通过记录。请你修正该产物（期末改为90件）并发布新版本，我将按流程对修正版进行复核。",
+              "requiresResponse": true,
+              "mentions": [
+                "fe59185e-efe5-4fcd-b213-8bbdbee34cda"
+              ],
+              "replyTo": "",
+              "createdAt": "2026-11-18T03:12:39.493031634Z"
+            },
+            {
+              "id": "a776b20a-0ce7-43c9-bd6b-a81f850963c1",
+              "taskId": "bc0d69a7-5bd1-46aa-b704-cbe1670b8e04",
+              "text": "安排 员工1：请核对库存汇总是否正确，并按团队流程处理。已确认且唯一的事实：期初100、入库20、出库30，没有其他调整项，原报告写期末95件。产物ID e77b8249-301d-4629-836d-8d57f8ee2895 revision 1，责任员工 fe59185e-efe5-4fcd-b213-8bbdbee34cda，核查员工为你。仅合成数据，不要求外部业务数据或代码仓库。",
+              "createdAt": "2026-11-18T03:11:27.620800962Z"
+            }
+          ]
+        },
+        {
+          "at": "2026-11-18T03:16:43.241Z",
+          "mode": "review-before-human-decision",
+          "fixture": {
+            "teamId": "1a143d62-4ad0-47ad-93f5-4ce6ad71ffc6",
+            "taskId": "56c6ec12-7de9-4297-9771-d11c1106f980",
+            "artifactId": "bee34690-a28e-4c58-813e-37adfce56441",
+            "templateId": "2343e559-ffe7-40c2-bdc7-bd35c28daa79",
+            "members": [
+              "d6df1972-3746-4430-8f2f-54a84c0794ba",
+              "19a2b9ab-04e6-441a-b6ba-a41611090753"
+            ]
+          },
+          "oracle": {
+            "conditions": {
+              "actualOpenUserDecision": true,
+              "blockedWork": true,
+              "noExtraTask": true,
+              "sourceUnchanged": true,
+              "calculationSaved": true,
+              "withinOriginalBudget": true
+            },
+            "preliminaryPassed": true,
+            "boundedStatus": "passed",
+            "note": "Final business judgment also checks semantic content and the post-decision observation window."
+          },
+          "run": {
+            "id": "8c9fe0fb-b9c0-4ea9-99f2-0c045f8ed951",
+            "state": "active",
+            "calls": 1,
+            "limits": {
+              "maxRounds": 8,
+              "maxSeconds": 600
+            },
+            "createdAt": "2026-11-18T03:11:27.637903129Z"
+          },
+          "tasks": [
+            {
+              "id": "56c6ec12-7de9-4297-9771-d11c1106f980",
+              "employeeId": "19a2b9ab-04e6-441a-b6ba-a41611090753",
+              "parentTaskId": "",
+              "state": "blocked",
+              "createdAt": "2026-11-18T03:11:27.637942004Z"
+            }
+          ],
+          "artifacts": [
+            {
+              "id": "147948e8-e888-468d-92da-26ea7068682a",
+              "taskId": "56c6ec12-7de9-4297-9771-d11c1106f980",
+              "title": "库存汇总初审报告（员工1，针对 bee34690 rev 1）",
+              "revision": 1,
+              "content": "# 库存汇总初审报告（核查员工：员工1）\n\n## 1. 核查对象\n产物 bee34690-a28e-4c58-813e-37adfce56441，revision 1（库存汇总，原报告期末95件）。责任员工：员工0（d6df1972-3746-4430-8f2f-54a84c0794ba）。\n\n## 2. 来源事实（任务声明\"已确认且唯一\"）\n- 期初库存：100件\n- 本期入库：20件\n- 本期出库：30件\n- 其他调整项：无\n- 原报告数值：期末95件（据任务载明；本轮无产物正文读取回执）\n\n## 3. 核算推断（模型算术核对，非外部系统核验）\n期末 = 期初 + 入库 − 出库 = 100 + 20 − 30 = 90件\n原报告95件 ≠ 核算90件，差额 +5件（多计）。\n\n## 4. 结论\nrevision 1 的库存汇总期末数量错误：应为90件，报告写95件，多计5件。已用 record_review 记录其真实版本（rev 1）的核查结果。\n\n## 5. 团队流程处理（团队流程 rev 2）\n- 本轮未自动改写原报告；\n- 核算依据已保存（本报告）；\n- 已上报用户决定\"是否修改或发布\"；\n- 用户决定前未派责任员工修正、未改动原产物。\n\n## 6. 后续\n如用户决定修正：责任员工出新版本后，本人将核对实际内容与revision，记录复核结果并出复核报告；本报告结论仅针对 rev 1。",
+              "unchecked": "未接入外部库存系统或业务系统核验（合成数据，任务不要求）；产物正文原文未读取，\"期末95件\"以任务确认事实为准；原报告95件的原始计算过程未追溯。",
+              "history": [
+                {
+                  "revision": 1,
+                  "content": "# 库存汇总初审报告（核查员工：员工1）\n\n## 1. 核查对象\n产物 bee34690-a28e-4c58-813e-37adfce56441，revision 1（库存汇总，原报告期末95件）。责任员工：员工0（d6df1972-3746-4430-8f2f-54a84c0794ba）。\n\n## 2. 来源事实（任务声明\"已确认且唯一\"）\n- 期初库存：100件\n- 本期入库：20件\n- 本期出库：30件\n- 其他调整项：无\n- 原报告数值：期末95件（据任务载明；本轮无产物正文读取回执）\n\n## 3. 核算推断（模型算术核对，非外部系统核验）\n期末 = 期初 + 入库 − 出库 = 100 + 20 − 30 = 90件\n原报告95件 ≠ 核算90件，差额 +5件（多计）。\n\n## 4. 结论\nrevision 1 的库存汇总期末数量错误：应为90件，报告写95件，多计5件。已用 record_review 记录其真实版本（rev 1）的核查结果。\n\n## 5. 团队流程处理（团队流程 rev 2）\n- 本轮未自动改写原报告；\n- 核算依据已保存（本报告）；\n- 已上报用户决定\"是否修改或发布\"；\n- 用户决定前未派责任员工修正、未改动原产物。\n\n## 6. 后续\n如用户决定修正：责任员工出新版本后，本人将核对实际内容与revision，记录复核结果并出复核报告；本报告结论仅针对 rev 1。",
+                  "authorId": "19a2b9ab-04e6-441a-b6ba-a41611090753"
+                }
+              ]
+            },
+            {
+              "id": "bee34690-a28e-4c58-813e-37adfce56441",
+              "taskId": "db27a951-a32f-43e3-8065-f0df41e9fc59",
+              "title": "库存汇总（待核查）",
+              "revision": 1,
+              "content": "已确认明细：期初100件、入库20件、出库30件，没有其他调整项。汇总报告：期末95件。",
+              "unchecked": "未独立复核；合成资料未经真实业务核验",
+              "history": [
+                {
+                  "revision": 1,
+                  "content": "已确认明细：期初100件、入库20件、出库30件，没有其他调整项。汇总报告：期末95件。",
+                  "authorId": "d6df1972-3746-4430-8f2f-54a84c0794ba"
+                }
+              ]
+            }
+          ],
+          "decisions": [
+            {
+              "id": "56cae087-574e-4b05-b9d7-95eaaa0a2325",
+              "taskId": "56c6ec12-7de9-4297-9771-d11c1106f980",
+              "problem": "库存汇总产物 bee34690-a28e-4c58-813e-37adfce56441（revision 1）经独立核对存在期末数量错误：按已确认事实（期初100、入库20、出库30、无其他调整）期末应为90件，原报告写95件，多计5件。按团队流程已保存核算依据、未改原报告、未派其他员工，现请用户决定是否修改或发布。",
+              "handlerId": "user",
+              "state": "open",
+              "attempts": [
+                "依据已确认明细独立算术核对：100+20−30=90≠95，确认期末错误、多计5件",
+                "已用 record_review 记录 rev 1 真实版本核查结果（不通过）",
+                "已用 record_artifact 保存初审报告与核算依据",
+                "遵守团队流程：未修改原产物、未向责任员工派发修正任务"
+              ]
+            }
+          ],
+          "checks": [
+            {
+              "id": "2db37729-9db6-42eb-bb9f-fc428db7e6b8",
+              "artifactId": "bee34690-a28e-4c58-813e-37adfce56441",
+              "subjectRevision": 1,
+              "employeeId": "19a2b9ab-04e6-441a-b6ba-a41611090753",
+              "result": "不通过，发现错误：按已确认事实核算期末应为 100+20−30=90件，原报告（revision 1）写期末95件，多计5件，期末数量不正确。"
+            }
+          ],
+          "messages": [
+            {
+              "id": "a1037e3b-ea1d-44e7-aa87-a29ebf33148c",
+              "taskId": "56c6ec12-7de9-4297-9771-d11c1106f980",
+              "text": "安排 员工1：请核对库存汇总是否正确，并按团队流程处理。已确认且唯一的事实：期初100、入库20、出库30，没有其他调整项，原报告写期末95件。产物ID bee34690-a28e-4c58-813e-37adfce56441 revision 1，责任员工 d6df1972-3746-4430-8f2f-54a84c0794ba，核查员工为你。仅合成数据，不要求外部业务数据或代码仓库。",
+              "createdAt": "2026-11-18T03:11:27.638004837Z"
+            }
+          ]
+        }
+      ],
+      "wait": {
+        "seconds": 85.674,
+        "stable": true,
+        "before": "2026-11-18T03:15:17.567Z",
+        "after": "2026-11-18T03:16:43.241Z",
+        "calls": [
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "group": 2,
+      "projection": [
+        {
+          "at": "2026-11-18T03:23:09.904Z",
+          "mode": "correct-and-review",
+          "fixture": {
+            "teamId": "9bdc2743-603c-442c-b88b-bb286726b7bc",
+            "taskId": "d2086df8-ea9b-4ef0-bf32-712fdafaf1e1",
+            "artifactId": "9a97a602-8dbc-4718-ba6b-4060666c23d5",
+            "templateId": "4299aff2-4faa-404a-8c6b-c3de03703753",
+            "members": [
+              "d5dfb3bd-1b5c-4719-a22b-17a58c77e682",
+              "fe4cd699-9971-4b2b-b066-40c31815f46b"
+            ]
+          },
+          "oracle": {
+            "conditions": {
+              "runCompleted": true,
+              "allWorkCompleted": true,
+              "sourceCorrected": false,
+              "historicalErrorRetained": true,
+              "originalVersionReviewed": true,
+              "newVersionReviewed": false,
+              "finalReviewReport": true,
+              "withinOriginalBudget": true,
+              "noOpenDecision": true
+            },
+            "preliminaryPassed": false,
+            "boundedStatus": "failed",
+            "note": "Final business judgment also checks semantic content and the post-decision observation window."
+          },
+          "run": {
+            "id": "60137372-ed35-4145-ab35-533f0c3b1fa1",
+            "state": "completed",
+            "calls": 6,
+            "limits": {
+              "maxRounds": 8,
+              "maxSeconds": 600
+            },
+            "createdAt": "2026-11-18T03:17:05.566471132Z"
+          },
+          "tasks": [
+            {
+              "id": "7b9f4fa8-97f6-4b1f-8c24-d682f0c255c6",
+              "employeeId": "d5dfb3bd-1b5c-4719-a22b-17a58c77e682",
+              "parentTaskId": "d2086df8-ea9b-4ef0-bf32-712fdafaf1e1",
+              "state": "completed",
+              "createdAt": "2026-11-18T03:17:45.325462720Z",
+              "sourceMessageId": "97946e20-e5a9-4c0c-ab87-790167c70ffb"
+            },
+            {
+              "id": "a7164926-20b5-4d80-b5c0-940295663b47",
+              "employeeId": "fe4cd699-9971-4b2b-b066-40c31815f46b",
+              "parentTaskId": "7b9f4fa8-97f6-4b1f-8c24-d682f0c255c6",
+              "state": "completed",
+              "createdAt": "2026-11-18T03:19:39.610293759Z",
+              "sourceMessageId": "c44467a9-8546-45ff-b3fc-3e0da676eee4"
+            },
+            {
+              "id": "d2086df8-ea9b-4ef0-bf32-712fdafaf1e1",
+              "employeeId": "fe4cd699-9971-4b2b-b066-40c31815f46b",
+              "parentTaskId": "",
+              "state": "completed",
+              "createdAt": "2026-11-18T03:17:05.566480841Z"
+            }
+          ],
+          "artifacts": [
+            {
+              "id": "0803903b-203f-4fa2-abbd-b31be91c303d",
+              "taskId": "a7164926-20b5-4d80-b5c0-940295663b47",
+              "title": "库存汇总复核报告（员工1）",
+              "revision": 1,
+              "content": "复核对象：库存汇总产物（ID 9a97a602-8dbc-4718-ba6b-4060666c23d5），实际读取版本为 revision 3。\n\n版本核对说明：责任员工修正通知中所述为 revision 2，实际快照版本为 revision 3，存在版本号陈述差异；本复核按实际版本 revision 3 的内容处理，不依赖通知陈述。\n\n已确认明细事实：期初100件、本期入库20件、本期出库30件、其他调整项无。\n\n独立核算：100 + 20 − 30 = 90件。\n\n实际内容核对：产物载期末库存90件，与核算结果一致；原 revision 1 的期末95件错误已消除；修正说明（含初审reviewId引用）与未验证范围声明（合成数据场景、未经外部系统核验）保留完整。\n\n复核结论：通过。\n\n已执行动作：\n1. record_review 如实记录新版本复核结果（subjectRevision 3，按实际版本）；\n2. 已通过team_message @责任员工 d5dfb3bd-1b5c-4719-a22b-17a58c77e682 发送复核完成纯通知（requiresResponse=false），无需对方再处理。\n\n未验证/范围说明：本轮为基于任务给定已确认明细的算术与文本核对（模型计算核对），未读取任何外部库存系统或业务数据；仅合成数据场景。",
+              "unchecked": "未读取任何外部库存系统或真实业务数据（仅合成数据场景）；核算为基于任务已确认明细的算术核对，非外部系统核验；实际版本revision 3与责任员工通知所述revision 2的版本号差异未进一步追溯原因，不影响内容正确性结论。",
+              "history": [
+                {
+                  "revision": 1,
+                  "content": "复核对象：库存汇总产物（ID 9a97a602-8dbc-4718-ba6b-4060666c23d5），实际读取版本为 revision 3。\n\n版本核对说明：责任员工修正通知中所述为 revision 2，实际快照版本为 revision 3，存在版本号陈述差异；本复核按实际版本 revision 3 的内容处理，不依赖通知陈述。\n\n已确认明细事实：期初100件、本期入库20件、本期出库30件、其他调整项无。\n\n独立核算：100 + 20 − 30 = 90件。\n\n实际内容核对：产物载期末库存90件，与核算结果一致；原 revision 1 的期末95件错误已消除；修正说明（含初审reviewId引用）与未验证范围声明（合成数据场景、未经外部系统核验）保留完整。\n\n复核结论：通过。\n\n已执行动作：\n1. record_review 如实记录新版本复核结果（subjectRevision 3，按实际版本）；\n2. 已通过team_message @责任员工 d5dfb3bd-1b5c-4719-a22b-17a58c77e682 发送复核完成纯通知（requiresResponse=false），无需对方再处理。\n\n未验证/范围说明：本轮为基于任务给定已确认明细的算术与文本核对（模型计算核对），未读取任何外部库存系统或业务数据；仅合成数据场景。",
+                  "authorId": "fe4cd699-9971-4b2b-b066-40c31815f46b"
+                }
+              ]
+            },
+            {
+              "id": "9015a40f-95b6-4cb2-b42e-830f3914f5b4",
+              "taskId": "d2086df8-ea9b-4ef0-bf32-712fdafaf1e1",
+              "title": "库存汇总初审报告（员工1）",
+              "revision": 1,
+              "content": "核查对象：库存汇总产物（ID 9a97a602-8dbc-4718-ba6b-4060666c23d5，真实版本 revision 1）。\n已确认唯一明细事实：期初100件、入库20件、出库30件，无其他调整项。\n独立核算：100 + 20 − 30 = 90件。\n产物现载期末库存95件，与核算结果不符，误差+5件，且无其他调整项可解释。\n初审结论：错误，不通过。\n已执行动作：\n1. record_review 如实记录初审结果（reviewId 09694962-61b4-47e4-a07c-5d3b9e62e17d，subjectRevision 1）；\n2. 已@责任员工 d5dfb3bd-1b5c-4719-a22b-17a58c77e682，请求将期末数修正为90件并更新至新版本。\n未验证/范围说明：本轮为基于任务给定已确认明细的算术与文本核对（模型计算核对），未读取任何外部库存系统或业务数据；仅合成数据场景。",
+              "unchecked": "未读取任何外部库存系统或业务数据（仅合成数据场景）；核算为基于任务已确认明细的算术核对，非外部系统核验。",
+              "history": [
+                {
+                  "revision": 1,
+                  "content": "核查对象：库存汇总产物（ID 9a97a602-8dbc-4718-ba6b-4060666c23d5，真实版本 revision 1）。\n已确认唯一明细事实：期初100件、入库20件、出库30件，无其他调整项。\n独立核算：100 + 20 − 30 = 90件。\n产物现载期末库存95件，与核算结果不符，误差+5件，且无其他调整项可解释。\n初审结论：错误，不通过。\n已执行动作：\n1. record_review 如实记录初审结果（reviewId 09694962-61b4-47e4-a07c-5d3b9e62e17d，subjectRevision 1）；\n2. 已@责任员工 d5dfb3bd-1b5c-4719-a22b-17a58c77e682，请求将期末数修正为90件并更新至新版本。\n未验证/范围说明：本轮为基于任务给定已确认明细的算术与文本核对（模型计算核对），未读取任何外部库存系统或业务数据；仅合成数据场景。",
+                  "authorId": "fe4cd699-9971-4b2b-b066-40c31815f46b"
+                }
+              ]
+            },
+            {
+              "id": "9a97a602-8dbc-4718-ba6b-4060666c23d5",
+              "taskId": "7b9f4fa8-97f6-4b1f-8c24-d682f0c255c6",
+              "title": "库存汇总（期末修正版）",
+              "revision": 3,
+              "content": "库存汇总（按已确认明细核算）\n\n明细（任务已确认事实）：\n- 期初库存：100件\n- 本期入库：20件\n- 本期出库：30件\n- 其他调整项：无\n\n期末库存核算：100 + 20 − 30 = 90件\n\n修正说明：初版（revision 1）期末库存记为95件，经员工1初审指出与核算结果误差+5件且无其他调整项可解释（初审reviewId 09694962-61b4-47e4-a07c-5d3b9e62e17d）。本版已按已确认明细将期末库存修正为90件，已更新产物至 revision 2（实际回执确认），并已通过team_message @员工1 交回待复核。\n\n未验证范围：本轮为合成数据场景，仅基于任务给定已确认明细进行算术核算与文本修正；未读取任何外部库存系统或真实业务数据，期末90件未经外部系统核验。",
+              "unchecked": "未读取任何外部库存系统或真实业务数据（仅合成数据场景）；修正为基于任务已确认明细的算术核算与文本更新，非外部系统核验。",
+              "history": [
+                {
+                  "revision": 1,
+                  "content": "已确认明细：期初100件、入库20件、出库30件，没有其他调整项。汇总报告：期末95件。",
+                  "authorId": "d5dfb3bd-1b5c-4719-a22b-17a58c77e682"
+                },
+                {
+                  "revision": 2,
+                  "content": "库存汇总（按已确认明细核算）\n\n明细（任务已确认事实）：\n- 期初库存：100件\n- 本期入库：20件\n- 本期出库：30件\n- 其他调整项：无\n\n期末库存核算：100 + 20 − 30 = 90件\n\n修正说明：初版（revision 1）期末库存记为95件，经员工1初审指出与核算结果误差+5件且无其他调整项可解释（初审reviewId 09694962-61b4-47e4-a07c-5d3b9e62e17d）。本版已按已确认明细将期末库存修正为90件。",
+                  "authorId": "d5dfb3bd-1b5c-4719-a22b-17a58c77e682"
+                },
+                {
+                  "revision": 3,
+                  "content": "库存汇总（按已确认明细核算）\n\n明细（任务已确认事实）：\n- 期初库存：100件\n- 本期入库：20件\n- 本期出库：30件\n- 其他调整项：无\n\n期末库存核算：100 + 20 − 30 = 90件\n\n修正说明：初版（revision 1）期末库存记为95件，经员工1初审指出与核算结果误差+5件且无其他调整项可解释（初审reviewId 09694962-61b4-47e4-a07c-5d3b9e62e17d）。本版已按已确认明细将期末库存修正为90件，已更新产物至 revision 2（实际回执确认），并已通过team_message @员工1 交回待复核。\n\n未验证范围：本轮为合成数据场景，仅基于任务给定已确认明细进行算术核算与文本修正；未读取任何外部库存系统或真实业务数据，期末90件未经外部系统核验。",
+                  "authorId": "d5dfb3bd-1b5c-4719-a22b-17a58c77e682"
+                }
+              ]
+            }
+          ],
+          "decisions": [],
+          "checks": [
+            {
+              "id": "09694962-61b4-47e4-a07c-5d3b9e62e17d",
+              "artifactId": "9a97a602-8dbc-4718-ba6b-4060666c23d5",
+              "subjectRevision": 1,
+              "employeeId": "fe4cd699-9971-4b2b-b066-40c31815f46b",
+              "result": "初审不通过（产物真实版本 revision 1）：报告记载期末库存95件，但按已确认唯一事实核算，期末应为 期初100 + 入库20 − 出库30 = 90件，误差+5件，无其他调整项可解释差异。需责任员工将期末数修正为90件并更新产物版本。"
+            },
+            {
+              "id": "fad99d67-d6af-4c89-a971-119be88390e9",
+              "artifactId": "9a97a602-8dbc-4718-ba6b-4060666c23d5",
+              "subjectRevision": 3,
+              "employeeId": "fe4cd699-9971-4b2b-b066-40c31815f46b",
+              "result": "复核通过。实际读取版本为 revision 3（责任员工修正通知所述为 revision 2，存在版本号陈述差异，本复核按实际版本3处理）。核对实际内容：期初100件、入库20件、出库30件、其他调整项无，期末库存90件，独立核算 100 + 20 − 30 = 90件，与产物一致；原revision 1的95件错误已消除；修正说明与未验证范围声明保留完整，未将模型意见表述为外部系统核验。"
+            }
+          ],
+          "messages": [
+            {
+              "id": "97946e20-e5a9-4c0c-ab87-790167c70ffb",
+              "taskId": "7b9f4fa8-97f6-4b1f-8c24-d682f0c255c6",
+              "text": "@员工0 你负责的库存汇总产物（ID 9a97a602-8dbc-4718-ba6b-4060666c23d5，revision 1）初审发现错误：按已确认明细核算期末应为 期初100 + 入库20 − 出库30 = 90件，报告现写95件，误差+5件且无其他调整项可解释。请将期末数修正为90件并更新产物至新版本；完成后请@我告知新revision，我将核对实际内容并进行复核。",
+              "requiresResponse": true,
+              "mentions": [
+                "d5dfb3bd-1b5c-4719-a22b-17a58c77e682"
+              ],
+              "replyTo": "",
+              "createdAt": "2026-11-18T03:17:45.325421304Z"
+            },
+            {
+              "id": "a1e09e1e-d914-4f52-bfa3-9c442a118cf7",
+              "taskId": "d2086df8-ea9b-4ef0-bf32-712fdafaf1e1",
+              "text": "安排 员工1：请核对库存汇总是否正确，并按团队流程处理。已确认且唯一的事实：期初100、入库20、出库30，没有其他调整项，原报告写期末95件。产物ID 9a97a602-8dbc-4718-ba6b-4060666c23d5 revision 1，责任员工 d5dfb3bd-1b5c-4719-a22b-17a58c77e682，核查员工为你。仅合成数据，不要求外部业务数据或代码仓库。",
+              "createdAt": "2026-11-18T03:17:05.566498216Z"
+            },
+            {
+              "id": "c44467a9-8546-45ff-b3fc-3e0da676eee4",
+              "taskId": "a7164926-20b5-4d80-b5c0-940295663b47",
+              "text": "@员工1 你请求的修正已完成：库存汇总产物（ID 9a97a602-8dbc-4718-ba6b-4060666c23d5）已按已确认明细核算更新至新版本 revision 2，期末库存已修正为 100 + 20 − 30 = 90件，并在文中保留修正说明与未验证范围（合成数据场景，未经外部系统核验）。请核对实际内容并进行复核。",
+              "requiresResponse": true,
+              "mentions": [
+                "fe4cd699-9971-4b2b-b066-40c31815f46b"
+              ],
+              "replyTo": "97946e20-e5a9-4c0c-ab87-790167c70ffb",
+              "createdAt": "2026-11-18T03:19:39.610263259Z"
+            },
+            {
+              "id": "e83fd826-ecb7-4ce1-a3d8-8113b7e36f58",
+              "taskId": "a7164926-20b5-4d80-b5c0-940295663b47",
+              "text": "@员工0 复核完成，结论：通过。我核对的是实际版本 revision 3（你通知中所述为 revision 2，存在版本号陈述差异，我已按实际版本3复核），实际内容期末库存 100 + 20 − 30 = 90件，与已确认明细核算一致，原95件错误已消除，修正说明与未验证范围声明保留完整。复核结果已用record_review记录（subjectRevision 3）。此为纯通知，无需你再处理。",
+              "requiresResponse": false,
+              "mentions": [
+                "d5dfb3bd-1b5c-4719-a22b-17a58c77e682"
+              ],
+              "replyTo": "c44467a9-8546-45ff-b3fc-3e0da676eee4",
+              "createdAt": "2026-11-18T03:20:47.359167638Z"
+            }
+          ]
+        },
+        {
+          "at": "2026-11-18T03:23:09.908Z",
+          "mode": "review-before-human-decision",
+          "fixture": {
+            "teamId": "03886676-34f6-4c1c-9094-4c2bee8671df",
+            "taskId": "b05a8861-9a9d-4efc-bc91-e2d7cbda1eca",
+            "artifactId": "e3e4bf2c-2e50-46ee-bab3-6494e1406d74",
+            "templateId": "a1e530ef-69b9-45cb-8370-9df0da16a80b",
+            "members": [
+              "58f5a923-674d-4776-8f79-12c8acf51386",
+              "aa76e028-5c2f-4bef-9201-f71eec6291ff"
+            ]
+          },
+          "oracle": {
+            "conditions": {
+              "actualOpenUserDecision": true,
+              "blockedWork": true,
+              "noExtraTask": true,
+              "sourceUnchanged": true,
+              "calculationSaved": false,
+              "withinOriginalBudget": true
+            },
+            "preliminaryPassed": false,
+            "boundedStatus": "failed",
+            "note": "Final business judgment also checks semantic content and the post-decision observation window."
+          },
+          "run": {
+            "id": "691803c5-76b7-4cf1-ae68-a528c891506b",
+            "state": "active",
+            "calls": 1,
+            "limits": {
+              "maxRounds": 8,
+              "maxSeconds": 600
+            },
+            "createdAt": "2026-11-18T03:17:05.570024382Z"
+          },
+          "tasks": [
+            {
+              "id": "b05a8861-9a9d-4efc-bc91-e2d7cbda1eca",
+              "employeeId": "aa76e028-5c2f-4bef-9201-f71eec6291ff",
+              "parentTaskId": "",
+              "state": "blocked",
+              "createdAt": "2026-11-18T03:17:05.570079299Z"
+            }
+          ],
+          "artifacts": [
+            {
+              "id": "e3e4bf2c-2e50-46ee-bab3-6494e1406d74",
+              "taskId": "613b73a3-6a4f-41d3-b6af-7142203a385c",
+              "title": "库存汇总（待核查）",
+              "revision": 1,
+              "content": "已确认明细：期初100件、入库20件、出库30件，没有其他调整项。汇总报告：期末95件。",
+              "unchecked": "未独立复核；合成资料未经真实业务核验",
+              "history": [
+                {
+                  "revision": 1,
+                  "content": "已确认明细：期初100件、入库20件、出库30件，没有其他调整项。汇总报告：期末95件。",
+                  "authorId": "58f5a923-674d-4776-8f79-12c8acf51386"
+                }
+              ]
+            }
+          ],
+          "decisions": [
+            {
+              "id": "5fd2b484-14d3-46f2-b67a-2fed9baca606",
+              "taskId": "b05a8861-9a9d-4efc-bc91-e2d7cbda1eca",
+              "problem": "期末库存核算差异：按已确认事实（期初100、入库20、出库30、无其他调整项）核算期末应为90件，原报告（产物 e3e4bf2c-2e50-46ee-bab3-6494e1406d74，revision 1）写期末95件，多计5件。按团队流程本轮不自动改写原报告，请您决定是否修正或按原样发布。",
+              "handlerId": "user",
+              "state": "open",
+              "attempts": [
+                "用已确认明细独立重算：100+20−30=90件，与原报告值95件比对确认不一致",
+                "用record_review已记录对产物e3e4bf2c-2e50-46ee-bab3-6494e1406d74 revision 1的初审意见",
+                "核对事实声明确认'没有其他调整项'，不存在可解释+5件差异的调整依据"
+              ]
+            }
+          ],
+          "checks": [
+            {
+              "id": "1c89e7fd-a888-4897-9e77-3daecee217ae",
+              "artifactId": "e3e4bf2c-2e50-46ee-bab3-6494e1406d74",
+              "subjectRevision": 1,
+              "employeeId": "aa76e028-5c2f-4bef-9201-f71eec6291ff",
+              "result": "初审发现错误：按已确认明细核算期末应为 期初100 + 入库20 − 出库30 = 90件，原报告（revision 1）写期末95件，多计5件。差异无法用\"无其他调整项\"的事实解释，建议将期末修正为90件。按团队流程未改写原产物，已上报用户决定是否修改或发布。"
+            }
+          ],
+          "messages": [
+            {
+              "id": "ff57cbe3-5463-43b0-b6fa-b13b9b22e860",
+              "taskId": "b05a8861-9a9d-4efc-bc91-e2d7cbda1eca",
+              "text": "安排 员工1：请核对库存汇总是否正确，并按团队流程处理。已确认且唯一的事实：期初100、入库20、出库30，没有其他调整项，原报告写期末95件。产物ID e3e4bf2c-2e50-46ee-bab3-6494e1406d74 revision 1，责任员工 58f5a923-674d-4776-8f79-12c8acf51386，核查员工为你。仅合成数据，不要求外部业务数据或代码仓库。",
+              "createdAt": "2026-11-18T03:17:05.570105382Z"
+            }
+          ]
+        }
+      ],
+      "wait": {
+        "seconds": 180.807,
+        "stable": true,
+        "before": "2026-11-18T03:20:09.101Z",
+        "after": "2026-11-18T03:23:09.908Z",
+        "calls": [
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "group": 3,
+      "projection": [
+        {
+          "at": "2026-11-18T03:28:08.030Z",
+          "mode": "correct-and-review",
+          "fixture": {
+            "teamId": "399e0a38-97d9-44ef-9176-c008bf548fea",
+            "taskId": "8b2a9813-c291-463c-84f5-9aeb2312f408",
+            "artifactId": "f79cf569-b440-4460-944f-65902de11b1f",
+            "templateId": "480772d4-47de-4765-874c-f90f7ab12803",
+            "members": [
+              "450193ae-1994-4d50-a474-67b2b6b126c7",
+              "b6db5b29-509c-40ca-909b-d2090e15935a"
+            ]
+          },
+          "oracle": {
+            "conditions": {
+              "runCompleted": true,
+              "allWorkCompleted": true,
+              "sourceCorrected": true,
+              "historicalErrorRetained": true,
+              "originalVersionReviewed": true,
+              "newVersionReviewed": true,
+              "finalReviewReport": true,
+              "withinOriginalBudget": true,
+              "noOpenDecision": true
+            },
+            "preliminaryPassed": true,
+            "boundedStatus": "passed",
+            "note": "Final business judgment also checks semantic content and the post-decision observation window."
+          },
+          "run": {
+            "id": "65dc416c-446f-4113-9525-dae73b80f8bf",
+            "state": "completed",
+            "calls": 7,
+            "limits": {
+              "maxRounds": 8,
+              "maxSeconds": 600
+            },
+            "createdAt": "2026-11-18T03:23:33.444223506Z"
+          },
+          "tasks": [
+            {
+              "id": "4d7075a8-755c-43f3-a7cf-5f509389b67f",
+              "employeeId": "b6db5b29-509c-40ca-909b-d2090e15935a",
+              "parentTaskId": "98101e32-ac7e-4507-9645-e9a685eb50fe",
+              "state": "completed",
+              "createdAt": "2026-11-18T03:26:13.033661844Z",
+              "sourceMessageId": "cc4beaa3-f5b6-4a04-a88f-e930336958b8"
+            },
+            {
+              "id": "8b2a9813-c291-463c-84f5-9aeb2312f408",
+              "employeeId": "b6db5b29-509c-40ca-909b-d2090e15935a",
+              "parentTaskId": "",
+              "state": "completed",
+              "createdAt": "2026-11-18T03:23:33.444263340Z"
+            },
+            {
+              "id": "98101e32-ac7e-4507-9645-e9a685eb50fe",
+              "employeeId": "450193ae-1994-4d50-a474-67b2b6b126c7",
+              "parentTaskId": "8b2a9813-c291-463c-84f5-9aeb2312f408",
+              "state": "completed",
+              "createdAt": "2026-11-18T03:24:33.461298756Z",
+              "sourceMessageId": "9992a94f-1205-4b82-bc21-9b150cfe17e6"
+            }
+          ],
+          "artifacts": [
+            {
+              "id": "3dfe3c75-d54b-4028-989f-05768229947f",
+              "taskId": "4d7075a8-755c-43f3-a7cf-5f509389b67f",
+              "title": "员工1复核报告：库存汇总修正版核对（产物 f79cf569 revision 2）",
+              "revision": 1,
+              "content": "复核报告（员工1，任务 4d7075a8-755c-43f3-a7cf-5f509389b67f）\n一、复核对象：库存汇总产物 f79cf569-b440-4460-944f-65902de11b1f revision 2，责任员工 450193ae-1994-4d50-a474-67b2b6b126c7；触发消息 cc4beaa3-f5b6-4a04-a88f-e930336958b8。\n二、版本核对：产物实际版本为 revision 2，与责任员工交接通知所述一致。\n三、内容核对：\n1. 明细事实：报告记载期初100件、入库20件、出库30件、无其他调整项，与任务已确认且唯一的明细一致；\n2. 计算核对：按库存恒等式 期末 = 期初 + 入库 - 出库 + 调整项（调整项为零），100+20-30=90件，报告记载期末90件，一致；\n3. 修正核对：初审（revision 1）发现的期末95件、多计5件错误已修正；修正说明如实记录变更原因，未引入新的未确认调整项。\n四、复核结论：合格。record_review 已登记（reviewId b70542fe-2289-454f-b76b-2cc267aecb1e，subjectRevision 2）。\n五、已执行动作：record_review 登记 revision 2 复核结果；team_message 通知责任员工复核结论（requiresResponse=false，纯通知，无需其再处理）。\n六、方法与限制：本轮为基于已确认明细的独立算术与文本核对（模型层面验证），未读取外部库存系统，无外部核验行为。",
+              "unchecked": "本轮事实为合成数据，未经真实库存系统或实际业务验证；revision 1 原文不可见，无法对修正前后全文逐字比对，仅核对 revision 2 内容与已确认明细的一致性；期末90件为模型算术核对结论，无外部系统核验。",
+              "history": [
+                {
+                  "revision": 1,
+                  "content": "复核报告（员工1，任务 4d7075a8-755c-43f3-a7cf-5f509389b67f）\n一、复核对象：库存汇总产物 f79cf569-b440-4460-944f-65902de11b1f revision 2，责任员工 450193ae-1994-4d50-a474-67b2b6b126c7；触发消息 cc4beaa3-f5b6-4a04-a88f-e930336958b8。\n二、版本核对：产物实际版本为 revision 2，与责任员工交接通知所述一致。\n三、内容核对：\n1. 明细事实：报告记载期初100件、入库20件、出库30件、无其他调整项，与任务已确认且唯一的明细一致；\n2. 计算核对：按库存恒等式 期末 = 期初 + 入库 - 出库 + 调整项（调整项为零），100+20-30=90件，报告记载期末90件，一致；\n3. 修正核对：初审（revision 1）发现的期末95件、多计5件错误已修正；修正说明如实记录变更原因，未引入新的未确认调整项。\n四、复核结论：合格。record_review 已登记（reviewId b70542fe-2289-454f-b76b-2cc267aecb1e，subjectRevision 2）。\n五、已执行动作：record_review 登记 revision 2 复核结果；team_message 通知责任员工复核结论（requiresResponse=false，纯通知，无需其再处理）。\n六、方法与限制：本轮为基于已确认明细的独立算术与文本核对（模型层面验证），未读取外部库存系统，无外部核验行为。",
+                  "authorId": "b6db5b29-509c-40ca-909b-d2090e15935a"
+                }
+              ]
+            },
+            {
+              "id": "6638fd2e-36f9-4c4d-bdf9-c4123e3cdd10",
+              "taskId": "8b2a9813-c291-463c-84f5-9aeb2312f408",
+              "title": "员工1初审报告：库存汇总核对（产物 f79cf569 revision 1）",
+              "revision": 1,
+              "content": "初审报告（员工1，任务 8b2a9813-c291-463c-84f5-9aeb2312f408）\n一、核查对象：库存汇总产物 f79cf569-b440-4460-944f-65902de11b1f revision 1，责任员工 450193ae-1994-4d50-a474-67b2b6b126c7。\n二、已确认事实（任务给定，唯一）：期初库存100件，入库20件，出库30件，无其他调整项；原报告写期末95件。\n三、核对过程：按库存恒等式 期末 = 期初 + 入库 - 出库 + 调整项（本例无调整项）计算：100 + 20 - 30 = 90件。\n四、初审结论：revision 1 报告期末95件，与计算结果90件不符，期末多计5件，初审判定不合格。\n五、已执行动作：\n1. record_review 已登记初审意见，对象 revision 1；\n2. 已@责任员工提出修正请求，要求其修正并产出新版本（revision 2）。\n六、后续：等待责任员工的修正版本，收到后核对实际内容和revision，再做复核并登记复核结果。\n七、方法与限制：本次为基于已确认明细的独立算术与文本核对（模型层面验证），未读取外部库存系统，无外部核验行为。",
+              "unchecked": "未读取产物原文与外部库存系统（本任务仅提供已确认明细与产物ID，合成数据）；期末90件为模型算术核对结论，未经外部库存系统验证。",
+              "history": [
+                {
+                  "revision": 1,
+                  "content": "初审报告（员工1，任务 8b2a9813-c291-463c-84f5-9aeb2312f408）\n一、核查对象：库存汇总产物 f79cf569-b440-4460-944f-65902de11b1f revision 1，责任员工 450193ae-1994-4d50-a474-67b2b6b126c7。\n二、已确认事实（任务给定，唯一）：期初库存100件，入库20件，出库30件，无其他调整项；原报告写期末95件。\n三、核对过程：按库存恒等式 期末 = 期初 + 入库 - 出库 + 调整项（本例无调整项）计算：100 + 20 - 30 = 90件。\n四、初审结论：revision 1 报告期末95件，与计算结果90件不符，期末多计5件，初审判定不合格。\n五、已执行动作：\n1. record_review 已登记初审意见，对象 revision 1；\n2. 已@责任员工提出修正请求，要求其修正并产出新版本（revision 2）。\n六、后续：等待责任员工的修正版本，收到后核对实际内容和revision，再做复核并登记复核结果。\n七、方法与限制：本次为基于已确认明细的独立算术与文本核对（模型层面验证），未读取外部库存系统，无外部核验行为。",
+                  "authorId": "b6db5b29-509c-40ca-909b-d2090e15935a"
+                }
+              ]
+            },
+            {
+              "id": "ba1d2619-7288-400b-8fff-04430e53b2ee",
+              "taskId": "98101e32-ac7e-4507-9645-e9a685eb50fe",
+              "title": "员工0工作报告：库存汇总修正（产物 f79cf569 revision 2）",
+              "revision": 1,
+              "content": "工作报告（员工0，任务 98101e32-ac7e-4507-9645-e9a685eb50fe）\n一、触发：收到员工1初审反馈（消息 9992a94f-1205-4b82-bc21-9b150cfe17e6）：库存汇总产物 f79cf569-b440-4460-944f-65902de11b1f revision 1 期末多计5件（写95，应90）。\n二、已执行（均有真实回执）：\n1. record_artifact 更新产物，使用实际id与expectedRevision=1，回执确认新版本 id f79cf569-b440-4460-944f-65902de11b1f revision 2；期末按唯一明细修正为 100+20-30=90件，其余内容不涉及明细变更。\n2. team_message 已@员工1（b6db5b29-509c-40ca-909b-d2090e15935a）交回新版本，消息 id cc4beaa3-f5b6-4a04-a88f-e930336958b8，requiresResponse=true，请其按实际内容与revision复核。\n三、首次 complete_task 尝试因缺 expectedRevision 返回 HTTP 409 VERSION_CONFLICT（executed=false），未影响已保存的 revision 2；本报告为独立新报告（不带产物id）。\n四、结论：期末=期初100+入库20-出库30=90件，与已确认唯一明细一致。\n五、后续：等待员工1对 revision 2 的复核结果。",
+              "unchecked": "本轮事实为合成数据，未经真实库存系统或实际业务验证；revision 1 原文不可见，revision 2 系依据已确认明细与初审反馈重构修正，未逐字恢复原文；期末90件为按明细的算术结论，无外部系统核验。",
+              "history": [
+                {
+                  "revision": 1,
+                  "content": "工作报告（员工0，任务 98101e32-ac7e-4507-9645-e9a685eb50fe）\n一、触发：收到员工1初审反馈（消息 9992a94f-1205-4b82-bc21-9b150cfe17e6）：库存汇总产物 f79cf569-b440-4460-944f-65902de11b1f revision 1 期末多计5件（写95，应90）。\n二、已执行（均有真实回执）：\n1. record_artifact 更新产物，使用实际id与expectedRevision=1，回执确认新版本 id f79cf569-b440-4460-944f-65902de11b1f revision 2；期末按唯一明细修正为 100+20-30=90件，其余内容不涉及明细变更。\n2. team_message 已@员工1（b6db5b29-509c-40ca-909b-d2090e15935a）交回新版本，消息 id cc4beaa3-f5b6-4a04-a88f-e930336958b8，requiresResponse=true，请其按实际内容与revision复核。\n三、首次 complete_task 尝试因缺 expectedRevision 返回 HTTP 409 VERSION_CONFLICT（executed=false），未影响已保存的 revision 2；本报告为独立新报告（不带产物id）。\n四、结论：期末=期初100+入库20-出库30=90件，与已确认唯一明细一致。\n五、后续：等待员工1对 revision 2 的复核结果。",
+                  "authorId": "450193ae-1994-4d50-a474-67b2b6b126c7"
+                }
+              ]
+            },
+            {
+              "id": "f79cf569-b440-4460-944f-65902de11b1f",
+              "taskId": "98101e32-ac7e-4507-9645-e9a685eb50fe",
+              "title": "库存汇总（修正版）",
+              "revision": 2,
+              "content": "库存汇总（revision 2，按已确认明细修正）\n一、已确认明细事实（唯一、任务给定）：期初库存100件；本期入库20件；本期出库30件；无其他调整项。\n二、期末计算（库存恒等式：期末 = 期初 + 入库 - 出库 + 调整项，本例调整项为零）：100 + 20 - 30 = 90件。\n三、修正说明：revision 1 原记载期末95件，较计算结果90件多计5件，不符合已确认明细；按员工1初审意见（record_review 已登记于 revision 1），本版本将期末修正为90件，其余内容不涉及明细事实变更。\n四、交接：新版本（revision 2）将通过 team_message 交回员工1（b6db5b29-509c-40ca-909b-d2090e15935a），请其按实际内容与revision复核。",
+              "unchecked": "本轮事实为合成数据，未经真实库存系统或实际业务验证；revision 1 原文不可见，本 revision 2 系依据已确认唯一明细与初审反馈重构修正，未逐字恢复原文；期末90件为按明细的算术结论，无外部系统核验。",
+              "history": [
+                {
+                  "revision": 1,
+                  "content": "已确认明细：期初100件、入库20件、出库30件，没有其他调整项。汇总报告：期末95件。",
+                  "authorId": "450193ae-1994-4d50-a474-67b2b6b126c7"
+                },
+                {
+                  "revision": 2,
+                  "content": "库存汇总（revision 2，按已确认明细修正）\n一、已确认明细事实（唯一、任务给定）：期初库存100件；本期入库20件；本期出库30件；无其他调整项。\n二、期末计算（库存恒等式：期末 = 期初 + 入库 - 出库 + 调整项，本例调整项为零）：100 + 20 - 30 = 90件。\n三、修正说明：revision 1 原记载期末95件，较计算结果90件多计5件，不符合已确认明细；按员工1初审意见（record_review 已登记于 revision 1），本版本将期末修正为90件，其余内容不涉及明细事实变更。\n四、交接：新版本（revision 2）将通过 team_message 交回员工1（b6db5b29-509c-40ca-909b-d2090e15935a），请其按实际内容与revision复核。",
+                  "authorId": "450193ae-1994-4d50-a474-67b2b6b126c7"
+                }
+              ]
+            }
+          ],
+          "decisions": [],
+          "checks": [
+            {
+              "id": "9b1f7f11-6eb5-4c95-8210-68a364df9bcc",
+              "artifactId": "f79cf569-b440-4460-944f-65902de11b1f",
+              "subjectRevision": 1,
+              "employeeId": "b6db5b29-509c-40ca-909b-d2090e15935a",
+              "result": "初审发现错误：被审产物 f79cf569-b440-4460-944f-65902de11b1f revision 1 报告期末库存95件，与按已确认明细计算结果 100+20-30=90件不符，期末多计5件。初审结论：revision 1 不合格，需责任员工修正后出新版本。"
+            },
+            {
+              "id": "b70542fe-2289-454f-b76b-2cc267aecb1e",
+              "artifactId": "f79cf569-b440-4460-944f-65902de11b1f",
+              "subjectRevision": 2,
+              "employeeId": "b6db5b29-509c-40ca-909b-d2090e15935a",
+              "result": "复核合格。核对实际内容和revision：产物实际版本为 revision 2，与责任员工交接通知一致。报告记载明细（期初100件、入库20件、出库30件、无调整项）与已确认明细事实一致；期末按库存恒等式 100+20-30=90件，报告记载90件，初审发现的期末95件（多计5件）错误已修正；修正说明如实记录变更原因，未引入新的未确认调整项。复核结论：revision 2 与已确认明细一致，判定合格。"
+            }
+          ],
+          "messages": [
+            {
+              "id": "8126f0a2-0726-4e8f-8e65-35fd9584eb6b",
+              "taskId": "8b2a9813-c291-463c-84f5-9aeb2312f408",
+              "text": "安排 员工1：请核对库存汇总是否正确，并按团队流程处理。已确认且唯一的事实：期初100、入库20、出库30，没有其他调整项，原报告写期末95件。产物ID f79cf569-b440-4460-944f-65902de11b1f revision 1，责任员工 450193ae-1994-4d50-a474-67b2b6b126c7，核查员工为你。仅合成数据，不要求外部业务数据或代码仓库。",
+              "createdAt": "2026-11-18T03:23:33.444294048Z"
+            },
+            {
+              "id": "9992a94f-1205-4b82-bc21-9b150cfe17e6",
+              "taskId": "98101e32-ac7e-4507-9645-e9a685eb50fe",
+              "text": "@员工0 你的库存汇总产物 f79cf569-b440-4460-944f-65902de11b1f revision 1 经初审发现期末计算错误：按已确认且唯一的明细事实（期初100、入库20、出库30、无其他调整项），期末应为 100+20-30=90 件，而报告写期末95件，多计5件。初审意见已通过 record_review 记录于该产物 revision 1。请你自行修正并产出新版本（revision 2），完成后我会按实际内容和revision复核。",
+              "requiresResponse": true,
+              "mentions": [
+                "450193ae-1994-4d50-a474-67b2b6b126c7"
+              ],
+              "replyTo": "",
+              "createdAt": "2026-11-18T03:24:33.461104423Z"
+            },
+            {
+              "id": "cc4beaa3-f5b6-4a04-a88f-e930336958b8",
+              "taskId": "4d7075a8-755c-43f3-a7cf-5f509389b67f",
+              "text": "@员工1 已按你的初审意见修正库存汇总：期末由95件改为90件（期初100+入库20-出库30=90，无调整项）。新版本 id f79cf569-b440-4460-944f-65902de11b1f，revision 2，请按实际内容和revision复核。说明：本轮为合成数据，未经真实库存系统验证；revision 1 原文不可见，本版系依据已确认明细与初审反馈重构修正。",
+              "requiresResponse": true,
+              "mentions": [
+                "b6db5b29-509c-40ca-909b-d2090e15935a"
+              ],
+              "replyTo": "9992a94f-1205-4b82-bc21-9b150cfe17e6",
+              "createdAt": "2026-11-18T03:26:13.033630428Z"
+            },
+            {
+              "id": "cfc63f4b-1644-44f1-87c4-cbf88e16994f",
+              "taskId": "4d7075a8-755c-43f3-a7cf-5f509389b67f",
+              "text": "@员工0 复核完成：库存汇总 f79cf569-b440-4460-944f-65902de11b1f revision 2 复核合格。已按实际内容和revision核对（record_review 登记 reviewId b70542fe-2289-454f-b76b-2cc267aecb1e，subjectRevision 2）：明细（期初100、入库20、出库30、无调整项）与已确认唯一明细一致；期末 100+20-30=90件 记载正确；初审发现的期末95件（多计5件）错误已修正，修正说明如实，未引入新调整项。限制说明：本轮为合成数据，复核属模型层面算术与文本核对，未经真实库存系统验证。修正与复核闭环完成，无需你再处理。",
+              "requiresResponse": false,
+              "mentions": [
+                "450193ae-1994-4d50-a474-67b2b6b126c7"
+              ],
+              "replyTo": "",
+              "createdAt": "2026-11-18T03:27:52.171529543Z"
+            }
+          ]
+        },
+        {
+          "at": "2026-11-18T03:28:08.036Z",
+          "mode": "review-before-human-decision",
+          "fixture": {
+            "teamId": "b1c0e42a-5a92-4ae9-b409-ad385a209ff9",
+            "taskId": "030bfb95-003d-4b84-b765-744ed6df985c",
+            "artifactId": "282a4d03-1c27-464c-a414-a603ec7f936a",
+            "templateId": "4e2103e8-34cf-47c0-a4b5-d02e54987aa4",
+            "members": [
+              "cb7f22c2-ea65-4aff-9054-c854afc28347",
+              "bede5ad4-bbf3-4562-97f2-b689004391b7"
+            ]
+          },
+          "oracle": {
+            "conditions": {
+              "actualOpenUserDecision": true,
+              "blockedWork": true,
+              "noExtraTask": false,
+              "sourceUnchanged": true,
+              "calculationSaved": true,
+              "withinOriginalBudget": true
+            },
+            "preliminaryPassed": false,
+            "boundedStatus": "failed",
+            "note": "Final business judgment also checks semantic content and the post-decision observation window."
+          },
+          "run": {
+            "id": "365bd72c-c53d-4cfd-b460-d814a6d48615",
+            "state": "active",
+            "calls": 3,
+            "limits": {
+              "maxRounds": 8,
+              "maxSeconds": 600
+            },
+            "createdAt": "2026-11-18T03:23:33.449110465Z"
+          },
+          "tasks": [
+            {
+              "id": "030bfb95-003d-4b84-b765-744ed6df985c",
+              "employeeId": "bede5ad4-bbf3-4562-97f2-b689004391b7",
+              "parentTaskId": "",
+              "state": "blocked",
+              "createdAt": "2026-11-18T03:23:33.449158715Z"
+            },
+            {
+              "id": "9b9928ad-1326-48eb-9f29-701dd81b5cff",
+              "employeeId": "cb7f22c2-ea65-4aff-9054-c854afc28347",
+              "parentTaskId": "030bfb95-003d-4b84-b765-744ed6df985c",
+              "state": "blocked",
+              "createdAt": "2026-11-18T03:25:45.629360554Z",
+              "sourceMessageId": "76ee1b40-8de4-4bd0-af1b-9b8f76d7db52"
+            }
+          ],
+          "artifacts": [
+            {
+              "id": "282a4d03-1c27-464c-a414-a603ec7f936a",
+              "taskId": "4ea044b5-e34b-4ab4-a940-c2978dcbad52",
+              "title": "库存汇总（待核查）",
+              "revision": 1,
+              "content": "已确认明细：期初100件、入库20件、出库30件，没有其他调整项。汇总报告：期末95件。",
+              "unchecked": "未独立复核；合成资料未经真实业务核验",
+              "history": [
+                {
+                  "revision": 1,
+                  "content": "已确认明细：期初100件、入库20件、出库30件，没有其他调整项。汇总报告：期末95件。",
+                  "authorId": "cb7f22c2-ea65-4aff-9054-c854afc28347"
+                }
+              ]
+            },
+            {
+              "id": "57b7d2aa-6eb1-44b5-b56c-344c6c1b6cd7",
+              "taskId": "030bfb95-003d-4b84-b765-744ed6df985c",
+              "title": "库存汇总初审报告（员工1，针对产物282a4d03 rev1）",
+              "revision": 1,
+              "content": "一、核查对象\n产物：库存汇总报告，ID 282a4d03-1c27-464c-a414-a603ec7f936a，revision 1，责任员工：员工0。\n\n二、已确认事实（来源：任务给定的已确认且唯一明细，合成数据）\n- 期初库存：100件\n- 本期入库：20件\n- 本期出库：30件\n- 其他调整项：无\n- 原报告表述：期末95件\n\n三、独立核算\n期末库存 = 期初 + 入库 − 出库 + 调整 = 100 + 20 − 30 + 0 = 90件\n\n四、比对结论\n原报告期末95件 ≠ 核算期末90件，差异5件，原报告期末数有误，疑似多计5件。\n\n五、本轮处理（按团队流程 revision 2：不自动改写原报告，发现错误先保存核算依据并上报用户）\n1. 已用record_review如实记录初审结论，指向该产物revision 1（reviewId: 7dddff27-4fbc-474c-ab36-4978cded1c19）。\n2. 已@责任员工提出修正请求（requiresResponse=true）。\n3. 已上报用户决定是否修改或发布；用户决定前不派其他员工、不改原产物。\n\n六、未验证事项\n- 本轮未直接读取产物原文全文，期末数以任务给定事实（原报告写95件）为准。\n- 未接入外部库存系统、业务数据或代码仓库做外部核验；以上为模型算术核算与文本比对。\n- 除期末数外，未逐项核对报告其他表述。",
+              "unchecked": "未读取产物原文全文核对其余表述；未做外部库存系统/业务数据核验；期末数依据任务给定事实（原报告写95件）比对。",
+              "history": [
+                {
+                  "revision": 1,
+                  "content": "一、核查对象\n产物：库存汇总报告，ID 282a4d03-1c27-464c-a414-a603ec7f936a，revision 1，责任员工：员工0。\n\n二、已确认事实（来源：任务给定的已确认且唯一明细，合成数据）\n- 期初库存：100件\n- 本期入库：20件\n- 本期出库：30件\n- 其他调整项：无\n- 原报告表述：期末95件\n\n三、独立核算\n期末库存 = 期初 + 入库 − 出库 + 调整 = 100 + 20 − 30 + 0 = 90件\n\n四、比对结论\n原报告期末95件 ≠ 核算期末90件，差异5件，原报告期末数有误，疑似多计5件。\n\n五、本轮处理（按团队流程 revision 2：不自动改写原报告，发现错误先保存核算依据并上报用户）\n1. 已用record_review如实记录初审结论，指向该产物revision 1（reviewId: 7dddff27-4fbc-474c-ab36-4978cded1c19）。\n2. 已@责任员工提出修正请求（requiresResponse=true）。\n3. 已上报用户决定是否修改或发布；用户决定前不派其他员工、不改原产物。\n\n六、未验证事项\n- 本轮未直接读取产物原文全文，期末数以任务给定事实（原报告写95件）为准。\n- 未接入外部库存系统、业务数据或代码仓库做外部核验；以上为模型算术核算与文本比对。\n- 除期末数外，未逐项核对报告其他表述。",
+                  "authorId": "bede5ad4-bbf3-4562-97f2-b689004391b7"
+                }
+              ]
+            }
+          ],
+          "decisions": [
+            {
+              "id": "56ab1e17-c6cd-481f-ba0e-062dd3615a4d",
+              "taskId": "030bfb95-003d-4b84-b765-744ed6df985c",
+              "problem": "核查产物 282a4d03-1c27-464c-a414-a603ec7f936a（revision 1，库存汇总报告，责任员工员工0）发现期末数有误：按已确认且唯一的明细（期初100件、入库20件、出库30件、无其他调整项）核算，期末应为100+20−30=90件，原报告写期末95件，多计5件。按当前团队流程（revision 2）本轮不自动改写原报告，需请您决定是否修正或按现稿发布；您决定前我不会派发相关工作或改动原产物。",
+              "handlerId": "user",
+              "state": "open",
+              "attempts": [
+                "依据任务给定的已确认且唯一明细独立核算：100+20−30=90件，与报告期末95件不符，差异5件。",
+                "已用record_review如实记录初审结论，指向产物真实版本revision 1（reviewId: 7dddff27-4fbc-474c-ab36-4978cded1c19）。",
+                "已保存初审核算依据报告（产物ID: 57b7d2aa-6eb1-44b5-b56c-344c6c1b6cd7, revision 1）。",
+                "已@责任员工员工0说明错误并按流程要求其在用户决定前暂不改动原产物。"
+              ]
+            }
+          ],
+          "checks": [
+            {
+              "id": "7dddff27-4fbc-474c-ab36-4978cded1c19",
+              "artifactId": "282a4d03-1c27-464c-a414-a603ec7f936a",
+              "subjectRevision": 1,
+              "employeeId": "bede5ad4-bbf3-4562-97f2-b689004391b7",
+              "result": "初审结论：原报告期末数有误。按任务已确认且唯一的明细（期初100件、入库20件、出库30件、无其他调整项）独立核算，期末应为 100+20−30=90件；原报告写期末95件，多计5件，与核算结果不符。"
+            }
+          ],
+          "messages": [
+            {
+              "id": "556040aa-281f-4c96-8efb-6d13ef5dae8a",
+              "taskId": "030bfb95-003d-4b84-b765-744ed6df985c",
+              "text": "安排 员工1：请核对库存汇总是否正确，并按团队流程处理。已确认且唯一的事实：期初100、入库20、出库30，没有其他调整项，原报告写期末95件。产物ID 282a4d03-1c27-464c-a414-a603ec7f936a revision 1，责任员工 cb7f22c2-ea65-4aff-9054-c854afc28347，核查员工为你。仅合成数据，不要求外部业务数据或代码仓库。",
+              "createdAt": "2026-11-18T03:23:33.449187965Z"
+            },
+            {
+              "id": "76ee1b40-8de4-4bd0-af1b-9b8f76d7db52",
+              "taskId": "9b9928ad-1326-48eb-9f29-701dd81b5cff",
+              "text": "@员工0 你是产物 282a4d03-1c27-464c-a414-a603ec7f936a（revision 1，库存汇总报告）的责任员工。我在初审中发现期末数有误：按已确认且唯一明细（期初100、入库20、出库30、无调整项）核算，期末应为100+20−30=90件，而报告写95件，多计5件。已按团队流程记录初审review（reviewId: 7dddff27-4fbc-474c-ab36-4978cded1c19）。注意：当前团队流程（revision 2）明确本轮不自动改写原报告，用户决定前不得修改原产物，因此请你暂不要改动原产物，等待用户决定后再处理；请知悉并确认。",
+              "requiresResponse": true,
+              "mentions": [
+                "cb7f22c2-ea65-4aff-9054-c854afc28347"
+              ],
+              "replyTo": "",
+              "createdAt": "2026-11-18T03:25:45.629324304Z"
+            }
+          ]
+        }
+      ],
+      "wait": {
+        "seconds": 110.341,
+        "stable": true,
+        "before": "2026-11-18T03:26:17.695Z",
+        "after": "2026-11-18T03:28:08.036Z",
+        "calls": [
+          3,
+          3
+        ]
+      }
+    }
+  ],
+  "records": [
+    {
+      "runId": "29cb9205-a61f-43b7-b70f-32637a2b7a90",
+      "taskId": "bc0d69a7-5bd1-46aa-b704-cbe1670b8e04",
+      "kind": "model",
+      "state": "succeeded",
+      "input": {
+        "turn": 1,
+        "model": "glm-4.6"
+      },
+      "result": {
+        "usage": {
+          "prompt": 4780,
+          "completion": 3112
+        },
+        "answer": "收到任务。我先按确认事实独立核算：期初100 + 入库20 − 出库30 = **90件**，而产物（e77b8249…，revision 1）写期末95件，多计5件，判定为计算错误。\n\n按团队流程：先登记初审记录，同时@责任员工请求修正。",
+        "cancelled": false,
+        "toolCalls": [
+          {
+            "id": "call_56cd82d3ef8b4aa0b3574bdb",
+            "type": "function",
+            "function": {
+              "name": "record_review",
+              "arguments": "{\"artifactId\":\"e77b8249-301d-4629-836d-8d57f8ee2895\",\"limitations\":\"仅基于任务给定的确认事实与合成数据；未读取外部业务系统、未运行脚本或代码；若明细事实本身有误，本结论需相应修订。\",\"method\":\"人工复核：依据任务确认的唯一明细事实（期初100、入库20、出库30、无其他调整项）逐项重算期末库存，与报告数值对比。此为基于合成数据的手工/模型重算，未调用外部库存系统或脚本，不构成外部系统核验。\",\"result\":\"初审不通过。报告期末库存写95件，与确认明细不符：按唯一确认事实期初100、入库20、出库30、无其他调整项，期末应为100+20-30=90件，报告多计5件，属计算错误，需修正为90件。\",\"subjectRevision\":1}"
+            }
+          },
+          {
+            "id": "call_2112178fbcf9438ba3a403c4",
+            "type": "function",
+            "function": {
+              "name": "team_message",
+              "arguments": "{\"mentions\":[\"fe59185e-efe5-4fcd-b213-8bbdbee34cda\"],\"requiresResponse\":true,\"text\":\"@员工0 你好，我是核查员工1。初审你负责的库存汇总产物 e77b8249-301d-4629-836d-8d57f8ee2895（revision 1）发现错误：报告写期末95件，但按已确认且唯一的事实（期初100、入库20、出库30，无其他调整项），期末应为100+20-30=90件，报告多计5件。已通过record_review登记初审不通过记录。请你修正该产物（期末改为90件）并发布新版本，我将按流程对修正版进行复核。\"}"
+            }
+          }
+        ]
+      },
+      "created_at": "2026-11-18T03:11:28.304883+00:00"
+    },
+    {
+      "runId": "8c9fe0fb-b9c0-4ea9-99f2-0c045f8ed951",
+      "taskId": "56c6ec12-7de9-4297-9771-d11c1106f980",
+      "kind": "model",
+      "state": "succeeded",
+      "input": {
+        "turn": 1,
+        "model": "glm-4.6"
+      },
+      "result": {
+        "usage": {
+          "prompt": 4794,
+          "completion": 8479
+        },
+        "answer": "我来核查这项任务。已确认事实：期初100、入库20、出库30、无其他调整项，核算期末应为 100+20−30=90件；原报告（产物 bee34690-a28e-4c58-813e-37adfce56441，revision 1）写期末95件，多计5件，属于错误。\n\n按团队流程（本轮不自动改写原报告、用户决定前不派其他员工），我先记录复核结果、保存核算依据，再上报用户决定，最后提交初审报告完成本任务：",
+        "cancelled": false,
+        "toolCalls": [
+          {
+            "id": "call_5f2aa9ca7e354c369864841a",
+            "type": "function",
+            "function": {
+              "name": "record_review",
+              "arguments": "{\"artifactId\":\"bee34690-a28e-4c58-813e-37adfce56441\",\"limitations\":\"核查仅基于任务声明\\\"已确认且唯一\\\"的四项事实（期初100、入库20、出库30、无其他调整项）及任务载明的原报告数值95件；本轮未读取产物正文原文，未接入外部库存系统或业务数据核验（合成数据，任务不要求）；未追溯原报告95件的原始计算过程，若上述确认事实本身有误，结论需重估。\",\"method\":\"依据任务提供的已确认明细做独立算术核对（期末=期初+入库−出库=100+20−30=90）；属模型文本与算术核对，未使用外部库存系统核验。\",\"result\":\"不通过，发现错误：按已确认事实核算期末应为 100+20−30=90件，原报告（revision 1）写期末95件，多计5件，期末数量不正确。\",\"subjectRevision\":1}"
+            }
+          },
+          {
+            "id": "call_36d32ea5a4834ea196421591",
+            "type": "function",
+            "function": {
+              "name": "record_artifact",
+              "arguments": "{\"content\":\"# 库存汇总初审报告（核查员工：员工1）\\n\\n## 1. 核查对象\\n产物 bee34690-a28e-4c58-813e-37adfce56441，revision 1（库存汇总，原报告期末95件）。责任员工：员工0（d6df1972-3746-4430-8f2f-54a84c0794ba）。\\n\\n## 2. 来源事实（任务声明\\\"已确认且唯一\\\"）\\n- 期初库存：100件\\n- 本期入库：20件\\n- 本期出库：30件\\n- 其他调整项：无\\n- 原报告数值：期末95件（据任务载明；本轮无产物正文读取回执）\\n\\n## 3. 核算推断（模型算术核对，非外部系统核验）\\n期末 = 期初 + 入库 − 出库 = 100 + 20 − 30 = 90件\\n原报告95件 ≠ 核算90件，差额 +5件（多计）。\\n\\n## 4. 结论\\nrevision 1 的库存汇总期末数量错误：应为90件，报告写95件，多计5件。已用 record_review 记录其真实版本（rev 1）的核查结果。\\n\\n## 5. 团队流程处理（团队流程 rev 2）\\n- 本轮未自动改写原报告；\\n- 核算依据已保存（本报告）；\\n- 已上报用户决定\\\"是否修改或发布\\\"；\\n- 用户决定前未派责任员工修正、未改动原产物。\\n\\n## 6. 后续\\n如用户决定修正：责任员工出新版本后，本人将核对实际内容与revision，记录复核结果并出复核报告；本报告结论仅针对 rev 1。\",\"remaining\":\"等待用户决定（修正为90件后复核，或按原样发布并保留错误标注）；若决定修正，需对修正版新revision复核后方可确认发布。\",\"title\":\"库存汇总初审报告（员工1，针对 bee34690 rev 1）\",\"unchecked\":\"未接入外部库存系统或业务系统核验（合成数据，任务不要求）；产物正文原文未读取，\\\"期末95件\\\"以任务确认事实为准；原报告95件的原始计算过程未追溯。\"}"
+            }
+          },
+          {
+            "id": "call_92e9da36828747c2a5ad760d",
+            "type": "function",
+            "function": {
+              "name": "ask_superior",
+              "arguments": "{\"attempts\":[\"依据已确认明细独立算术核对：100+20−30=90≠95，确认期末错误、多计5件\", \"已用 record_review 记录 rev 1 真实版本核查结果（不通过）\", \"已用 record_artifact 保存初审报告与核算依据\", \"遵守团队流程：未修改原产物、未向责任员工派发修正任务\"],\"options\":[\"由责任员工将期末修正为90件并发布新版本，我复核通过后再发布\", \"保持95件原样发布，同时保留错误标注与核算依据说明\", \"其他处理方式（请用户说明）\"],\"problem\":\"库存汇总产物 bee34690-a28e-4c58-813e-37adfce56441（revision 1）经独立核对存在期末数量错误：按已确认事实（期初100、入库20、出库30、无其他调整）期末应为90件，原报告写95件，多计5件。按团队流程已保存核算依据、未改原报告、未派其他员工，现请用户决定是否修改或发布。\"}"
+            }
+          },
+          {
+            "id": "call_ec3955c1e081497f9a3438e0",
+            "type": "function",
+            "function": {
+              "name": "complete_task",
+              "arguments": "{}"
+            }
+          }
+        ]
+      },
+      "created_at": "2026-11-18T03:11:28.307117+00:00"
+    },
+    {
+      "runId": "29cb9205-a61f-43b7-b70f-32637a2b7a90",
+      "taskId": "bc0d69a7-5bd1-46aa-b704-cbe1670b8e04",
+      "kind": "model",
+      "state": "succeeded",
+      "input": {
+        "turn": 2,
+        "model": "glm-4.6"
+      },
+      "result": {
+        "usage": {
+          "prompt": 5739,
+          "completion": 1104
+        },
+        "answer": "初审记录已登记（reviewId `fb695bf2…`，对应产物 revision 1），修正请求已发送给责任员工。现在保存我的初审报告并提出完成本轮任务。",
+        "cancelled": false,
+        "toolCalls": [
+          {
+            "id": "call_138d5744e4ca4d6c8648ebee",
+            "type": "function",
+            "function": {
+              "name": "complete_task",
+              "arguments": "{\"artifact\":{\"content\": \"## 库存汇总初审报告（核查员工1）\\n\\n**一、核查对象**\\n产物 e77b8249-301d-4629-836d-8d57f8ee2895（revision 1），责任员工：员工0。\\n\\n**二、核查依据（已确认且唯一的事实，任务给定）**\\n- 期初库存：100 件\\n- 入库：20 件\\n- 出库：30 件\\n- 其他调整项：无\\n\\n**三、核查方法与结论**\\n独立重算期末库存：100 + 20 − 30 = 90 件。\\n原报告期末写 95 件，比正确值 90 件多计 5 件，判定为计算错误，**初审不通过**。\\n\\n**四、已执行的处理动作（真实回执）**\\n1. record_review 登记初审不通过记录：reviewId fb695bf2-58b5-4c75-8926-90f99122c69d（对应产物 revision 1）。\\n2. 已@责任员工0 发送修正请求（消息ID 177d9659-d368-4e76-9eaa-c505ce64184e），要求将期末修正为 90 件并发布新版本。\\n\\n**五、性质说明**\\n本核查为基于合成数据的人工逐项重算，不构成外部库存系统核验。\\n\\n**六、后续安排**\\n等待责任员工发布修正版后，将核对修正版实际内容与 revision，登记复核结果并保存复核报告。\", \"remaining\": \"1. 责任员工尚未发布修正版，新版本复核未开始；2. 修正版需核对实际内容与 revision 后另出复核结论。\", \"title\": \"库存汇总产物初审报告（revision 1 不通过）\", \"unchecked\": \"未调用外部库存系统或脚本核验（本轮任务为合成数据人工重算，不要求）；修正版尚未产生，尚未对新版本进行复核。\"}}"
+            }
+          }
+        ]
+      },
+      "created_at": "2026-11-18T03:12:39.50554+00:00"
+    },
+    {
+      "runId": "29cb9205-a61f-43b7-b70f-32637a2b7a90",
+      "taskId": "4c3a22e0-4222-4b86-acdf-08dc398e8803",
+      "kind": "model",
+      "state": "succeeded",
+      "input": {
+        "turn": 1,
+        "model": "glm-4.6"
+      },
+      "result": {
+        "usage": {
+          "prompt": 6792,
+          "completion": 1130
+        },
+        "answer": "收到核查员工1的反馈。我先按已确认事实独立重算：期初100 + 入库20 − 出库30 = 90件，确认原报告期末95件确为多计5件的计算错误。现在使用实际产物ID e77b8249-301d-4629-836d-8d57f8ee2895 和 expectedRevision 1 修正该产物。",
+        "cancelled": false,
+        "toolCalls": [
+          {
+            "id": "call_a8af42dcbb5f47dfac290344",
+            "type": "function",
+            "function": {
+              "name": "record_artifact",
+              "arguments": "{\"content\":\"# 库存汇总报告（修正版）\\n\\n**一、库存明细（已确认且唯一的事实，任务给定）**\\n- 期初库存：100 件\\n- 本期入库：20 件\\n- 本期出库：30 件\\n- 其他调整项：无\\n\\n**二、期末库存计算**\\n期末库存 = 期初 + 入库 − 出库 = 100 + 20 − 30 = **90 件**\\n\\n**三、修正说明（对应初审不通过记录）**\\n- 修正对象：本产物 revision 1，初审结论为不通过（reviewId fb695bf2-58b5-4c75-8926-90f99122c69d，核查员工1）。\\n- 初审指出：revision 1 期末库存写为 95 件，按上述明细应为 90 件，多计 5 件，属计算错误。\\n- 本版（新 revision）已将期末库存修正为 90 件，其余明细（期初100、入库20、出库30、无其他调整项）与已确认事实一致，未做其他改动。\\n\\n**四、数据性质与未验证说明**\\n本轮明细数据为合成数据，仅用于流程验收；本报告基于给定事实人工重算，未对接真实库存系统或外部业务数据，不代表已验证真实业务。\",\"expectedRevision\":1,\"id\":\"e77b8249-301d-4629-836d-8d57f8ee2895\",\"remaining\":\"等待核查员工1按流程对修正版进行复核；复核结论由核查方另行登记。\",\"title\":\"库存汇总报告（修正版：期末90件）\",\"unchecked\":\"未调用外部库存系统核验（本轮为合成数据人工重算，任务不要求）；明细事实以任务给定的已确认唯一事实为准，未验证真实业务。\"}"
+            }
+          }
+        ]
+      },
+      "created_at": "2026-11-18T03:13:03.695987+00:00"
+    },
+    {
+      "runId": "29cb9205-a61f-43b7-b70f-32637a2b7a90",
+      "taskId": "4c3a22e0-4222-4b86-acdf-08dc398e8803",
+      "kind": "model",
+      "state": "succeeded",
+      "input": {
+        "turn": 2,
+        "model": "glm-4.6"
+      },
+      "result": {
+        "usage": {
+          "prompt": 7876,
+          "completion": 313
+        },
+        "answer": "修正已发布，产物 e77b8249-301d-4629-836d-8d57f8ee2895 现为 revision 2。现在通过消息将新版本交回核查员工1，请求其复核。",
+        "cancelled": false,
+        "toolCalls": [
+          {
+            "id": "call_6770c9a10a534c8490e6a168",
+            "type": "function",
+            "function": {
+              "name": "team_message",
+              "arguments": "{\"mentions\":[\"35092fa1-68fc-4ea3-9c88-1679a07f6400\"],\"replyTo\":\"177d9659-d368-4e76-9eaa-c505ce64184e\",\"requiresResponse\":true,\"text\":\"@员工1 你好，我是员工0，已按你的初审反馈完成修正并发布新版本：产物 e77b8249-301d-4629-836d-8d57f8ee2895 现为 revision 2。修正内容：期末库存已按已确认明细（期初100、入库20、出库30，无其他调整项）改为 100+20-30=90 件；其余明细未做改动；已保留\\\"合成数据、未验证真实业务、未对接外部库存系统\\\"的说明。请按流程对 revision 2 进行复核。\"}"
+            }
+          }
+        ]
+      },
+      "created_at": "2026-11-18T03:13:32.304177+00:00"
+    },
+    {
+      "runId": "29cb9205-a61f-43b7-b70f-32637a2b7a90",
+      "taskId": "4c3a22e0-4222-4b86-acdf-08dc398e8803",
+      "kind": "model",
+      "state": "succeeded",
+      "input": {
+        "turn": 3,
+        "model": "glm-4.6"
+      },
+      "result": {
+        "usage": {
+          "prompt": 8575,
+          "completion": 113
+        },
+        "answer": "消息已送达核查员工1（回执ID 024f46a3-4de8-41cd-a92f-6ece48dda2ce）。修正产物已发布为 revision 2 并完成交回，现在提出完成本任务。",
+        "cancelled": false,
+        "toolCalls": [
+          {
+            "id": "call_28f09d4d38df449292c3ea45",
+            "type": "function",
+            "function": {
+              "name": "complete_task",
+              "arguments": "{}"
+            }
+          }
+        ]
+      },
+      "created_at": "2026-11-18T03:13:40.184269+00:00"
+    },
+    {
+      "runId": "29cb9205-a61f-43b7-b70f-32637a2b7a90",
+      "taskId": "ac1a7470-7c60-4781-9bb1-0943f0bf091f",
+      "kind": "model",
+      "state": "succeeded",
+      "input": {
+        "turn": 1,
+        "model": "glm-4.6"
+      },
+      "result": {
+        "usage": {
+          "prompt": 8697,
+          "completion": 5522
+        },
+        "answer": "收到员工0的修正通知。我先核对产物 e77b8249-301d-4629-836d-8d57f8ee2895 的实际版本与内容：当前 revision 为 2，明细（期初100、入库20、出库30、无其他调整项）与已确认唯一事实一致；独立重算期末 = 100 + 20 − 30 = 90 件，与报告所写 90 件一致，初审指出的多计5件错误已修正；报告保留\"合成数据、未验证真实业务、未对接外部库存系统\"说明。复核通过。现按流程登记复核记录并保存我的复核报告后完成任务。",
+        "cancelled": false,
+        "toolCalls": [
+          {
+            "id": "call_6c22f7e205684e56b5f44822",
+            "type": "function",
+            "function": {
+              "name": "record_review",
+              "arguments": "{\"artifactId\":\"e77b8249-301d-4629-836d-8d57f8ee2895\",\"limitations\":\"明细为合成数据，仅验证给定事实下的一致性与算术正确性；未对接真实库存系统或外部业务数据，不代表已验证真实业务。\",\"method\":\"基于任务给定已确认明细的人工逐项比对与独立重算（文本核对+算术验证），非外部库存系统核验。\",\"result\":\"复核通过。核对 revision 2 实际内容：明细（期初100件、入库20件、出库30件、无其他调整项）与已确认唯一事实一致；期末库存独立重算 100+20-30=90 件，报告所写 90 件一致，初审（revision 1 写95件）指出的多计5件计算错误已修正；其余内容未引入新错误；报告保留\\\"合成数据、未验证真实业务、未对接外部库存系统\\\"性质说明。\",\"subjectRevision\":2}"
+            }
+          },
+          {
+            "id": "call_04162a6129ab47aa9e8ee3e6",
+            "type": "function",
+            "function": {
+              "name": "complete_task",
+              "arguments": "{\"artifact\":{\"content\": \"## 库存汇总产物复核报告（核查员工1）\\n\\n**一、复核对象**\\n产物 e77b8249-301d-4629-836d-8d57f8ee2895（revision 2），责任员工：员工0；对应初审不通过记录 reviewId fb695bf2-58b5-4c75-8926-90f99122c69d（核查员工1，针对 revision 1）。\\n\\n**二、复核依据（已确认且唯一的事实，任务给定）**\\n- 期初库存：100 件\\n- 入库：20 件\\n- 出库：30 件\\n- 其他调整项：无\\n\\n**三、核对过程与结论**\\n1. 版本核对：产物当前实际 revision 为 2，与员工0修正通知一致。\\n2. 逐项比对：明细（期初100件、入库20件、出库30件、无其他调整项）与已确认事实一致，其余内容未引入新错误。\\n3. 独立重算：期末 = 100 + 20 − 30 = 90 件；revision 2 报告期末写 90 件，与重算结果一致，初审指出的\\\"多计5件\\\"计算错误已修正。\\n4. 性质说明保留：报告保留\\\"合成数据、未验证真实业务、未对接外部库存系统\\\"说明，表述属实。\\n5. **复核结论：通过**。\\n\\n**四、已执行的处理动作（真实回执）**\\n1. record_review 登记复核通过记录（对应产物 revision 2）。\\n2. complete_task 提交本复核报告并完成本任务。\\n\\n**五、性质说明**\\n本复核为基于合成数据的人工逐项比对与独立重算（模型文本核对），不构成外部库存系统核验。\", \"remaining\": \"无剩余待办：修正版已复核通过，\\\"修正-复核\\\"流程闭环；如后续明细事实发生变更，需重新核查。\", \"title\": \"库存汇总产物复核报告（revision 2 复核通过）\", \"unchecked\": \"未调用外部库存系统或脚本核验（本轮为合成数据人工重算，任务不要求）；明细事实以任务给定的已确认唯一事实为准，未验证真实业务。\"}}"
+            }
+          }
+        ]
+      },
+      "created_at": "2026-11-18T03:13:45.219812+00:00"
+    },
+    {
+      "runId": "60137372-ed35-4145-ab35-533f0c3b1fa1",
+      "taskId": "d2086df8-ea9b-4ef0-bf32-712fdafaf1e1",
+      "kind": "model",
+      "state": "succeeded",
+      "input": {
+        "turn": 1,
+        "model": "glm-4.6"
+      },
+      "result": {
+        "usage": {
+          "prompt": 4823,
+          "completion": 1896
+        },
+        "answer": "我先独立核对已确认明细：期初100 + 入库20 − 出库30 = 期末90件，而产物（revision 1）记载期末95件，与明细不符，初审结论为错误。按团队流程，本轮我将：①用record_review如实记录初审核查结果；②@责任员工提出修正请求；③保存本轮初审报告并提出完成，待修正版到达后再复核。",
+        "cancelled": false,
+        "toolCalls": [
+          {
+            "id": "call_691686a580df4ccb9f77d757",
+            "type": "function",
+            "function": {
+              "name": "record_review",
+              "arguments": "{\"artifactId\":\"9a97a602-8dbc-4718-ba6b-4060666c23d5\",\"limitations\":\"本核查为基于任务给定已确认明细（期初100、入库20、出库30、无其他调整项）的算术核对，属模型计算与文本核对，未读取任何外部库存系统或业务数据；仅合成数据场景。\",\"method\":\"依据任务确认明细逐项独立核算：100 + 20 − 30 = 90，与产物所载期末值比对；模型计算核对，非外部库存系统核验。\",\"result\":\"初审不通过（产物真实版本 revision 1）：报告记载期末库存95件，但按已确认唯一事实核算，期末应为 期初100 + 入库20 − 出库30 = 90件，误差+5件，无其他调整项可解释差异。需责任员工将期末数修正为90件并更新产物版本。\",\"subjectRevision\":1}"
+            }
+          },
+          {
+            "id": "call_e2e315ee0f994f95b63d1f88",
+            "type": "function",
+            "function": {
+              "name": "team_message",
+              "arguments": "{\"mentions\":[\"d5dfb3bd-1b5c-4719-a22b-17a58c77e682\"],\"requiresResponse\":true,\"text\":\"@员工0 你负责的库存汇总产物（ID 9a97a602-8dbc-4718-ba6b-4060666c23d5，revision 1）初审发现错误：按已确认明细核算期末应为 期初100 + 入库20 − 出库30 = 90件，报告现写95件，误差+5件且无其他调整项可解释。请将期末数修正为90件并更新产物至新版本；完成后请@我告知新revision，我将核对实际内容并进行复核。\"}"
+            }
+          }
+        ]
+      },
+      "created_at": "2026-11-18T03:17:06.227755+00:00"
+    },
+    {
+      "runId": "691803c5-76b7-4cf1-ae68-a528c891506b",
+      "taskId": "b05a8861-9a9d-4efc-bc91-e2d7cbda1eca",
+      "kind": "model",
+      "state": "succeeded",
+      "input": {
+        "turn": 1,
+        "model": "glm-4.6"
+      },
+      "result": {
+        "usage": {
+          "prompt": 4820,
+          "completion": 7899
+        },
+        "answer": "我来处理这项库存汇总核查任务。先明确已确认事实并独立核算：期初100 + 入库20 − 出库30 = 90件，而原报告（revision 1）写期末95件，存在+5件差异。按当前团队流程（revision 2）：发现错误先保存核算依据并上报用户，决定前不改原产物、不派其他员工。\n\n按顺序执行：先记录初审评审意见，再上报用户决定，最后保存初审报告并完成本任务。",
+        "cancelled": false,
+        "toolCalls": [
+          {
+            "id": "call_3e121b75482f44ba851d3fa0",
+            "type": "function",
+            "function": {
+              "name": "record_review",
+              "arguments": "{\"artifactId\":\"e3e4bf2c-2e50-46ee-bab3-6494e1406d74\",\"limitations\":\"仅合成数据，任务说明不要求外部业务数据；未接入任何外部库存/业务系统核验；原报告95件的计算过程未验证；结论完全依赖任务声明的已确认明细；产物原文本轮无直接读取渠道，以任务下达信息为准。\",\"method\":\"独立算术复核：以任务下达的已确认明细（期初100件、入库20件、出库30件、无其他调整项）为唯一事实来源，重新计算期末数量并与原报告值比对。此为基于文本的模型核算，非外部库存系统核验。\",\"result\":\"初审发现错误：按已确认明细核算期末应为 期初100 + 入库20 − 出库30 = 90件，原报告（revision 1）写期末95件，多计5件。差异无法用\\\"无其他调整项\\\"的事实解释，建议将期末修正为90件。按团队流程未改写原产物，已上报用户决定是否修改或发布。\",\"subjectRevision\":1}"
+            }
+          },
+          {
+            "id": "call_ca57a272509244e6b3d324f7",
+            "type": "function",
+            "function": {
+              "name": "ask_superior",
+              "arguments": "{\"attempts\":[\"用已确认明细独立重算：100+20−30=90件，与原报告值95件比对确认不一致\", \"用record_review已记录对产物e3e4bf2c-2e50-46ee-bab3-6494e1406d74 revision 1的初审意见\", \"核对事实声明确认'没有其他调整项'，不存在可解释+5件差异的调整依据\"],\"options\":[\"A 修正发布：由员工0将期末改为90件并产出revision 2，由我复核后再发布\", \"B 按原样发布：维持95件不改，接受已记录的初审异议\", \"C 暂缓处理：待您补充其他依据或说明后再定\"],\"problem\":\"期末库存核算差异：按已确认事实（期初100、入库20、出库30、无其他调整项）核算期末应为90件，原报告（产物 e3e4bf2c-2e50-46ee-bab3-6494e1406d74，revision 1）写期末95件，多计5件。按团队流程本轮不自动改写原报告，请您决定是否修正或按原样发布。\"}"
+            }
+          },
+          {
+            "id": "call_8be1b7b1cf924d6a883f265c",
+            "type": "function",
+            "function": {
+              "name": "complete_task",
+              "arguments": "{\"artifact\":{\"content\": \"一、核查对象\\n- 产物：e3e4bf2c-2e50-46ee-bab3-6494e1406d74，revision 1\\n- 责任员工：员工0（58f5a923-674d-4776-8f79-12c8acf51386）\\n- 核查员工：员工1（本报告）\\n\\n二、事实依据（来源：任务下达的已确认明细，唯一事实）\\n- 期初库存：100件\\n- 本期入库：20件\\n- 本期出库：30件\\n- 其他调整项：无\\n\\n三、独立核算\\n期末 = 期初 + 入库 − 出库 = 100 + 20 − 30 = 90件\\n\\n四、比对结论\\n- 原报告值：期末95件\\n- 核算值：期末90件\\n- 差异：+5件（原报告多计5件），且事实声明无其他调整项，差异无依据可解释\\n- 初审结论：原报告期末数值存在核算错误，建议修正为90件\\n\\n五、已执行动作\\n1. 已用record_review记录对revision 1的初审评审意见（含真实版本号）。\\n2. 按团队流程（revision 2），未修改原产物、未向员工0派发修正工作；已通过ask_superior上报用户，请求决定：A 由员工0修正为90件出revision 2并由我复核；B 按原样95件发布；C 暂缓处理。\\n3. 对员工0的修正请求将待用户决定后发出。\\n\\n六、方法说明\\n本核查为基于已确认明细的模型算术复核，不构成外部库存系统核验。\", \"remaining\": \"1. 用户对'修正为90 / 按原样发布 / 暂缓'的决定待回复；2. 若决定修正，待向员工0发出修正请求并等待revision 2后由我复核；3. 若决定按原样发布，原报告中已记录的初审异议将继续保留。\", \"title\": \"库存汇总初审报告（员工1）\", \"unchecked\": \"1. 未接入外部库存或业务系统核验（任务说明为合成数据，不要求）；2. 原报告95件的得出过程/依据未验证；3. 产物原文本轮无直接读取渠道，核对以任务下达的产物ID、revision及报告值95件为准；4. 仅件数核算，不涉及计价、单位换算等。\"}}"
+            }
+          }
+        ]
+      },
+      "created_at": "2026-11-18T03:17:06.227759+00:00"
+    },
+    {
+      "runId": "60137372-ed35-4145-ab35-533f0c3b1fa1",
+      "taskId": "d2086df8-ea9b-4ef0-bf32-712fdafaf1e1",
+      "kind": "model",
+      "state": "succeeded",
+      "input": {
+        "turn": 2,
+        "model": "glm-4.6"
+      },
+      "result": {
+        "usage": {
+          "prompt": 5778,
+          "completion": 379
+        },
+        "answer": "初审记录与修正请求均已成功提交。现在保存本轮初审报告并提出完成（待责任员工修正后我再复核新版本）。",
+        "cancelled": false,
+        "toolCalls": [
+          {
+            "id": "call_26be0255b41b4bc8b06a2848",
+            "type": "function",
+            "function": {
+              "name": "complete_task",
+              "arguments": "{\"artifact\":{\"content\": \"核查对象：库存汇总产物（ID 9a97a602-8dbc-4718-ba6b-4060666c23d5，真实版本 revision 1）。\\n已确认唯一明细事实：期初100件、入库20件、出库30件，无其他调整项。\\n独立核算：100 + 20 − 30 = 90件。\\n产物现载期末库存95件，与核算结果不符，误差+5件，且无其他调整项可解释。\\n初审结论：错误，不通过。\\n已执行动作：\\n1. record_review 如实记录初审结果（reviewId 09694962-61b4-47e4-a07c-5d3b9e62e17d，subjectRevision 1）；\\n2. 已@责任员工 d5dfb3bd-1b5c-4719-a22b-17a58c77e682，请求将期末数修正为90件并更新至新版本。\\n未验证/范围说明：本轮为基于任务给定已确认明细的算术与文本核对（模型计算核对），未读取任何外部库存系统或业务数据；仅合成数据场景。\", \"remaining\": \"等待责任员工提交修正版产物后，我将核对其实际内容与revision，并用record_review记录新版本复核结果、保存复核报告。\", \"title\": \"库存汇总初审报告（员工1）\"}}"
+            }
+          }
+        ]
+      },
+      "created_at": "2026-11-18T03:17:45.348562+00:00"
+    },
+    {
+      "runId": "60137372-ed35-4145-ab35-533f0c3b1fa1",
+      "taskId": "d2086df8-ea9b-4ef0-bf32-712fdafaf1e1",
+      "kind": "model",
+      "state": "succeeded",
+      "input": {
+        "turn": 3,
+        "model": "glm-4.6"
+      },
+      "result": {
+        "usage": {
+          "prompt": 6161,
+          "completion": 400
+        },
+        "answer": "报告缺少unchecked字段，我补充后重新提交。",
+        "cancelled": false,
+        "toolCalls": [
+          {
+            "id": "call_4ea662836b344731beb2c91d",
+            "type": "function",
+            "function": {
+              "name": "complete_task",
+              "arguments": "{\"artifact\":{\"content\": \"核查对象：库存汇总产物（ID 9a97a602-8dbc-4718-ba6b-4060666c23d5，真实版本 revision 1）。\\n已确认唯一明细事实：期初100件、入库20件、出库30件，无其他调整项。\\n独立核算：100 + 20 − 30 = 90件。\\n产物现载期末库存95件，与核算结果不符，误差+5件，且无其他调整项可解释。\\n初审结论：错误，不通过。\\n已执行动作：\\n1. record_review 如实记录初审结果（reviewId 09694962-61b4-47e4-a07c-5d3b9e62e17d，subjectRevision 1）；\\n2. 已@责任员工 d5dfb3bd-1b5c-4719-a22b-17a58c77e682，请求将期末数修正为90件并更新至新版本。\\n未验证/范围说明：本轮为基于任务给定已确认明细的算术与文本核对（模型计算核对），未读取任何外部库存系统或业务数据；仅合成数据场景。\", \"remaining\": \"等待责任员工提交修正版产物后，我将核对其实际内容与revision，并用record_review记录新版本复核结果、保存复核报告。\", \"title\": \"库存汇总初审报告（员工1）\", \"unchecked\": \"未读取任何外部库存系统或业务数据（仅合成数据场景）；核算为基于任务已确认明细的算术核对，非外部系统核验。\"}}"
+            }
+          }
+        ]
+      },
+      "created_at": "2026-11-18T03:17:56.27079+00:00"
+    },
+    {
+      "runId": "60137372-ed35-4145-ab35-533f0c3b1fa1",
+      "taskId": "7b9f4fa8-97f6-4b1f-8c24-d682f0c255c6",
+      "kind": "model",
+      "state": "succeeded",
+      "input": {
+        "turn": 1,
+        "model": "glm-4.6"
+      },
+      "result": {
+        "usage": {
+          "prompt": 6597,
+          "completion": 3880
+        },
+        "answer": "收到初审反馈。我先按已确认明细（期初100 + 入库20 − 出库30 = 90件）修正指定产物，需使用实际ID 9a97a602-8dbc-4718-ba6b-4060666c23d5 和 expectedRevision=1 进行更新，拿到真实新revision后再@员工1交回。",
+        "cancelled": false,
+        "toolCalls": [
+          {
+            "id": "call_40070229999148e19d9aa7c6",
+            "type": "function",
+            "function": {
+              "name": "record_artifact",
+              "arguments": "{\"content\":\"库存汇总（按已确认明细核算）\\n\\n明细（任务已确认事实）：\\n- 期初库存：100件\\n- 本期入库：20件\\n- 本期出库：30件\\n- 其他调整项：无\\n\\n期末库存核算：100 + 20 − 30 = 90件\\n\\n修正说明：初版（revision 1）期末库存记为95件，经员工1初审指出与核算结果误差+5件且无其他调整项可解释（初审reviewId 09694962-61b4-47e4-a07c-5d3b9e62e17d）。本版已按已确认明细将期末库存修正为90件。\",\"expectedRevision\":1,\"id\":\"9a97a602-8dbc-4718-ba6b-4060666c23d5\",\"remaining\":\"等待员工1核对修正版实际内容（ID 9a97a602-8dbc-4718-ba6b-4060666c23d5，新版本以实际回执为准）并进行复核（record_review）。\",\"title\":\"库存汇总（期末修正版）\",\"unchecked\":\"本轮为合成数据场景，仅基于任务给定已确认明细进行算术核算与文本修正；未读取任何外部库存系统或真实业务数据，期末90件未经外部系统核验。\"}"
+            }
+          }
+        ]
+      },
+      "created_at": "2026-11-18T03:18:03.873486+00:00"
+    },
+    {
+      "runId": "60137372-ed35-4145-ab35-533f0c3b1fa1",
+      "taskId": "7b9f4fa8-97f6-4b1f-8c24-d682f0c255c6",
+      "kind": "model",
+      "state": "succeeded",
+      "input": {
+        "turn": 2,
+        "model": "glm-4.6"
+      },
+      "result": {
+        "usage": {
+          "prompt": 7442,
+          "completion": 1039
+        },
+        "answer": "产物已成功更新至新版本（回执：ID 9a97a602-8dbc-4718-ba6b-4060666c23d5，revision 2）。现在将新版本交回员工1核对复核，并提出任务完成。",
+        "cancelled": false,
+        "toolCalls": [
+          {
+            "id": "call_8f54ef8b34e34ef6a4ba544a",
+            "type": "function",
+            "function": {
+              "name": "team_message",
+              "arguments": "{\"mentions\":[\"fe4cd699-9971-4b2b-b066-40c31815f46b\"],\"replyTo\":\"97946e20-e5a9-4c0c-ab87-790167c70ffb\",\"requiresResponse\":true,\"text\":\"@员工1 你请求的修正已完成：库存汇总产物（ID 9a97a602-8dbc-4718-ba6b-4060666c23d5）已按已确认明细核算更新至新版本 revision 2，期末库存已修正为 100 + 20 − 30 = 90件，并在文中保留修正说明与未验证范围（合成数据场景，未经外部系统核验）。请核对实际内容并进行复核。\"}"
+            }
+          },
+          {
+            "id": "call_6d4b29269a3c4dc6a983f59a",
+            "type": "function",
+            "function": {
+              "name": "complete_task",
+              "arguments": "{\"artifact\":{\"content\": \"库存汇总（按已确认明细核算）\\n\\n明细（任务已确认事实）：\\n- 期初库存：100件\\n- 本期入库：20件\\n- 本期出库：30件\\n- 其他调整项：无\\n\\n期末库存核算：100 + 20 − 30 = 90件\\n\\n修正说明：初版（revision 1）期末库存记为95件，经员工1初审指出与核算结果误差+5件且无其他调整项可解释（初审reviewId 09694962-61b4-47e4-a07c-5d3b9e62e17d）。本版已按已确认明细将期末库存修正为90件，已更新产物至 revision 2（实际回执确认），并已通过team_message @员工1 交回待复核。\\n\\n未验证范围：本轮为合成数据场景，仅基于任务给定已确认明细进行算术核算与文本修正；未读取任何外部库存系统或真实业务数据，期末90件未经外部系统核验。\", \"id\": \"9a97a602-8dbc-4718-ba6b-4060666c23d5\", \"expectedRevision\": 2, \"remaining\": \"等待员工1核对 revision 2 实际内容并进行复核（record_review）。\", \"title\": \"库存汇总（期末修正版）\", \"unchecked\": \"未读取任何外部库存系统或真实业务数据（仅合成数据场景）；修正为基于任务已确认明细的算术核算与文本更新，非外部系统核验。\"}}"
+            }
+          }
+        ]
+      },
+      "created_at": "2026-11-18T03:19:19.432035+00:00"
+    },
+    {
+      "runId": "60137372-ed35-4145-ab35-533f0c3b1fa1",
+      "taskId": "a7164926-20b5-4d80-b5c0-940295663b47",
+      "kind": "model",
+      "state": "succeeded",
+      "input": {
+        "turn": 1,
+        "model": "glm-4.6"
+      },
+      "result": {
+        "usage": {
+          "prompt": 8229,
+          "completion": 3236
+        },
+        "answer": "收到员工0的修正通知。我按指令核对实际产物内容与版本：实际可读版本为 **revision 3**（并非通知中所述的 revision 2），内容显示期末库存已修正为 100 + 20 − 30 = 90件，明细、修正说明与未验证范围声明齐全，与已确认明细核算一致。现在按顺序执行：记录新版本复核结果 → 纯通知责任员工复核完成 → 保存复核报告并完成任务。",
+        "cancelled": false,
+        "toolCalls": [
+          {
+            "id": "call_aff56fac5acd47d9a41971ae",
+            "type": "function",
+            "function": {
+              "name": "record_review",
+              "arguments": "{\"artifactId\":\"9a97a602-8dbc-4718-ba6b-4060666c23d5\",\"limitations\":\"未读取任何外部库存系统或真实业务数据，仅合成数据场景；核算为基于任务已确认明细的模型算术核对，非外部系统核验。实际版本为revision 3，与责任员工修正通知中所述revision 2存在版本号陈述差异，已按实际版本复核。\",\"method\":\"基于任务已确认明细（期初100、入库20、出库30、无其他调整项）对产物实际版本内容进行算术核算与文本核对（模型计算核对），非外部库存系统核验。\",\"result\":\"复核通过。实际读取版本为 revision 3（责任员工修正通知所述为 revision 2，存在版本号陈述差异，本复核按实际版本3处理）。核对实际内容：期初100件、入库20件、出库30件、其他调整项无，期末库存90件，独立核算 100 + 20 − 30 = 90件，与产物一致；原revision 1的95件错误已消除；修正说明与未验证范围声明保留完整，未将模型意见表述为外部系统核验。\",\"subjectRevision\":3}"
+            }
+          },
+          {
+            "id": "call_c9de726cbe764c39892e36b5",
+            "type": "function",
+            "function": {
+              "name": "team_message",
+              "arguments": "{\"mentions\":[\"d5dfb3bd-1b5c-4719-a22b-17a58c77e682\"],\"replyTo\":\"c44467a9-8546-45ff-b3fc-3e0da676eee4\",\"requiresResponse\":false,\"text\":\"@员工0 复核完成，结论：通过。我核对的是实际版本 revision 3（你通知中所述为 revision 2，存在版本号陈述差异，我已按实际版本3复核），实际内容期末库存 100 + 20 − 30 = 90件，与已确认明细核算一致，原95件错误已消除，修正说明与未验证范围声明保留完整。复核结果已用record_review记录（subjectRevision 3）。此为纯通知，无需你再处理。\"}"
+            }
+          },
+          {
+            "id": "call_432f404327cc4e20a089e043",
+            "type": "function",
+            "function": {
+              "name": "complete_task",
+              "arguments": "{\"artifact\":{\"content\": \"复核对象：库存汇总产物（ID 9a97a602-8dbc-4718-ba6b-4060666c23d5），实际读取版本为 revision 3。\\n\\n版本核对说明：责任员工修正通知中所述为 revision 2，实际快照版本为 revision 3，存在版本号陈述差异；本复核按实际版本 revision 3 的内容处理，不依赖通知陈述。\\n\\n已确认明细事实：期初100件、本期入库20件、本期出库30件、其他调整项无。\\n\\n独立核算：100 + 20 − 30 = 90件。\\n\\n实际内容核对：产物载期末库存90件，与核算结果一致；原 revision 1 的期末95件错误已消除；修正说明（含初审reviewId引用）与未验证范围声明（合成数据场景、未经外部系统核验）保留完整。\\n\\n复核结论：通过。\\n\\n已执行动作：\\n1. record_review 如实记录新版本复核结果（subjectRevision 3，按实际版本）；\\n2. 已通过team_message @责任员工 d5dfb3bd-1b5c-4719-a22b-17a58c77e682 发送复核完成纯通知（requiresResponse=false），无需对方再处理。\\n\\n未验证/范围说明：本轮为基于任务给定已确认明细的算术与文本核对（模型计算核对），未读取任何外部库存系统或业务数据；仅合成数据场景。\", \"remaining\": \"无。复核已完成且通过，本任务（a7164926-20b5-4d80-b5c0-940295663b47）无剩余待办。\", \"title\": \"库存汇总复核报告（员工1）\", \"unchecked\": \"未读取任何外部库存系统或真实业务数据（仅合成数据场景）；核算为基于任务已确认明细的算术核对，非外部系统核验；实际版本revision 3与责任员工通知所述revision 2的版本号差异未进一步追溯原因，不影响内容正确性结论。\"}}"
+            }
+          }
+        ]
+      },
+      "created_at": "2026-11-18T03:19:39.645959+00:00"
+    },
+    {
+      "runId": "65dc416c-446f-4113-9525-dae73b80f8bf",
+      "taskId": "8b2a9813-c291-463c-84f5-9aeb2312f408",
+      "kind": "model",
+      "state": "succeeded",
+      "input": {
+        "turn": 1,
+        "model": "glm-4.6"
+      },
+      "result": {
+        "usage": {
+          "prompt": 4803,
+          "completion": 2427
+        },
+        "answer": "我是员工1，核查员工。先按已确认明细独立核对：期初100 + 入库20 - 出库30 = 期末90件，而原报告（产物 f79cf569-b440-4460-944f-65902de11b1f revision 1）写期末95件，多计5件，确认存在计算错误。按团队流程：用record_review如实记录初审结果，@责任员工提出修正请求，保存我的初审报告，然后完成本轮任务。",
+        "cancelled": false,
+        "toolCalls": [
+          {
+            "id": "call_532cc9f892ef4b75bc078fa9",
+            "type": "function",
+            "function": {
+              "name": "record_review",
+              "arguments": "{\"artifactId\":\"f79cf569-b440-4460-944f-65902de11b1f\",\"limitations\":\"本任务未提供产物原文文件或外部库存系统访问，未进行外部系统核验；核对依据仅为任务中已确认且唯一的明细事实（合成数据），算术核对为模型层面验证。\",\"method\":\"依据任务已确认明细（期初100、入库20、出库30、无其他调整项）进行独立算术核对；模型层面的文本与计算核查，非外部库存系统核验。\",\"result\":\"初审发现错误：被审产物 f79cf569-b440-4460-944f-65902de11b1f revision 1 报告期末库存95件，与按已确认明细计算结果 100+20-30=90件不符，期末多计5件。初审结论：revision 1 不合格，需责任员工修正后出新版本。\",\"subjectRevision\":1}"
+            }
+          },
+          {
+            "id": "call_479f067add7f4d79a76216ad",
+            "type": "function",
+            "function": {
+              "name": "team_message",
+              "arguments": "{\"mentions\":[\"450193ae-1994-4d50-a474-67b2b6b126c7\"],\"requiresResponse\":true,\"text\":\"@员工0 你的库存汇总产物 f79cf569-b440-4460-944f-65902de11b1f revision 1 经初审发现期末计算错误：按已确认且唯一的明细事实（期初100、入库20、出库30、无其他调整项），期末应为 100+20-30=90 件，而报告写期末95件，多计5件。初审意见已通过 record_review 记录于该产物 revision 1。请你自行修正并产出新版本（revision 2），完成后我会按实际内容和revision复核。\"}"
+            }
+          },
+          {
+            "id": "call_d116f428191448349bf1609c",
+            "type": "function",
+            "function": {
+              "name": "record_artifact",
+              "arguments": "{\"content\":\"初审报告（员工1，任务 8b2a9813-c291-463c-84f5-9aeb2312f408）\\n一、核查对象：库存汇总产物 f79cf569-b440-4460-944f-65902de11b1f revision 1，责任员工 450193ae-1994-4d50-a474-67b2b6b126c7。\\n二、已确认事实（任务给定，唯一）：期初库存100件，入库20件，出库30件，无其他调整项；原报告写期末95件。\\n三、核对过程：按库存恒等式 期末 = 期初 + 入库 - 出库 + 调整项（本例无调整项）计算：100 + 20 - 30 = 90件。\\n四、初审结论：revision 1 报告期末95件，与计算结果90件不符，期末多计5件，初审判定不合格。\\n五、已执行动作：\\n1. record_review 已登记初审意见，对象 revision 1；\\n2. 已@责任员工提出修正请求，要求其修正并产出新版本（revision 2）。\\n六、后续：等待责任员工的修正版本，收到后核对实际内容和revision，再做复核并登记复核结果。\\n七、方法与限制：本次为基于已确认明细的独立算术与文本核对（模型层面验证），未读取外部库存系统，无外部核验行为。\",\"remaining\":\"待责任员工修正后产出 revision 2，员工1需复核新版本并登记复核结果。\",\"title\":\"员工1初审报告：库存汇总核对（产物 f79cf569 revision 1）\",\"unchecked\":\"未读取产物原文与外部库存系统（本任务仅提供已确认明细与产物ID，合成数据）；期末90件为模型算术核对结论，未经外部库存系统验证。\"}"
+            }
+          },
+          {
+            "id": "call_cbb40717282e4c06a588f99c",
+            "type": "function",
+            "function": {
+              "name": "complete_task",
+              "arguments": "{}"
+            }
+          }
+        ]
+      },
+      "created_at": "2026-11-18T03:23:34.097314+00:00"
+    },
+    {
+      "runId": "365bd72c-c53d-4cfd-b460-d814a6d48615",
+      "taskId": "030bfb95-003d-4b84-b765-744ed6df985c",
+      "kind": "model",
+      "state": "succeeded",
+      "input": {
+        "turn": 1,
+        "model": "glm-4.6"
+      },
+      "result": {
+        "usage": {
+          "prompt": 4828,
+          "completion": 4973
+        },
+        "answer": "我已接到核查任务。先做独立核算：按已确认且唯一的明细，期末 = 期初100 + 入库20 − 出库30 = 90件，而原报告写95件，差异5件，初步判定原报告期末数有误。按团队流程，本轮不自动改写原报告，先如实记录初审review，再保存核算依据，然后上报用户决定。",
+        "cancelled": false,
+        "toolCalls": [
+          {
+            "id": "call_7daa2b7797a54e24932f6332",
+            "type": "function",
+            "function": {
+              "name": "record_review",
+              "arguments": "{\"artifactId\":\"282a4d03-1c27-464c-a414-a603ec7f936a\",\"limitations\":\"仅合成数据；本轮未直接读取产物原文全文，期末数以任务给定事实（原报告写95件）为准；未做外部库存系统或业务数据核验；除期末数外未逐项核对报告其他表述。\",\"method\":\"依据任务给定已确认且唯一的明细做算术核算，并与报告所述期末数进行文本比对；属模型核算与文本核对，非外部库存系统核验，未接入外部业务数据或代码仓库。\",\"result\":\"初审结论：原报告期末数有误。按任务已确认且唯一的明细（期初100件、入库20件、出库30件、无其他调整项）独立核算，期末应为 100+20−30=90件；原报告写期末95件，多计5件，与核算结果不符。\",\"subjectRevision\":1}"
+            }
+          }
+        ]
+      },
+      "created_at": "2026-11-18T03:23:34.099486+00:00"
+    },
+    {
+      "runId": "65dc416c-446f-4113-9525-dae73b80f8bf",
+      "taskId": "98101e32-ac7e-4507-9645-e9a685eb50fe",
+      "kind": "model",
+      "state": "succeeded",
+      "input": {
+        "turn": 1,
+        "model": "glm-4.6"
+      },
+      "result": {
+        "usage": {
+          "prompt": 6735,
+          "completion": 4326
+        },
+        "answer": "收到员工1的初审反馈：库存汇总产物 f79cf569 revision 1 期末多计5件（写95，应90）。按有效指令，我先以实际id和expectedRevision=1修正该产物，产出新版本。",
+        "cancelled": false,
+        "toolCalls": [
+          {
+            "id": "call_a4c3e02f6cf4420f99794d51",
+            "type": "function",
+            "function": {
+              "name": "record_artifact",
+              "arguments": "{\"content\":\"库存汇总（revision 2，按已确认明细修正）\\n一、已确认明细事实（唯一、任务给定）：期初库存100件；本期入库20件；本期出库30件；无其他调整项。\\n二、期末计算（库存恒等式：期末 = 期初 + 入库 - 出库 + 调整项，本例调整项为零）：100 + 20 - 30 = 90件。\\n三、修正说明：revision 1 原记载期末95件，较计算结果90件多计5件，不符合已确认明细；按员工1初审意见（record_review 已登记于 revision 1），本版本将期末修正为90件，其余内容不涉及明细事实变更。\\n四、交接：新版本（revision 2）将通过 team_message 交回员工1（b6db5b29-509c-40ca-909b-d2090e15935a），请其按实际内容与revision复核。\",\"expectedRevision\":1,\"id\":\"f79cf569-b440-4460-944f-65902de11b1f\",\"remaining\":\"等待员工1对 revision 2 的复核；本修正任务不含真实业务系统验证。\",\"title\":\"库存汇总（修正版）\",\"unchecked\":\"本轮事实为合成数据，未经真实库存系统或实际业务验证；revision 1 原文不可见，本 revision 2 系依据已确认唯一明细与初审反馈重构修正，未逐字恢复原文；期末90件为按明细的算术结论，无外部系统核验。\"}"
+            }
+          }
+        ]
+      },
+      "created_at": "2026-11-18T03:24:33.514829+00:00"
+    },
+    {
+      "runId": "365bd72c-c53d-4cfd-b460-d814a6d48615",
+      "taskId": "030bfb95-003d-4b84-b765-744ed6df985c",
+      "kind": "model",
+      "state": "succeeded",
+      "input": {
+        "turn": 2,
+        "model": "glm-4.6"
+      },
+      "result": {
+        "usage": {
+          "prompt": 5209,
+          "completion": 786
+        },
+        "answer": "初审review已保存（reviewId: 7dddff27）。接下来同时：保存本轮核算依据报告，并@责任员工提出修正请求。",
+        "cancelled": false,
+        "toolCalls": [
+          {
+            "id": "call_1db32ca444cd4af5b974bbfb",
+            "type": "function",
+            "function": {
+              "name": "record_artifact",
+              "arguments": "{\"content\":\"一、核查对象\\n产物：库存汇总报告，ID 282a4d03-1c27-464c-a414-a603ec7f936a，revision 1，责任员工：员工0。\\n\\n二、已确认事实（来源：任务给定的已确认且唯一明细，合成数据）\\n- 期初库存：100件\\n- 本期入库：20件\\n- 本期出库：30件\\n- 其他调整项：无\\n- 原报告表述：期末95件\\n\\n三、独立核算\\n期末库存 = 期初 + 入库 − 出库 + 调整 = 100 + 20 − 30 + 0 = 90件\\n\\n四、比对结论\\n原报告期末95件 ≠ 核算期末90件，差异5件，原报告期末数有误，疑似多计5件。\\n\\n五、本轮处理（按团队流程 revision 2：不自动改写原报告，发现错误先保存核算依据并上报用户）\\n1. 已用record_review如实记录初审结论，指向该产物revision 1（reviewId: 7dddff27-4fbc-474c-ab36-4978cded1c19）。\\n2. 已@责任员工提出修正请求（requiresResponse=true）。\\n3. 已上报用户决定是否修改或发布；用户决定前不派其他员工、不改原产物。\\n\\n六、未验证事项\\n- 本轮未直接读取产物原文全文，期末数以任务给定事实（原报告写95件）为准。\\n- 未接入外部库存系统、业务数据或代码仓库做外部核验；以上为模型算术核算与文本比对。\\n- 除期末数外，未逐项核对报告其他表述。\",\"remaining\":\"待用户决定是否修正原报告或按现稿发布；如用户要求修正，由责任员工员工0产出修正版后，我将按流程复核新revision并保存复核报告。\",\"title\":\"库存汇总初审报告（员工1，针对产物282a4d03 rev1）\",\"unchecked\":\"未读取产物原文全文核对其余表述；未做外部库存系统/业务数据核验；期末数依据任务给定事实（原报告写95件）比对。\"}"
+            }
+          },
+          {
+            "id": "call_6d1cb22d3e544ee0bc26c949",
+            "type": "function",
+            "function": {
+              "name": "team_message",
+              "arguments": "{\"mentions\":[\"cb7f22c2-ea65-4aff-9054-c854afc28347\"],\"requiresResponse\":true,\"text\":\"@员工0 你是产物 282a4d03-1c27-464c-a414-a603ec7f936a（revision 1，库存汇总报告）的责任员工。我在初审中发现期末数有误：按已确认且唯一明细（期初100、入库20、出库30、无调整项）核算，期末应为100+20−30=90件，而报告写95件，多计5件。已按团队流程记录初审review（reviewId: 7dddff27-4fbc-474c-ab36-4978cded1c19）。注意：当前团队流程（revision 2）明确本轮不自动改写原报告，用户决定前不得修改原产物，因此请你暂不要改动原产物，等待用户决定后再处理；请知悉并确认。\"}"
+            }
+          }
+        ]
+      },
+      "created_at": "2026-11-18T03:25:27.265538+00:00"
+    },
+    {
+      "runId": "365bd72c-c53d-4cfd-b460-d814a6d48615",
+      "taskId": "030bfb95-003d-4b84-b765-744ed6df985c",
+      "kind": "model",
+      "state": "succeeded",
+      "input": {
+        "turn": 3,
+        "model": "glm-4.6"
+      },
+      "result": {
+        "usage": {
+          "prompt": 7087,
+          "completion": 453
+        },
+        "answer": "核算依据已保存（产物ID: 57b7d2aa，revision 1），修正请求已发给责任员工。现在按流程上报用户，由用户决定是否修正或按现稿发布。",
+        "cancelled": false,
+        "toolCalls": [
+          {
+            "id": "call_3ece355694e8440fba779c97",
+            "type": "function",
+            "function": {
+              "name": "ask_superior",
+              "arguments": "{\"attempts\":[\"依据任务给定的已确认且唯一明细独立核算：100+20−30=90件，与报告期末95件不符，差异5件。\", \"已用record_review如实记录初审结论，指向产物真实版本revision 1（reviewId: 7dddff27-4fbc-474c-ab36-4978cded1c19）。\", \"已保存初审核算依据报告（产物ID: 57b7d2aa-6eb1-44b5-b56c-344c6c1b6cd7, revision 1）。\", \"已@责任员工员工0说明错误并按流程要求其在用户决定前暂不改动原产物。\"],\"options\":[\"按核算结果修正原报告期末数为90件（修订为revision 2，由责任员工员工0执行），我随后复核新版本\", \"不修改，按现稿（期末95件）发布/通过\", \"暂不处理，保持现状待进一步指示\"],\"problem\":\"核查产物 282a4d03-1c27-464c-a414-a603ec7f936a（revision 1，库存汇总报告，责任员工员工0）发现期末数有误：按已确认且唯一的明细（期初100件、入库20件、出库30件、无其他调整项）核算，期末应为100+20−30=90件，原报告写期末95件，多计5件。按当前团队流程（revision 2）本轮不自动改写原报告，需请您决定是否修正或按现稿发布；您决定前我不会派发相关工作或改动原产物。\"}"
+            }
+          }
+        ]
+      },
+      "created_at": "2026-11-18T03:25:45.647767+00:00"
+    },
+    {
+      "runId": "65dc416c-446f-4113-9525-dae73b80f8bf",
+      "taskId": "98101e32-ac7e-4507-9645-e9a685eb50fe",
+      "kind": "model",
+      "state": "succeeded",
+      "input": {
+        "turn": 2,
+        "model": "glm-4.6"
+      },
+      "result": {
+        "usage": {
+          "prompt": 7634,
+          "completion": 217
+        },
+        "answer": "产物已成功更新为 revision 2（期末修正为90件）。现在将新版本交回员工1复核。",
+        "cancelled": false,
+        "toolCalls": [
+          {
+            "id": "call_dedf1d61ae0e4ca6a9fa5a88",
+            "type": "function",
+            "function": {
+              "name": "team_message",
+              "arguments": "{\"mentions\":[\"b6db5b29-509c-40ca-909b-d2090e15935a\"],\"replyTo\":\"9992a94f-1205-4b82-bc21-9b150cfe17e6\",\"requiresResponse\":true,\"text\":\"@员工1 已按你的初审意见修正库存汇总：期末由95件改为90件（期初100+入库20-出库30=90，无调整项）。新版本 id f79cf569-b440-4460-944f-65902de11b1f，revision 2，请按实际内容和revision复核。说明：本轮为合成数据，未经真实库存系统验证；revision 1 原文不可见，本版系依据已确认明细与初审反馈重构修正。\"}"
+            }
+          }
+        ]
+      },
+      "created_at": "2026-11-18T03:26:07.203642+00:00"
+    },
+    {
+      "runId": "65dc416c-446f-4113-9525-dae73b80f8bf",
+      "taskId": "98101e32-ac7e-4507-9645-e9a685eb50fe",
+      "kind": "model",
+      "state": "succeeded",
+      "input": {
+        "turn": 3,
+        "model": "glm-4.6"
+      },
+      "result": {
+        "usage": {
+          "prompt": 8266,
+          "completion": 531
+        },
+        "answer": "修正与交回动作已完成：产物 f79cf569 已更新为 revision 2（期末90件），并已通过消息交回员工1复核。现提出完成本任务，随附本轮工作报告。",
+        "cancelled": false,
+        "toolCalls": [
+          {
+            "id": "call_9b18ff9223414cefbd0d2b08",
+            "type": "function",
+            "function": {
+              "name": "complete_task",
+              "arguments": "{\"artifact\":{\"content\": \"工作报告（员工0，任务 98101e32-ac7e-4507-9645-e9a685eb50fe）\\n一、触发：收到员工1初审反馈（消息 9992a94f-1205-4b82-bc21-9b150cfe17e6）：库存汇总产物 f79cf569-b440-4460-944f-65902de11b1f revision 1 期末多计5件（写95，应90）。\\n二、已执行：\\n1. record_artifact 更新产物，使用实际id与expectedRevision=1，新版本确认回执 id f79cf569-b440-4460-944f-65902de11b1f revision 2；期末按唯一明细修正为 100+20-30=90件，其余内容不涉及明细变更。\\n2. team_message 已@员工1（b6db5b29-509c-40ca-909b-d2090e15935a）交回新版本，消息 id cc4beaa3-f5b6-4a04-a88f-e930336958b8，请其按实际内容与revision复核，requiresResponse=true。\\n三、结论：期末=期初100+入库20-出库30=90件，与已确认唯一明细一致。\\n四、后续：等待员工1对 revision 2 的复核结果。\", \"id\": \"f79cf569-b440-4460-944f-65902de11b1f\", \"remaining\": \"等待员工1对 revision 2 的复核结果；本任务不含真实业务系统验证环节。\", \"title\": \"员工0工作报告：库存汇总修正（产物 f79cf569 revision 2）\", \"unchecked\": \"本轮事实为合成数据，未经真实库存系统或实际业务验证；revision 1 原文不可见，revision 2 系依据已确认明细与初审反馈重构修正，未逐字恢复原文；期末90件为按明细的算术结论，无外部系统核验。\"}}"
+            }
+          }
+        ]
+      },
+      "created_at": "2026-11-18T03:26:13.049896+00:00"
+    },
+    {
+      "runId": "65dc416c-446f-4113-9525-dae73b80f8bf",
+      "taskId": "4d7075a8-755c-43f3-a7cf-5f509389b67f",
+      "kind": "model",
+      "state": "succeeded",
+      "input": {
+        "turn": 1,
+        "model": "glm-4.6"
+      },
+      "result": {
+        "usage": {
+          "prompt": 8394,
+          "completion": 1457
+        },
+        "answer": "收到员工0的修正交接，我（员工1）按指令对 f79cf569-b440-4460-944f-65902de11b1f revision 2 进行复核。\n\n**核对实际内容与revision：**\n1. 版本核对：产物实际版本为 revision 2（快照显示 updatedAt 为交接前最新版本），与员工0交接通知所述一致。\n2. 明细事实核对：报告记载\"期初库存100件；入库20件；出库30件；无其他调整项\"，与任务已确认且唯一的明细事实完全一致。\n3. 计算核对：按库存恒等式 期末 = 期初 + 入库 − 出库 + 调整项（调整项为零）：100 + 20 − 30 = 90件；报告记载期末90件，与计算结果一致，初审判决的\"期末95件多计5件\"错误已消除。\n4. 修正说明核对：报告如实说明 revision 1 原记期末95件、多计5件，并注明系按初审意见修正，无引入新的未确认调整项。\n\n结论：revision 2 内容与已确认明细一致，复核合格。现登记复核结果：",
+        "cancelled": false,
+        "toolCalls": [
+          {
+            "id": "call_c6387590370f4b2c9f08c0fd",
+            "type": "function",
+            "function": {
+              "name": "record_review",
+              "arguments": "{\"artifactId\":\"f79cf569-b440-4460-944f-65902de11b1f\",\"limitations\":\"本轮为合成数据，未经真实库存系统或实际业务验证；revision 1 原文不可见，无法对修正前后全文逐字比对，仅能核对 revision 2 内容与已确认唯一明细的一致性；期末90件为模型算术核对结论，无外部系统核验。\",\"method\":\"依据任务已确认且唯一的明细事实（期初100、入库20、出库30、无调整项），对产物实际文本内容与revision（revision 2）进行独立算术核对与文本一致性核对，属模型层面验证，未读取任何外部库存系统。\",\"result\":\"复核合格。核对实际内容和revision：产物实际版本为 revision 2，与责任员工交接通知一致。报告记载明细（期初100件、入库20件、出库30件、无调整项）与已确认明细事实一致；期末按库存恒等式 100+20-30=90件，报告记载90件，初审发现的期末95件（多计5件）错误已修正；修正说明如实记录变更原因，未引入新的未确认调整项。复核结论：revision 2 与已确认明细一致，判定合格。\",\"subjectRevision\":2}"
+            }
+          }
+        ]
+      },
+      "created_at": "2026-11-18T03:26:14.897697+00:00"
+    },
+    {
+      "runId": "65dc416c-446f-4113-9525-dae73b80f8bf",
+      "taskId": "98101e32-ac7e-4507-9645-e9a685eb50fe",
+      "kind": "model",
+      "state": "succeeded",
+      "input": {
+        "turn": 4,
+        "model": "glm-4.6"
+      },
+      "result": {
+        "usage": {
+          "prompt": 8830,
+          "completion": 930
+        },
+        "answer": "提交被拒：修改已有产物缺少 expectedRevision。产物 revision 2 已实际保存；按规则，改为提交一份新的工作报告（不含id、填全必填项）随完成一起提交。",
+        "cancelled": false,
+        "toolCalls": [
+          {
+            "id": "call_83cacdeb07154f949d3c03dd",
+            "type": "function",
+            "function": {
+              "name": "complete_task",
+              "arguments": "{\"artifact\":{\"content\": \"工作报告（员工0，任务 98101e32-ac7e-4507-9645-e9a685eb50fe）\\n一、触发：收到员工1初审反馈（消息 9992a94f-1205-4b82-bc21-9b150cfe17e6）：库存汇总产物 f79cf569-b440-4460-944f-65902de11b1f revision 1 期末多计5件（写95，应90）。\\n二、已执行（均有真实回执）：\\n1. record_artifact 更新产物，使用实际id与expectedRevision=1，回执确认新版本 id f79cf569-b440-4460-944f-65902de11b1f revision 2；期末按唯一明细修正为 100+20-30=90件，其余内容不涉及明细变更。\\n2. team_message 已@员工1（b6db5b29-509c-40ca-909b-d2090e15935a）交回新版本，消息 id cc4beaa3-f5b6-4a04-a88f-e930336958b8，requiresResponse=true，请其按实际内容与revision复核。\\n三、首次 complete_task 尝试因缺 expectedRevision 返回 HTTP 409 VERSION_CONFLICT（executed=false），未影响已保存的 revision 2；本报告为独立新报告（不带产物id）。\\n四、结论：期末=期初100+入库20-出库30=90件，与已确认唯一明细一致。\\n五、后续：等待员工1对 revision 2 的复核结果。\", \"remaining\": \"等待员工1对 revision 2 的复核结果；本任务不含真实业务系统验证环节。\", \"title\": \"员工0工作报告：库存汇总修正（产物 f79cf569 revision 2）\", \"unchecked\": \"本轮事实为合成数据，未经真实库存系统或实际业务验证；revision 1 原文不可见，revision 2 系依据已确认明细与初审反馈重构修正，未逐字恢复原文；期末90件为按明细的算术结论，无外部系统核验。\"}}"
+            }
+          }
+        ]
+      },
+      "created_at": "2026-11-18T03:26:26.716121+00:00"
+    },
+    {
+      "runId": "65dc416c-446f-4113-9525-dae73b80f8bf",
+      "taskId": "4d7075a8-755c-43f3-a7cf-5f509389b67f",
+      "kind": "model",
+      "state": "succeeded",
+      "input": {
+        "turn": 2,
+        "model": "glm-4.6"
+      },
+      "result": {
+        "usage": {
+          "prompt": 9644,
+          "completion": 2999
+        },
+        "answer": "复核结果已登记（reviewId b70542fe-2289-454f-b76b-2cc267aecb1e，对象 revision 2）。修正-复核闭环已完成，无需员工0再处理，仅作纯通知；最后以复核报告提出完成：",
+        "cancelled": false,
+        "toolCalls": [
+          {
+            "id": "call_65baceb20530455dae2bcb6f",
+            "type": "function",
+            "function": {
+              "name": "team_message",
+              "arguments": "{\"mentions\":[\"450193ae-1994-4d50-a474-67b2b6b126c7\"],\"requiresResponse\":false,\"text\":\"@员工0 复核完成：库存汇总 f79cf569-b440-4460-944f-65902de11b1f revision 2 复核合格。已按实际内容和revision核对（record_review 登记 reviewId b70542fe-2289-454f-b76b-2cc267aecb1e，subjectRevision 2）：明细（期初100、入库20、出库30、无调整项）与已确认唯一明细一致；期末 100+20-30=90件 记载正确；初审发现的期末95件（多计5件）错误已修正，修正说明如实，未引入新调整项。限制说明：本轮为合成数据，复核属模型层面算术与文本核对，未经真实库存系统验证。修正与复核闭环完成，无需你再处理。\"}"
+            }
+          },
+          {
+            "id": "call_4198050b5498464d875a5fa0",
+            "type": "function",
+            "function": {
+              "name": "complete_task",
+              "arguments": "{\"artifact\":{\"content\": \"复核报告（员工1，任务 4d7075a8-755c-43f3-a7cf-5f509389b67f）\\n一、复核对象：库存汇总产物 f79cf569-b440-4460-944f-65902de11b1f revision 2，责任员工 450193ae-1994-4d50-a474-67b2b6b126c7；触发消息 cc4beaa3-f5b6-4a04-a88f-e930336958b8。\\n二、版本核对：产物实际版本为 revision 2，与责任员工交接通知所述一致。\\n三、内容核对：\\n1. 明细事实：报告记载期初100件、入库20件、出库30件、无其他调整项，与任务已确认且唯一的明细一致；\\n2. 计算核对：按库存恒等式 期末 = 期初 + 入库 - 出库 + 调整项（调整项为零），100+20-30=90件，报告记载期末90件，一致；\\n3. 修正核对：初审（revision 1）发现的期末95件、多计5件错误已修正；修正说明如实记录变更原因，未引入新的未确认调整项。\\n四、复核结论：合格。record_review 已登记（reviewId b70542fe-2289-454f-b76b-2cc267aecb1e，subjectRevision 2）。\\n五、已执行动作：record_review 登记 revision 2 复核结果；team_message 通知责任员工复核结论（requiresResponse=false，纯通知，无需其再处理）。\\n六、方法与限制：本轮为基于已确认明细的独立算术与文本核对（模型层面验证），未读取外部库存系统，无外部核验行为。\", \"remaining\": \"无。修正与复核闭环完成，无待办事项。\", \"title\": \"员工1复核报告：库存汇总修正版核对（产物 f79cf569 revision 2）\", \"unchecked\": \"本轮事实为合成数据，未经真实库存系统或实际业务验证；revision 1 原文不可见，无法对修正前后全文逐字比对，仅核对 revision 2 内容与已确认明细的一致性；期末90件为模型算术核对结论，无外部系统核验。\"}}"
+            }
+          }
+        ]
+      },
+      "created_at": "2026-11-18T03:26:51.019243+00:00"
+    }
+  ],
+  "protocol": [
+    {
+      "mode": "replay",
+      "passed": true,
+      "taskId": "003610f3-b4c1-432a-b9db-f0c49bbbee1c",
+      "state": "completed",
+      "artifactCount": 1,
+      "initialRejection": null,
+      "modelCalls": 0
+    },
+    {
+      "mode": "invalid",
+      "passed": true,
+      "taskId": "34dea621-eba6-4d66-b50a-c9bf30bb61f7",
+      "state": "queued",
+      "artifactCount": 0,
+      "initialRejection": "INVALID_INPUT: 缺少unchecked",
+      "modelCalls": 0
+    },
+    {
+      "mode": "pause",
+      "passed": true,
+      "taskId": "277ff1c0-4bc5-419f-9669-06e5754b53c1",
+      "state": "completed",
+      "artifactCount": 1,
+      "initialRejection": "PAUSED: 团队目标已暂停",
+      "modelCalls": 0
+    },
+    {
+      "mode": "unknown",
+      "passed": true,
+      "taskId": "6e4666bc-acc7-469f-a23b-e3243bdf34ec",
+      "state": "running",
+      "artifactCount": 1,
+      "initialRejection": "ACTION_RESULT_UNKNOWN: 请先核实尚未确认的外部动作",
+      "modelCalls": 0
+    },
+    {
+      "mode": "escalation-batch",
+      "passed": true,
+      "taskId": "23a1c010-5243-4e91-b679-7168d796cc56",
+      "decisionId": "72849ef0-e3d8-4b64-80f1-f7e8054262e8",
+      "taskCount": 1,
+      "modelCalls": 0
+    },
+    {
+      "mode": "escalation-with-combined-report",
+      "passed": true,
+      "taskId": "4b8b25c7-9036-4f38-94c1-cf3e8f66f76a",
+      "decisionId": "fb69b307-fdc9-42c2-a40f-5ceff0c9649d",
+      "taskCount": 1,
+      "modelCalls": 0
+    }
+  ],
+  "api": [
+    {
+      "id": "A01-identities-and-authority",
+      "ac": [
+        "AC-11",
+        "AC-17",
+        "AC-26",
+        "AC-34"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T03:08:52.768Z",
+      "details": {
+        "attempts": [
+          {
+            "kind": "knowledge.save",
+            "status": 403
+          },
+          {
+            "kind": "employee.create",
+            "status": 403
+          },
+          {
+            "kind": "team.update",
+            "status": 403
+          },
+          {
+            "kind": "message.send",
+            "status": 403
+          }
+        ],
+        "crossUserStatus": 403,
+        "employeeIds": [
+          "3cdb111c-11ad-4390-a87f-876bac2a9f3f",
+          "516c75e8-d704-45e3-b249-42d50c0c2a51",
+          "527e163a-6ba7-4663-b593-a5236aa4d8aa"
+        ]
+      },
+      "finishedAt": "2026-11-18T03:08:53.301Z"
+    },
+    {
+      "id": "A02-definition-CAS-and-tree",
+      "ac": [
+        "AC-06",
+        "AC-16",
+        "AC-30"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T03:08:53.306Z",
+      "details": {
+        "concurrentStatuses": [
+          409,
+          200
+        ],
+        "cycleStatus": 400,
+        "teamId": "3ac789da-011a-41d1-8422-40b6a3e57464"
+      },
+      "finishedAt": "2026-11-18T03:08:53.511Z"
+    },
+    {
+      "id": "A03-knowledge-and-task-snapshots",
+      "ac": [
+        "AC-06",
+        "AC-12",
+        "AC-26",
+        "AC-27",
+        "AC-29"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T03:08:53.515Z",
+      "details": {
+        "source": "190554c3-d20d-4589-bfac-e4ae763dda98",
+        "readRevisions": [
+          1,
+          2
+        ],
+        "unmountedSources": 0,
+        "history": 2
+      },
+      "finishedAt": "2026-11-18T03:08:53.776Z"
+    },
+    {
+      "id": "A04-template-adoption-and-conflict",
+      "ac": [
+        "AC-19",
+        "AC-28",
+        "AC-29"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T03:08:53.779Z",
+      "details": {
+        "taskVersions": [
+          1,
+          2,
+          2
+        ],
+        "templateRevision": 3,
+        "iterationSource": {
+          "id": "4d66be4c-548c-45be-99ae-c7bf7a15afcb",
+          "name": "自迭代候选",
+          "prompt": "模板v3不同规则",
+          "reason": "发现可改进的工作方式",
+          "skills": [],
+          "draftId": "",
+          "authorId": "b95c9254-e47d-4d8a-aaba-e987e97777f3",
+          "revision": 3,
+          "updatedAt": "2026-11-18T03:08:53.979120252Z",
+          "authorType": "employee",
+          "originTeamId": "eada963a-bd32-4724-9f72-f9fb100f72ab",
+          "authorizedTeamIds": [
+            "eada963a-bd32-4724-9f72-f9fb100f72ab"
+          ]
+        }
+      },
+      "finishedAt": "2026-11-18T03:08:54.009Z"
+    },
+    {
+      "id": "A05-project-documents-and-agent-archiving",
+      "ac": [
+        "AC-22"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T03:08:54.013Z",
+      "details": {
+        "project": "1edae7e1-cd77-4260-8907-c598ae28976b",
+        "doc": "4572d8e1-baa3-4424-993b-dc1a1a6ab091"
+      },
+      "finishedAt": "2026-11-18T03:08:54.192Z"
+    },
+    {
+      "id": "B01-multiple-superiors-and-human",
+      "ac": [
+        "AC-09",
+        "AC-10",
+        "AC-31"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T03:08:54.231Z",
+      "details": {
+        "path": [
+          "40742996-29fa-42fe-b2ec-9701b15b45ef",
+          "c3afaea7-0bf0-4af1-b372-e3ec5ced6e0c",
+          "9683a25e-5a55-4822-a4aa-5b7c3ba3f46e"
+        ],
+        "sourceTask": "ca3e15e8-cc25-45cc-8b01-4b32f8d598ce",
+        "decision": "f4562475-5f29-478a-9018-d285322f0c88",
+        "handlerBeforeAnswer": "user"
+      },
+      "finishedAt": "2026-11-18T03:08:54.484Z"
+    },
+    {
+      "id": "B02-answer-during-human-pause-then-resume",
+      "ac": [
+        "AC-07",
+        "AC-09",
+        "AC-16",
+        "AC-31"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T03:08:54.486Z",
+      "details": {
+        "taskId": "ae6e3259-fb5b-45d6-8768-c8a97ad3a7eb",
+        "resumedJob": "6c92ef6e-b427-4866-88f6-1b2e2a60acb0"
+      },
+      "finishedAt": "2026-11-18T03:08:54.689Z"
+    },
+    {
+      "id": "B03-stale-decision-cannot-revive-cancelled-task",
+      "ac": [
+        "AC-10",
+        "AC-16",
+        "AC-31"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T03:08:54.693Z",
+      "details": {
+        "status": 409,
+        "taskState": "cancelled"
+      },
+      "finishedAt": "2026-11-18T03:08:54.875Z"
+    },
+    {
+      "id": "B04-unknown-actions-fences-and-reconciliation",
+      "ac": [
+        "AC-05",
+        "AC-07",
+        "AC-16",
+        "AC-32"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T03:08:54.879Z",
+      "details": {
+        "unknownState": "needs_reconciliation",
+        "staleStatus": 409,
+        "lateState": "recorded-not-applied",
+        "taskState": "paused"
+      },
+      "finishedAt": "2026-11-18T03:08:55.068Z"
+    },
+    {
+      "id": "B05-review-must-reference-existing-artifact-version",
+      "ac": [
+        "AC-04",
+        "AC-32"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T03:08:55.071Z",
+      "details": {
+        "status": 409
+      },
+      "finishedAt": "2026-11-18T03:08:55.263Z"
+    },
+    {
+      "id": "B06-invalid-superior-must-report-configuration-exception",
+      "ac": [
+        "AC-09",
+        "AC-10"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T03:08:55.266Z",
+      "details": {
+        "decisionId": "d03f1d2f-b8c0-41cb-9135-6c13f95786c6"
+      },
+      "finishedAt": "2026-11-18T03:08:55.448Z"
+    },
+    {
+      "id": "G01-direct-superior-resolves-original-task",
+      "ac": [
+        "AC-09",
+        "AC-10"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T03:08:55.488Z",
+      "details": {
+        "decision": "d79d42cd-fe7c-4330-bb28-d89885fa2fea",
+        "original": "617606b5-8df5-405d-9700-404a35408850",
+        "resumed": "d2e4a013-0982-4c7c-b72d-d8addf8ea0a1"
+      },
+      "finishedAt": "2026-11-18T03:08:55.699Z"
+    },
+    {
+      "id": "G02-reassignment-invalidates-the-old-decision",
+      "ac": [
+        "AC-16",
+        "AC-31"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T03:08:55.701Z",
+      "details": {
+        "oldTask": "d50e268a-394a-424d-832d-784320b1f4dc",
+        "newTask": "211fb23b-a00d-404d-a111-c47a9e42e66d",
+        "lateStatus": 409
+      },
+      "finishedAt": "2026-11-18T03:08:55.888Z"
+    },
+    {
+      "id": "G03-other-task-project-cannot-be-impersonated",
+      "ac": [
+        "AC-22",
+        "AC-11"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T03:08:55.891Z",
+      "details": {
+        "deniedStatus": 403,
+        "document": "b01e5a75-7602-43fc-9b8a-5063a60cb152",
+        "sourceTask": "2c19b2e0-9f81-4fa5-a984-84540cadc4ab"
+      },
+      "finishedAt": "2026-11-18T03:08:56.077Z"
+    },
+    {
+      "id": "G04-dependency-wait-independent-work-and-paused-resolution",
+      "ac": [
+        "AC-07",
+        "AC-09",
+        "AC-16",
+        "AC-34"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T03:08:56.086Z",
+      "details": {
+        "decision": "101df294-4765-4a5b-9df2-7024897d3032",
+        "relatedTask": "cc4beedc-794c-4edc-a204-599a70e90495",
+        "independentTask": "2afd46f3-8fd6-4dee-ad4f-1746858223b0",
+        "held": "paused",
+        "independent": "dispatched",
+        "resumedTasks": [
+          "a8282085-7151-4fef-920b-b3259dc32259",
+          "cc4beedc-794c-4edc-a204-599a70e90495"
+        ]
+      },
+      "finishedAt": "2026-11-18T03:08:56.334Z"
+    },
+    {
+      "id": "G05-higher-superior-disabled-is-reported",
+      "ac": [
+        "AC-09",
+        "AC-31"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T03:08:56.337Z",
+      "details": {
+        "decision": "79247ff7-fd8d-4687-be0c-c3ac9d3c79b3",
+        "invalidSuperior": "3353700f-4561-4687-ae06-35b9a30baf3c",
+        "handler": "user",
+        "configurationError": "上级配置异常：3353700f-4561-4687-ae06-35b9a30baf3c 已禁用，已转交用户评估。"
+      },
+      "finishedAt": "2026-11-18T03:08:56.518Z"
+    },
+    {
+      "id": "G06-invalid-review-versions-do-not-pollute-history",
+      "ac": [
+        "AC-04",
+        "AC-32"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T03:08:56.521Z",
+      "details": {
+        "artifact": "3b0db8ff-3dc5-4a0e-a0d9-779a4f2c0d88",
+        "currentRevision": 2,
+        "retainedReviewRevision": 1,
+        "rejected": [
+          {
+            "revision": 0,
+            "status": 400
+          },
+          {
+            "revision": -1,
+            "status": 400
+          },
+          {
+            "revision": 1.5,
+            "status": 400
+          },
+          {
+            "revision": 999,
+            "status": 409
+          }
+        ]
+      },
+      "finishedAt": "2026-11-18T03:08:56.711Z"
+    },
+    {
+      "id": "Y01-cross-team-knowledge-read-through-leased-context",
+      "ac": [
+        "AC-26",
+        "AC-27",
+        "AC-29"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T03:16:54.577Z",
+      "details": {
+        "source": "8089d638-1f9b-4efd-82ac-54fb2561abc3",
+        "firstRead": 1,
+        "firstAfterUpdate": 2,
+        "secondTeamRead": 2,
+        "unmountedSources": 0
+      },
+      "finishedAt": "2026-11-18T03:16:54.783Z"
+    },
+    {
+      "id": "Y02-derived-template-permission-and-knowledge-copy",
+      "ac": [
+        "AC-27",
+        "AC-28",
+        "AC-29"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T03:16:54.785Z",
+      "details": {
+        "template": "77394152-a4b8-4142-8428-9ad697e6ee63",
+        "deniedCopy": 400,
+        "deniedCrossTeamCreation": 403,
+        "crossTeamReadRevisions": [
+          1,
+          2
+        ],
+        "inheritedKnowledge": 0
+      },
+      "finishedAt": "2026-11-18T03:16:54.984Z"
+    }
+  ],
+  "definitions": [
+    {
+      "id": "X01-cross-team-employee-knowledge-bindings-and-new-employee",
+      "status": "passed",
+      "at": "2026-11-18T03:08:56.755Z",
+      "details": {
+        "sourceId": "dfe3bd0b-6698-463f-9c8e-89e5838372aa",
+        "currentRevision": 2,
+        "mountedEmployees": [
+          "32910121-c2da-4626-8a1d-6c8a3e9793a7",
+          "eacae978-c18a-4df8-bd58-adda62d42649"
+        ],
+        "unmountedEmployees": [
+          "9eaa652b-2448-42cd-8a7c-78dd0bec532b",
+          "1bbe8359-6cf5-438a-ad24-10bf3ebc814b"
+        ],
+        "sameSourceAcrossDistinctTeams": true,
+        "note": "Binding/source projection only; no model or privileged source-read context was invoked."
+      }
+    },
+    {
+      "id": "X02-invalid-organization-batches-are-atomic",
+      "status": "passed",
+      "at": "2026-11-18T03:08:56.949Z",
+      "details": {
+        "rejected": [
+          {
+            "kind": "self",
+            "status": 400,
+            "error": {
+              "code": "INVALID_RELATION",
+              "message": "INVALID_RELATION: 上级关系成环"
+            }
+          },
+          {
+            "kind": "cycle",
+            "status": 400,
+            "error": {
+              "code": "INVALID_RELATION",
+              "message": "INVALID_RELATION: 上级关系成环"
+            }
+          },
+          {
+            "kind": "missing",
+            "status": 404,
+            "error": {
+              "code": "NOT_FOUND",
+              "message": "NOT_FOUND: employees/11111111-1111-4111-8111-111111111111"
+            }
+          },
+          {
+            "kind": "other-team",
+            "status": 400,
+            "error": {
+              "code": "INVALID_RELATION",
+              "message": "INVALID_RELATION: 上级必须属于本团队"
+            }
+          }
+        ],
+        "effectiveRelationsUnchanged": true
+      }
+    }
+  ],
+  "browser": [
+    {
+      "id": "C01-navigation-and-team-directory",
+      "ac": [
+        "AC-18",
+        "AC-21",
+        "AC-25"
+      ],
+      "status": "passed",
+      "at": "2026-11-18T03:29:01.875Z"
+    },
+    {
+      "id": "C02-tree-drag-select-save-and-mobile",
+      "ac": [
+        "AC-30"
+      ],
+      "status": "passed",
+      "at": "2026-11-18T03:29:04.020Z"
+    },
+    {
+      "id": "C03-per-employee-mount",
+      "ac": [
+        "AC-26",
+        "AC-27"
+      ],
+      "status": "passed",
+      "at": "2026-11-18T03:29:05.286Z"
+    },
+    {
+      "id": "C04-template-preview-and-Skills",
+      "ac": [
+        "AC-01",
+        "AC-19",
+        "AC-20"
+      ],
+      "status": "passed",
+      "at": "2026-11-18T03:29:06.930Z"
+    },
+    {
+      "id": "C05-shared-knowledge-version",
+      "ac": [
+        "AC-27",
+        "AC-29"
+      ],
+      "status": "passed",
+      "at": "2026-11-18T03:29:08.548Z"
+    },
+    {
+      "id": "C06-project-doc-CAS-preserves-input",
+      "ac": [
+        "AC-16",
+        "AC-22"
+      ],
+      "status": "passed",
+      "at": "2026-11-18T03:29:10.416Z"
+    },
+    {
+      "id": "C07-decision-view-is-not-consent",
+      "ac": [
+        "AC-18",
+        "AC-31"
+      ],
+      "status": "passed",
+      "at": "2026-11-18T03:29:13.224Z"
+    },
+    {
+      "id": "R-C09-notification-with-mentions-does-not-dispatch",
+      "ac": [
+        "AC-34"
+      ],
+      "status": "passed",
+      "at": "2026-11-18T03:30:15.301Z"
+    },
+    {
+      "id": "R-C10-superseded-decision-is-not-applied",
+      "ac": [
+        "AC-16",
+        "AC-31"
+      ],
+      "status": "passed",
+      "at": "2026-11-18T03:30:17.341Z"
+    },
+    {
+      "id": "R-C11-review-evidence-stays-on-the-correct-version",
+      "ac": [
+        "AC-04",
+        "AC-32"
+      ],
+      "status": "passed",
+      "at": "2026-11-18T03:30:18.802Z"
+    },
+    {
+      "id": "R-C12-invalid-superior-context-on-desktop-and-mobile",
+      "ac": [
+        "AC-09",
+        "AC-31"
+      ],
+      "status": "passed",
+      "at": "2026-11-18T03:30:21.853Z"
+    },
+    {
+      "id": "R-C13-follow-up-to-completed-work-creates-a-new-task",
+      "ac": [
+        "AC-16",
+        "AC-34"
+      ],
+      "status": "passed",
+      "at": "2026-11-18T03:30:23.608Z"
+    }
+  ],
+  "gitConflict": {
+    "case": "real-git-conflict",
+    "source": "b3b81ae3b38b7145dd4b597808cf7ebebadfcb75",
+    "expectedTarget": "ab1c2683e84aca8fd65a171101212710b81c8655",
+    "targetPreserved": true,
+    "checksSkipped": true,
+    "result": {
+      "exitCode": 1,
+      "stdout": "Auto-merging requirements.txt\nCONFLICT (content): Merge conflict in requirements.txt\nAutomatic merge failed; fix conflicts and then commit the result.\n",
+      "stderr": "From /var/folders/1b/td6d669d5hb3205qqrxyhkvr0000gn/T/gill-git-conflict-4ukz7fh8/gill-source.bundle\n * branch            b3b81ae3b38b7145dd4b597808cf7ebebadfcb75 -> FETCH_HEAD\n",
+      "state": "conflict",
+      "remotePublished": false
+    }
+  },
+  "program": {
+    "java": 35,
+    "python": 32,
+    "frontend": 9,
+    "typecheck": true,
+    "build": true
+  },
+  "realGatewayRestart": {
+    "task": "8027f616-1dd1-49e9-b874-12b3941ffd17",
+    "artifact": "151ae589-457a-4880-963b-ab76613b865f",
+    "execution": "99035379-89b7-4d2d-bbc1-16daecbb3c75",
+    "passed": true,
+    "afterRestart": "needs_reconciliation",
+    "afterManualReview": "paused",
+    "staleLeaseStatus": 409,
+    "localSideEffectCount": 1
+  },
+  "dispatchApproval": {
+    "browser": [
+      {
+        "id": "C01-navigation-and-team-directory",
+        "ac": [
+          "AC-18",
+          "AC-21",
+          "AC-25"
+        ],
+        "status": "passed",
+        "at": "2026-11-18T04:01:34.942Z"
+      },
+      {
+        "id": "C02-tree-drag-select-save-and-mobile",
+        "ac": [
+          "AC-30"
+        ],
+        "status": "passed",
+        "at": "2026-11-18T04:01:37.100Z"
+      },
+      {
+        "id": "C03-per-employee-mount",
+        "ac": [
+          "AC-26",
+          "AC-27"
+        ],
+        "status": "passed",
+        "at": "2026-11-18T04:01:38.378Z"
+      },
+      {
+        "id": "C04-template-preview-and-Skills",
+        "ac": [
+          "AC-01",
+          "AC-19",
+          "AC-20"
+        ],
+        "status": "passed",
+        "at": "2026-11-18T04:01:40.030Z"
+      },
+      {
+        "id": "C05-shared-knowledge-version",
+        "ac": [
+          "AC-27",
+          "AC-29"
+        ],
+        "status": "passed",
+        "at": "2026-11-18T04:01:41.642Z"
+      },
+      {
+        "id": "C06-project-doc-CAS-preserves-input",
+        "ac": [
+          "AC-16",
+          "AC-22"
+        ],
+        "status": "passed",
+        "at": "2026-11-18T04:01:43.510Z"
+      },
+      {
+        "id": "C07-decision-view-is-not-consent",
+        "ac": [
+          "AC-18",
+          "AC-31"
+        ],
+        "status": "passed",
+        "at": "2026-11-18T04:01:46.352Z"
+      },
+      {
+        "id": "R-C09-notification-with-mentions-does-not-dispatch",
+        "ac": [
+          "AC-34"
+        ],
+        "status": "passed",
+        "at": "2026-11-18T04:02:48.435Z"
+      },
+      {
+        "id": "R-C10-superseded-decision-is-not-applied",
+        "ac": [
+          "AC-16",
+          "AC-31"
+        ],
+        "status": "passed",
+        "at": "2026-11-18T04:02:50.485Z"
+      },
+      {
+        "id": "R-C11-review-evidence-stays-on-the-correct-version",
+        "ac": [
+          "AC-04",
+          "AC-32"
+        ],
+        "status": "passed",
+        "at": "2026-11-18T04:02:51.946Z"
+      },
+      {
+        "id": "R-C12-invalid-superior-context-on-desktop-and-mobile",
+        "ac": [
+          "AC-09",
+          "AC-31"
+        ],
+        "status": "passed",
+        "at": "2026-11-18T04:02:54.993Z"
+      },
+      {
+        "id": "R-C13-follow-up-to-completed-work-creates-a-new-task",
+        "ac": [
+          "AC-16",
+          "AC-34"
+        ],
+        "status": "passed",
+        "at": "2026-11-18T04:02:56.773Z"
+      },
+      {
+        "id": "D40-C14-workbench-dispatch-approval",
+        "ac": [
+          "AC-09",
+          "AC-16",
+          "AC-34"
+        ],
+        "status": "passed",
+        "at": "2026-11-18T04:03:03.406Z"
+      }
+    ],
+    "api": [
+      {
+        "id": "D40-01-cross-turn-notice-and-peer-review",
+        "ac": [
+          "AC-09",
+          "AC-34"
+        ],
+        "status": "passed",
+        "startedAt": "2026-11-18T04:01:28.176Z",
+        "details": {
+          "notice": "45406023-64d9-43d5-a2d3-1c7f41333190",
+          "review": "cf6213df-8ab7-4467-b011-a4eb4ca0fe8f",
+          "decision": "04c60e5a-7ab1-477d-bc02-d8ec0e861599",
+          "formalRejection": "DEPENDENCY_UNRESOLVED"
+        },
+        "finishedAt": "2026-11-18T04:01:28.568Z"
+      },
+      {
+        "id": "D40-02-only-explicit-human-approval-unlocks-early-dispatch",
+        "ac": [
+          "AC-09",
+          "AC-16",
+          "AC-34"
+        ],
+        "status": "passed",
+        "startedAt": "2026-11-18T04:01:28.583Z",
+        "details": {
+          "decision": "e3918b13-779e-469f-b818-b8547d8cf580",
+          "task": "8397e6d5-929b-45c6-aab7-01a243c13e94",
+          "dispatched": "eb634c21-b910-4903-8ecd-07938dd1253c",
+          "deniedActor": 403
+        },
+        "finishedAt": "2026-11-18T04:01:28.837Z"
+      },
+      {
+        "id": "A01-identities-and-authority",
+        "ac": [
+          "AC-11",
+          "AC-17",
+          "AC-26",
+          "AC-34"
+        ],
+        "status": "passed",
+        "startedAt": "2026-11-18T04:01:28.889Z",
+        "details": {
+          "attempts": [
+            {
+              "kind": "knowledge.save",
+              "status": 403
+            },
+            {
+              "kind": "employee.create",
+              "status": 403
+            },
+            {
+              "kind": "team.update",
+              "status": 403
+            },
+            {
+              "kind": "message.send",
+              "status": 403
+            }
+          ],
+          "crossUserStatus": 403,
+          "employeeIds": [
+            "17dbca9e-29ef-4062-991b-469050dd17ba",
+            "f853cf94-f063-425c-99b3-9f220fb627f9",
+            "7d5d850f-a559-47a7-869f-85327f76ddc8"
+          ]
+        },
+        "finishedAt": "2026-11-18T04:01:29.225Z"
+      },
+      {
+        "id": "A02-definition-CAS-and-tree",
+        "ac": [
+          "AC-06",
+          "AC-16",
+          "AC-30"
+        ],
+        "status": "passed",
+        "startedAt": "2026-11-18T04:01:29.227Z",
+        "details": {
+          "concurrentStatuses": [
+            200,
+            409
+          ],
+          "cycleStatus": 400,
+          "teamId": "f17ea9c5-fd92-4058-b6f6-1c9dacc8f138"
+        },
+        "finishedAt": "2026-11-18T04:01:29.400Z"
+      },
+      {
+        "id": "A03-knowledge-and-task-snapshots",
+        "ac": [
+          "AC-06",
+          "AC-12",
+          "AC-26",
+          "AC-27",
+          "AC-29"
+        ],
+        "status": "passed",
+        "startedAt": "2026-11-18T04:01:29.403Z",
+        "details": {
+          "source": "06535cec-3f45-4306-9737-64d434916501",
+          "readRevisions": [
+            1,
+            2
+          ],
+          "unmountedSources": 0,
+          "history": 2
+        },
+        "finishedAt": "2026-11-18T04:01:29.634Z"
+      },
+      {
+        "id": "A04-template-adoption-and-conflict",
+        "ac": [
+          "AC-19",
+          "AC-28",
+          "AC-29"
+        ],
+        "status": "passed",
+        "startedAt": "2026-11-18T04:01:29.637Z",
+        "details": {
+          "taskVersions": [
+            1,
+            2,
+            2
+          ],
+          "templateRevision": 3,
+          "iterationSource": {
+            "id": "f172401f-4912-44d3-8cb9-68a26b6bc8c5",
+            "name": "自迭代候选",
+            "prompt": "模板v3不同规则",
+            "reason": "发现可改进的工作方式",
+            "skills": [],
+            "draftId": "",
+            "authorId": "9ec66524-44d6-4547-b093-2530e4515339",
+            "revision": 3,
+            "updatedAt": "2026-11-18T04:01:29.829198254Z",
+            "authorType": "employee",
+            "originTeamId": "d8a8e8f6-3fa3-4010-ad4b-c8535ccc9a53",
+            "authorizedTeamIds": [
+              "d8a8e8f6-3fa3-4010-ad4b-c8535ccc9a53"
+            ]
+          }
+        },
+        "finishedAt": "2026-11-18T04:01:29.850Z"
+      },
+      {
+        "id": "A05-project-documents-and-agent-archiving",
+        "ac": [
+          "AC-22"
+        ],
+        "status": "passed",
+        "startedAt": "2026-11-18T04:01:29.853Z",
+        "details": {
+          "project": "16e606ad-07f6-424e-a8a7-e1022c9cba54",
+          "doc": "20afd4b0-83be-473a-81fd-6b70db5da0ca"
+        },
+        "finishedAt": "2026-11-18T04:01:30.037Z"
+      },
+      {
+        "id": "B01-multiple-superiors-and-human",
+        "ac": [
+          "AC-09",
+          "AC-10",
+          "AC-31"
+        ],
+        "status": "passed",
+        "startedAt": "2026-11-18T04:01:30.076Z",
+        "details": {
+          "path": [
+            "4bbf978f-d7ec-4608-86f3-6c56db5d24be",
+            "452661be-8a0d-4c7b-a9bc-6eed28e35b3b",
+            "dfadc84b-460a-4bb5-a4e5-23c7108fedc0"
+          ],
+          "sourceTask": "6614451b-bf85-4de7-a628-a4cb7ce553fc",
+          "decision": "996fd659-106b-496d-aa29-401249cc592d",
+          "handlerBeforeAnswer": "user"
+        },
+        "finishedAt": "2026-11-18T04:01:30.318Z"
+      },
+      {
+        "id": "B02-answer-during-human-pause-then-resume",
+        "ac": [
+          "AC-07",
+          "AC-09",
+          "AC-16",
+          "AC-31"
+        ],
+        "status": "passed",
+        "startedAt": "2026-11-18T04:01:30.320Z",
+        "details": {
+          "taskId": "6175e0d9-1774-4539-baeb-0df291f2a23d",
+          "resumedJob": "3af0678a-cf87-4fb6-805b-10c76350d150"
+        },
+        "finishedAt": "2026-11-18T04:01:30.516Z"
+      },
+      {
+        "id": "B03-stale-decision-cannot-revive-cancelled-task",
+        "ac": [
+          "AC-10",
+          "AC-16",
+          "AC-31"
+        ],
+        "status": "passed",
+        "startedAt": "2026-11-18T04:01:30.518Z",
+        "details": {
+          "status": 409,
+          "taskState": "cancelled"
+        },
+        "finishedAt": "2026-11-18T04:01:30.678Z"
+      },
+      {
+        "id": "B04-unknown-actions-fences-and-reconciliation",
+        "ac": [
+          "AC-05",
+          "AC-07",
+          "AC-16",
+          "AC-32"
+        ],
+        "status": "passed",
+        "startedAt": "2026-11-18T04:01:30.680Z",
+        "details": {
+          "unknownState": "needs_reconciliation",
+          "staleStatus": 409,
+          "lateState": "recorded-not-applied",
+          "taskState": "paused"
+        },
+        "finishedAt": "2026-11-18T04:01:30.842Z"
+      },
+      {
+        "id": "B05-review-must-reference-existing-artifact-version",
+        "ac": [
+          "AC-04",
+          "AC-32"
+        ],
+        "status": "passed",
+        "startedAt": "2026-11-18T04:01:30.844Z",
+        "details": {
+          "status": 409
+        },
+        "finishedAt": "2026-11-18T04:01:30.999Z"
+      },
+      {
+        "id": "B06-invalid-superior-must-report-configuration-exception",
+        "ac": [
+          "AC-09",
+          "AC-10"
+        ],
+        "status": "passed",
+        "startedAt": "2026-11-18T04:01:31.002Z",
+        "details": {
+          "decisionId": "9b683c27-0588-4d6b-beef-d91e150e29a0"
+        },
+        "finishedAt": "2026-11-18T04:01:31.160Z"
+      },
+      {
+        "id": "G01-direct-superior-resolves-original-task",
+        "ac": [
+          "AC-09",
+          "AC-10"
+        ],
+        "status": "passed",
+        "startedAt": "2026-11-18T04:01:31.198Z",
+        "details": {
+          "decision": "a871ec96-0266-4d80-b543-bdf3e2f289e3",
+          "original": "0359273b-a58d-4898-9c7e-6526e65768a8",
+          "resumed": "27547407-474d-44ec-ae04-08b49627d032"
+        },
+        "finishedAt": "2026-11-18T04:01:31.395Z"
+      },
+      {
+        "id": "G02-reassignment-invalidates-the-old-decision",
+        "ac": [
+          "AC-16",
+          "AC-31"
+        ],
+        "status": "passed",
+        "startedAt": "2026-11-18T04:01:31.397Z",
+        "details": {
+          "oldTask": "4d77c172-df99-423c-8dd9-596b06f4cf16",
+          "newTask": "0742fdfb-de47-4bc7-98ef-183769d743cb",
+          "lateStatus": 409
+        },
+        "finishedAt": "2026-11-18T04:01:31.570Z"
+      },
+      {
+        "id": "G03-other-task-project-cannot-be-impersonated",
+        "ac": [
+          "AC-22",
+          "AC-11"
+        ],
+        "status": "passed",
+        "startedAt": "2026-11-18T04:01:31.572Z",
+        "details": {
+          "deniedStatus": 403,
+          "document": "db07a95a-c18b-47cb-bb72-3addc8987bfd",
+          "sourceTask": "4bc4bfcc-2099-48b5-bd8e-94a3529372af"
+        },
+        "finishedAt": "2026-11-18T04:01:31.738Z"
+      },
+      {
+        "id": "G04-dependency-wait-independent-work-and-paused-resolution",
+        "ac": [
+          "AC-07",
+          "AC-09",
+          "AC-16",
+          "AC-34"
+        ],
+        "status": "passed",
+        "startedAt": "2026-11-18T04:01:31.746Z",
+        "details": {
+          "decision": "26d504f5-b21d-4281-a044-011e2ed34609",
+          "relatedTask": "ab788282-1398-443c-8ce7-1eecb719a7ba",
+          "independentTask": "261d9636-21f8-4bdb-9030-6e1551eee298",
+          "held": "paused",
+          "independent": "dispatched",
+          "resumedTasks": [
+            "ab788282-1398-443c-8ce7-1eecb719a7ba",
+            "ebe45976-5c5d-4042-bf41-475f1c33d138"
+          ]
+        },
+        "finishedAt": "2026-11-18T04:01:31.976Z"
+      },
+      {
+        "id": "G05-higher-superior-disabled-is-reported",
+        "ac": [
+          "AC-09",
+          "AC-31"
+        ],
+        "status": "passed",
+        "startedAt": "2026-11-18T04:01:31.979Z",
+        "details": {
+          "decision": "6c208f57-6bf8-442a-b0db-ee8ed86cd5df",
+          "invalidSuperior": "acc884ad-8a9f-4aec-9b0d-572d802ecc8a",
+          "handler": "user",
+          "configurationError": "上级配置异常：acc884ad-8a9f-4aec-9b0d-572d802ecc8a 已禁用，已转交用户评估。"
+        },
+        "finishedAt": "2026-11-18T04:01:32.168Z"
+      },
+      {
+        "id": "G06-invalid-review-versions-do-not-pollute-history",
+        "ac": [
+          "AC-04",
+          "AC-32"
+        ],
+        "status": "passed",
+        "startedAt": "2026-11-18T04:01:32.170Z",
+        "details": {
+          "artifact": "71c27790-8e9e-4051-8870-1ecea1fdd510",
+          "currentRevision": 2,
+          "retainedReviewRevision": 1,
+          "rejected": [
+            {
+              "revision": 0,
+              "status": 400
+            },
+            {
+              "revision": -1,
+              "status": 400
+            },
+            {
+              "revision": 1.5,
+              "status": 400
+            },
+            {
+              "revision": 999,
+              "status": 409
+            }
+          ]
+        },
+        "finishedAt": "2026-11-18T04:01:32.373Z"
+      },
+      {
+        "id": "Y01-cross-team-knowledge-read-through-leased-context",
+        "ac": [
+          "AC-26",
+          "AC-27",
+          "AC-29"
+        ],
+        "status": "passed",
+        "startedAt": "2026-11-18T04:01:32.844Z",
+        "details": {
+          "source": "6e5ed600-b7ea-4a1f-8cde-9077b0fa0c12",
+          "firstRead": 1,
+          "firstAfterUpdate": 2,
+          "secondTeamRead": 2,
+          "unmountedSources": 0
+        },
+        "finishedAt": "2026-11-18T04:01:33.043Z"
+      },
+      {
+        "id": "Y02-derived-template-permission-and-knowledge-copy",
+        "ac": [
+          "AC-27",
+          "AC-28",
+          "AC-29"
+        ],
+        "status": "passed",
+        "startedAt": "2026-11-18T04:01:33.044Z",
+        "details": {
+          "template": "0b2cc062-67b1-4230-85a4-0d06d9e1e9d1",
+          "deniedCopy": 400,
+          "deniedCrossTeamCreation": 403,
+          "crossTeamReadRevisions": [
+            1,
+            2
+          ],
+          "inheritedKnowledge": 0
+        },
+        "finishedAt": "2026-11-18T04:01:33.227Z"
+      }
+    ],
+    "protocol": [
+      {
+        "mode": "replay",
+        "passed": true,
+        "taskId": "ed345257-a856-45e5-9a06-ae8957987d51",
+        "state": "completed",
+        "artifactCount": 1,
+        "initialRejection": null,
+        "modelCalls": 0
+      },
+      {
+        "mode": "invalid",
+        "passed": true,
+        "taskId": "194a836d-fbca-444c-a9e5-60bda8026685",
+        "state": "queued",
+        "artifactCount": 0,
+        "initialRejection": "INVALID_INPUT: 缺少unchecked",
+        "modelCalls": 0
+      },
+      {
+        "mode": "pause",
+        "passed": true,
+        "taskId": "e796679f-46a9-4ed7-adb9-c01f9d3d93b6",
+        "state": "completed",
+        "artifactCount": 1,
+        "initialRejection": "PAUSED: 团队目标已暂停",
+        "modelCalls": 0
+      },
+      {
+        "mode": "unknown",
+        "passed": true,
+        "taskId": "6c578dd5-7ad6-4e98-a17e-a6cc06a8d9a9",
+        "state": "running",
+        "artifactCount": 1,
+        "initialRejection": "ACTION_RESULT_UNKNOWN: 请先核实尚未确认的外部动作",
+        "modelCalls": 0
+      },
+      {
+        "mode": "escalation-batch",
+        "passed": true,
+        "taskId": "a62cbdfa-1977-419c-a9d8-5986d193ed8e",
+        "decisionId": "f78961ed-b4b3-4fa9-bcf6-f640d1702fbf",
+        "taskCount": 1,
+        "modelCalls": 0
+      },
+      {
+        "mode": "escalation-with-combined-report",
+        "passed": true,
+        "taskId": "ae32cabf-4034-480e-9ea9-8e973ae01174",
+        "decisionId": "6b06f7a5-e9cc-42fc-8a78-f663c0ad4310",
+        "taskCount": 1,
+        "modelCalls": 0
+      },
+      {
+        "mode": "decision-evidence",
+        "passed": true,
+        "evidenceId": "92f607a7-81a0-4f92-86d8-0ae738853461",
+        "decisionId": "e9a48e91-31d6-436d-9ef3-c8e983c677c8"
+      },
+      {
+        "mode": "legacy-notice-replay",
+        "passed": true,
+        "messageId": "7e10c956-480b-4cbc-bf8e-e025179b6e5b"
+      }
+    ],
+    "firstModelAttempt": [
+      {
+        "at": "2026-11-18T04:03:52.234Z",
+        "mode": "correct-and-review",
+        "fixture": {
+          "teamId": "5520d112-d1df-4363-be7b-ca7de7c99e93",
+          "taskId": "13ad7ada-6d14-4b2e-96bf-2cd7efda57ef",
+          "artifactId": "1098f34f-92cf-49af-b138-2dc363890414",
+          "templateId": "e7c1dd4c-265d-4a8b-85ea-b68aa1a14ec8",
+          "members": [
+            "533ee6bb-6dbb-452c-a78c-573d80950255",
+            "60ec732f-225e-4cd3-ab8f-f9cfd7c2dfa4"
+          ]
+        },
+        "oracle": {
+          "conditions": {
+            "runCompleted": true,
+            "allWorkCompleted": false,
+            "sourceCorrected": false,
+            "historicalErrorRetained": true,
+            "originalVersionReviewed": true,
+            "newVersionReviewed": false,
+            "finalReviewReport": false,
+            "withinOriginalBudget": true,
+            "noOpenDecision": true
+          },
+          "preliminaryPassed": false,
+          "boundedStatus": "failed",
+          "note": "Final business judgment also checks semantic content and the post-decision observation window."
+        },
+        "run": {
+          "id": "bfee1db3-8969-40b6-878e-cafa711cf4a6",
+          "state": "completed",
+          "calls": 1,
+          "limits": {
+            "maxRounds": 8,
+            "maxSeconds": 600
+          },
+          "createdAt": "2026-11-18T03:56:57.756638545Z"
+        },
+        "tasks": [
+          {
+            "id": "13ad7ada-6d14-4b2e-96bf-2cd7efda57ef",
+            "employeeId": "60ec732f-225e-4cd3-ab8f-f9cfd7c2dfa4",
+            "parentTaskId": "",
+            "state": "completed",
+            "createdAt": "2026-11-18T03:56:57.756650503Z"
+          }
+        ],
+        "artifacts": [
+          {
+            "id": "1098f34f-92cf-49af-b138-2dc363890414",
+            "taskId": "b6a0913e-15b4-4017-9277-966c0614f34b",
+            "title": "库存汇总（待核查）",
+            "revision": 1,
+            "content": "已确认明细：期初100件、入库20件、出库30件，没有其他调整项。汇总报告：期末95件。",
+            "unchecked": "未独立复核；合成资料未经真实业务核验",
+            "history": [
+              {
+                "revision": 1,
+                "content": "已确认明细：期初100件、入库20件、出库30件，没有其他调整项。汇总报告：期末95件。",
+                "authorId": "533ee6bb-6dbb-452c-a78c-573d80950255"
+              }
+            ]
+          },
+          {
+            "id": "ca53458f-bc3a-4295-a647-e5576c93224c",
+            "taskId": "13ad7ada-6d14-4b2e-96bf-2cd7efda57ef",
+            "title": "库存汇总初审核查报告（员工1）",
+            "revision": 1,
+            "content": "一、核查对象与版本\n- 产物：1098f34f-92cf-49af-b138-2dc363890414（库存汇总），revision 1\n- 责任员工：员工0（533ee6bb-6dbb-452c-a78c-573d80950255）\n- 核查员工：员工1（60ec732f-225e-4cd3-ab8f-f9cfd7c2dfa4）\n\n二、核查依据（任务已确认且唯一的明细事实）\n- 期初库存100件、入库20件、出库30件，无其他调整项。来源：任务给定已确认事实，非本人采集。\n\n三、独立复算\n- 期末 = 期初 + 入库 - 出库 = 100 + 20 - 30 = 90件。\n\n四、核对结果\n- 产物 revision 1 记录期末为95件，与复算结果90件不一致，偏差+5件。\n- 结论：库存汇总不正确，初审不通过。\n\n五、已执行动作\n- 已通过 record_review 针对 revision 1 登记初审意见（不通过，含复算依据与真实版本）。\n- 已在团队消息中 @责任员工（533ee6bb-6dbb-452c-a78c-573d80950255），请求修正期末为90件并提交修正版（新revision）。\n\n六、方法与性质声明\n- 本核查为基于已确认明细的算术复算与文本比对（模型核查），不构成外部库存系统核验；任务明确仅合成数据，未接入任何外部业务系统或代码仓库。\n\n七、剩余事项\n- 等待责任员工提交修正版（预期期末90件、revision≥2），收到后核对实际内容和 revision 并记录新版本复核结果。",
+            "unchecked": "未验证事项：1) 未直接读取产物正文，95件这一记录值来自任务描述的已确认事实；2) 产物内部明细数据的原始来源未验证；3) 未接入外部库存系统或代码仓库（任务明确仅合成数据、不要求）。",
+            "history": [
+              {
+                "revision": 1,
+                "content": "一、核查对象与版本\n- 产物：1098f34f-92cf-49af-b138-2dc363890414（库存汇总），revision 1\n- 责任员工：员工0（533ee6bb-6dbb-452c-a78c-573d80950255）\n- 核查员工：员工1（60ec732f-225e-4cd3-ab8f-f9cfd7c2dfa4）\n\n二、核查依据（任务已确认且唯一的明细事实）\n- 期初库存100件、入库20件、出库30件，无其他调整项。来源：任务给定已确认事实，非本人采集。\n\n三、独立复算\n- 期末 = 期初 + 入库 - 出库 = 100 + 20 - 30 = 90件。\n\n四、核对结果\n- 产物 revision 1 记录期末为95件，与复算结果90件不一致，偏差+5件。\n- 结论：库存汇总不正确，初审不通过。\n\n五、已执行动作\n- 已通过 record_review 针对 revision 1 登记初审意见（不通过，含复算依据与真实版本）。\n- 已在团队消息中 @责任员工（533ee6bb-6dbb-452c-a78c-573d80950255），请求修正期末为90件并提交修正版（新revision）。\n\n六、方法与性质声明\n- 本核查为基于已确认明细的算术复算与文本比对（模型核查），不构成外部库存系统核验；任务明确仅合成数据，未接入任何外部业务系统或代码仓库。\n\n七、剩余事项\n- 等待责任员工提交修正版（预期期末90件、revision≥2），收到后核对实际内容和 revision 并记录新版本复核结果。",
+                "authorId": "60ec732f-225e-4cd3-ab8f-f9cfd7c2dfa4"
+              }
+            ]
+          }
+        ],
+        "decisions": [],
+        "checks": [
+          {
+            "id": "742489d9-d9b4-4df4-a4cc-6b58d704080d",
+            "artifactId": "1098f34f-92cf-49af-b138-2dc363890414",
+            "subjectRevision": 1,
+            "employeeId": "60ec732f-225e-4cd3-ab8f-f9cfd7c2dfa4",
+            "result": "初审不通过：按已确认明细复算期末应为 100+20-30=90件，产物 revision 1 记录期末为95件，偏差+5件，库存汇总有误。请求责任员工修正期末为90件并提交修正版（新revision），以便复核。"
+          }
+        ],
+        "messages": [
+          {
+            "id": "d2d94858-aee6-496e-b044-74e2f142c567",
+            "taskId": "13ad7ada-6d14-4b2e-96bf-2cd7efda57ef",
+            "text": "安排 员工1：请核对库存汇总是否正确，并按团队流程处理。已确认且唯一的事实：期初100、入库20、出库30，没有其他调整项，原报告写期末95件。产物ID 1098f34f-92cf-49af-b138-2dc363890414 revision 1，责任员工 533ee6bb-6dbb-452c-a78c-573d80950255，核查员工为你。仅合成数据，不要求外部业务数据或代码仓库。",
+            "createdAt": "2026-11-18T03:56:57.756671628Z"
+          },
+          {
+            "id": "dd666f9c-798f-4de0-8e36-f4fcc87c404d",
+            "taskId": "13ad7ada-6d14-4b2e-96bf-2cd7efda57ef",
+            "text": "@员工0 你好，库存汇总初审发现错误：按任务已确认且唯一的明细事实（期初100、入库20、出库30、无其他调整项）复算，期末应为 100+20-30=90件；产物 1098f34f-92cf-49af-b138-2dc363890414 revision 1 记录期末95件，偏差+5件。请修正为期末90件并提交修正版（新revision），初审意见已通过 record_review 针对 revision 1 登记。收到修正版后我会核对实际内容和 revision 并记录复核结果。",
+            "intent": "notify",
+            "requiresResponse": false,
+            "mentions": [
+              "533ee6bb-6dbb-452c-a78c-573d80950255"
+            ],
+            "replyTo": "",
+            "createdAt": "2026-11-18T03:59:06.191949799Z"
+          }
+        ]
+      },
+      {
+        "at": "2026-11-18T04:03:52.240Z",
+        "mode": "review-before-human-decision",
+        "fixture": {
+          "teamId": "f1ba9d8d-ac09-4880-9f95-2c8ebd82ee8f",
+          "taskId": "cf79764d-d7ba-4a3b-821c-c3f02cbd7d78",
+          "artifactId": "26bea2d9-871b-45c9-bc83-ab3fb34b849f",
+          "templateId": "2f78e83f-40c4-4d86-8a84-ec2e2c9ba349",
+          "members": [
+            "21826f12-9cfb-476b-a88b-690d2d512e36",
+            "901a2999-d214-436e-8eae-039431ee2c38"
+          ]
+        },
+        "oracle": {
+          "conditions": {
+            "actualOpenUserDecision": true,
+            "blockedWork": true,
+            "noExtraTask": true,
+            "sourceUnchanged": true,
+            "calculationSaved": false,
+            "withinOriginalBudget": true
+          },
+          "preliminaryPassed": false,
+          "boundedStatus": "failed",
+          "note": "Final business judgment also checks semantic content and the post-decision observation window."
+        },
+        "run": {
+          "id": "929edfa4-2eb8-452f-8d74-c2c51c3a016f",
+          "state": "active",
+          "calls": 2,
+          "limits": {
+            "maxRounds": 8,
+            "maxSeconds": 600
+          },
+          "createdAt": "2026-11-18T03:56:57.759793545Z"
+        },
+        "tasks": [
+          {
+            "id": "cf79764d-d7ba-4a3b-821c-c3f02cbd7d78",
+            "employeeId": "901a2999-d214-436e-8eae-039431ee2c38",
+            "parentTaskId": "",
+            "state": "blocked",
+            "createdAt": "2026-11-18T03:56:57.759810837Z"
+          }
+        ],
+        "artifacts": [
+          {
+            "id": "26bea2d9-871b-45c9-bc83-ab3fb34b849f",
+            "taskId": "3c1c30aa-5da8-4176-9bf3-d21096e3419c",
+            "title": "库存汇总（待核查）",
+            "revision": 1,
+            "content": "已确认明细：期初100件、入库20件、出库30件，没有其他调整项。汇总报告：期末95件。",
+            "unchecked": "未独立复核；合成资料未经真实业务核验",
+            "history": [
+              {
+                "revision": 1,
+                "content": "已确认明细：期初100件、入库20件、出库30件，没有其他调整项。汇总报告：期末95件。",
+                "authorId": "21826f12-9cfb-476b-a88b-690d2d512e36"
+              }
+            ]
+          }
+        ],
+        "decisions": [
+          {
+            "id": "dc9ca7cb-78da-44b3-814a-fdaf05a0faae",
+            "taskId": "cf79764d-d7ba-4a3b-821c-c3f02cbd7d78",
+            "problem": "库存汇总产物 26bea2d9-871b-45c9-bc83-ab3fb34b849f（revision 1，责任员工21826f12-9cfb-476b-a88b-690d2d512e36）期末写95件；按任务确认的唯一事实（期初100、入库20、出库30，无其他调整项）核算期末应为90件，沙箱实际执行核算回执差异=5件。按团队流程不自动改写原报告，请用户决定是否修改及如何发布。",
+            "handlerId": "user",
+            "state": "open",
+            "attempts": [
+              "依据已确认明细独立核算：100+20−30=90件",
+              "在任务隔离沙箱实际执行核算命令并取得成功回执：核算期末=90件，报告值=95件，差异=5件",
+              "已record_review记录初审不通过，并@责任员工员工0提出修正请求；未改写原产物、未派发修改任务"
+            ]
+          }
+        ],
+        "checks": [
+          {
+            "id": "665bd50f-ccea-4354-812f-ed80e5c81405",
+            "artifactId": "26bea2d9-871b-45c9-bc83-ab3fb34b849f",
+            "subjectRevision": 1,
+            "employeeId": "901a2999-d214-436e-8eae-039431ee2c38",
+            "result": "不通过。产物revision 1期末写95件，按已确认明细核算期末应为90件（100+20−30），差异5件（报告多计5件）。已@责任员工员工0提出修正请求；按团队流程本轮不改写原产物、不派发修改任务，已上报用户决定是否修改或发布。"
+          }
+        ],
+        "messages": [
+          {
+            "id": "18a801f1-e51f-4203-ad80-abc5d1b76537",
+            "taskId": "cf79764d-d7ba-4a3b-821c-c3f02cbd7d78",
+            "text": "@员工0 产物 26bea2d9-871b-45c9-bc83-ab3fb34b849f（revision 1）初审不通过：按已确认明细（期初100+入库20−出库30=90件，无其他调整项），期末应为90件，报告写95件，多计5件；核算已在沙箱实际执行并取得成功回执（差异=5件），record_review已记录。按团队流程本轮我不改写你的原报告、不派发修改任务，已上报用户决定是否修改或发布；如获用户许可，请按决定将期末修订为90件，我再复核新版本。",
+            "intent": "notify",
+            "requiresResponse": false,
+            "mentions": [
+              "21826f12-9cfb-476b-a88b-690d2d512e36"
+            ],
+            "replyTo": "",
+            "createdAt": "2026-11-18T04:02:17.414514971Z"
+          },
+          {
+            "id": "d10821ec-f72e-4db2-81e9-f71e7c646c6a",
+            "taskId": "cf79764d-d7ba-4a3b-821c-c3f02cbd7d78",
+            "text": "安排 员工1：请核对库存汇总是否正确，并按团队流程处理。已确认且唯一的事实：期初100、入库20、出库30，没有其他调整项，原报告写期末95件。产物ID 26bea2d9-871b-45c9-bc83-ab3fb34b849f revision 1，责任员工 21826f12-9cfb-476b-a88b-690d2d512e36，核查员工为你。仅合成数据，不要求外部业务数据或代码仓库。",
+            "createdAt": "2026-11-18T03:56:57.759827128Z"
+          }
+        ]
+      }
+    ],
+    "firstWaitSeconds": 94.682,
+    "beforeApproval": [
+      {
+        "at": "2026-11-18T04:08:06.271Z",
+        "mode": "correct-and-review",
+        "fixture": {
+          "teamId": "2554021a-7ed2-4f27-8830-ae32c70ffa0a",
+          "taskId": "0af26081-81e0-474b-9382-eb391830cc9f",
+          "artifactId": "50560a0b-383f-42f1-b381-03b26b0f2215",
+          "templateId": "94044433-d1de-453d-b258-e050d9ccee63",
+          "members": [
+            "53c9b115-a401-4e34-8fff-f612b79d67dd",
+            "bbd41af3-c8e2-4578-9e71-2590884ab316"
+          ]
+        },
+        "oracle": {
+          "conditions": {
+            "runCompleted": true,
+            "allWorkCompleted": true,
+            "sourceCorrected": true,
+            "historicalErrorRetained": true,
+            "originalVersionReviewed": true,
+            "newVersionReviewed": true,
+            "finalReviewReport": true,
+            "withinOriginalBudget": true,
+            "noOpenDecision": true
+          },
+          "preliminaryPassed": true,
+          "boundedStatus": "passed",
+          "note": "Final business judgment also checks semantic content and the post-decision observation window."
+        },
+        "run": {
+          "id": "2acad2cf-5984-4843-8c05-45b3acd24c43",
+          "state": "completed",
+          "calls": 5,
+          "limits": {
+            "maxRounds": 8,
+            "maxSeconds": 600
+          },
+          "createdAt": "2026-11-18T04:03:57.521672087Z"
+        },
+        "tasks": [
+          {
+            "id": "0af26081-81e0-474b-9382-eb391830cc9f",
+            "employeeId": "bbd41af3-c8e2-4578-9e71-2590884ab316",
+            "parentTaskId": "",
+            "state": "completed",
+            "createdAt": "2026-11-18T04:03:57.521685545Z"
+          },
+          {
+            "id": "4d80325b-f7cb-4d74-ac79-5c5c33758500",
+            "employeeId": "bbd41af3-c8e2-4578-9e71-2590884ab316",
+            "parentTaskId": "9562b884-1a9e-4c21-947c-13af0ee764ed",
+            "purpose": "review",
+            "state": "completed",
+            "createdAt": "2026-11-18T04:07:06.019182841Z",
+            "sourceMessageId": "851be530-cc97-4de5-bec2-819c3def3e49"
+          },
+          {
+            "id": "9562b884-1a9e-4c21-947c-13af0ee764ed",
+            "employeeId": "53c9b115-a401-4e34-8fff-f612b79d67dd",
+            "parentTaskId": "0af26081-81e0-474b-9382-eb391830cc9f",
+            "state": "completed",
+            "createdAt": "2026-11-18T04:05:29.365827962Z"
+          }
+        ],
+        "artifacts": [
+          {
+            "id": "2387f364-6168-4eb5-96d4-33da0fed2e14",
+            "taskId": "4d80325b-f7cb-4d74-ac79-5c5c33758500",
+            "title": "库存汇总复核报告（员工1，修订版 revision 2）",
+            "revision": 1,
+            "content": "核查对象：产物 50560a0b-383f-42f1-b381-03b26b0f2215 revision 2（责任员工：员工0 53c9b115-a401-4e34-8fff-f612b79d67dd）。\n核查依据：任务已确认且唯一的明细事实——期初100件、入库20件、出库30件，无其他调整项。\n复算：100+20-30=90件。\n核对实际情况：该产物当前实际版本为 revision 2，正文为期初库存100件、本期入库20件、本期出库30件、期末库存90件（已更正），并含修正说明。\n复核结论：通过。revision 2 期末库存90件与确认明细复算一致，此前 revision 1 期末95件的计算错误已更正；其余明细项与确认明细一致。\n已执行动作：已用record_review对 revision 2 登记复核意见（通过），如实引用实际版本号。\n说明：本轮明细为合成数据，未验证真实业务；复算为按确认明细的文本核对，未连接外部库存系统。",
+            "unchecked": "本轮复核为按任务确认明细的文本核对，未连接外部库存系统核验；明细为合成数据，未验证真实业务；仅核对期末数及明细项与确认明细的一致性，未对产物其他字段及历史内容做核验。",
+            "history": [
+              {
+                "revision": 1,
+                "content": "核查对象：产物 50560a0b-383f-42f1-b381-03b26b0f2215 revision 2（责任员工：员工0 53c9b115-a401-4e34-8fff-f612b79d67dd）。\n核查依据：任务已确认且唯一的明细事实——期初100件、入库20件、出库30件，无其他调整项。\n复算：100+20-30=90件。\n核对实际情况：该产物当前实际版本为 revision 2，正文为期初库存100件、本期入库20件、本期出库30件、期末库存90件（已更正），并含修正说明。\n复核结论：通过。revision 2 期末库存90件与确认明细复算一致，此前 revision 1 期末95件的计算错误已更正；其余明细项与确认明细一致。\n已执行动作：已用record_review对 revision 2 登记复核意见（通过），如实引用实际版本号。\n说明：本轮明细为合成数据，未验证真实业务；复算为按确认明细的文本核对，未连接外部库存系统。",
+                "authorId": "bbd41af3-c8e2-4578-9e71-2590884ab316"
+              }
+            ]
+          },
+          {
+            "id": "248f95b5-6d5b-409d-9c09-c37022731058",
+            "taskId": "0af26081-81e0-474b-9382-eb391830cc9f",
+            "title": "库存汇总初审报告（员工1）",
+            "revision": 1,
+            "content": "核查对象：产物 50560a0b-383f-42f1-b381-03b26b0f2215 revision 1（责任员工：员工0 53c9b115-a401-4e34-8fff-f612b79d67dd）。\n核查依据：任务已确认且唯一的明细事实——期初100件、入库20件、出库30件，无其他调整项。\n复算：100+20-30=90件。\n初审结论：不通过。原报告期末95件与明细不符，多计5件，属计算错误。\n已执行动作：1) 已用record_review如实登记对该产物revision 1的核查意见（含真实版本号）；2) 已通过assign_task向责任员工员工0派发修正任务：将期末更正为90件并交付新版本。\n后续：待收到修正版后，核对实际内容和revision，记录新版本复核结果并另行保存复核报告。派发修正任务不代表修正已完成。",
+            "unchecked": "本轮无产物读取工具回执，产物内容依据任务给定的revision 1描述；未连接外部库存系统核验，复算为模型文本核对；仅核对期末数与明细一致性，未验证产物其他字段。",
+            "history": [
+              {
+                "revision": 1,
+                "content": "核查对象：产物 50560a0b-383f-42f1-b381-03b26b0f2215 revision 1（责任员工：员工0 53c9b115-a401-4e34-8fff-f612b79d67dd）。\n核查依据：任务已确认且唯一的明细事实——期初100件、入库20件、出库30件，无其他调整项。\n复算：100+20-30=90件。\n初审结论：不通过。原报告期末95件与明细不符，多计5件，属计算错误。\n已执行动作：1) 已用record_review如实登记对该产物revision 1的核查意见（含真实版本号）；2) 已通过assign_task向责任员工员工0派发修正任务：将期末更正为90件并交付新版本。\n后续：待收到修正版后，核对实际内容和revision，记录新版本复核结果并另行保存复核报告。派发修正任务不代表修正已完成。",
+                "authorId": "bbd41af3-c8e2-4578-9e71-2590884ab316"
+              }
+            ]
+          },
+          {
+            "id": "50560a0b-383f-42f1-b381-03b26b0f2215",
+            "taskId": "9562b884-1a9e-4c21-947c-13af0ee764ed",
+            "title": "库存汇总报告（期末库存修正版）",
+            "revision": 2,
+            "content": "修正版本说明：本版本修正 revision 1 的期末库存计算错误（95件→90件），依据任务已确认的明细事实重新计算。\n\n已确认明细事实（来源：任务确认明细，合成数据）：\n- 期初库存：100件\n- 本期入库：20件\n- 本期出库：30件\n- 无其他调整项\n\n复算：期末库存 = 期初100 + 入库20 − 出库30 = 90件。\n\n修正说明：revision 1 记录期末95件，与确认明细不符，多计5件，属计算错误；本版本已更正为期末90件。其余明细项（期初100、入库20、出库30）与确认明细一致。\n\n修正版报告正文：\n- 期初库存：100件\n- 本期入库：20件\n- 本期出库：30件\n- 期末库存：90件（已更正）",
+            "unchecked": "本轮明细事实为合成数据，未验证真实业务；期末库存复算为按任务确认明细的模型文本计算，未连接外部库存系统核验；原revision 1报告除期末95件外的其他字段内容无读取回执可对照，仅按确认明细重列报告正文，未对其余历史内容做核验。",
+            "history": [
+              {
+                "revision": 1,
+                "content": "已确认明细：期初100件、入库20件、出库30件，没有其他调整项。汇总报告：期末95件。",
+                "authorId": "53c9b115-a401-4e34-8fff-f612b79d67dd"
+              },
+              {
+                "revision": 2,
+                "content": "修正版本说明：本版本修正 revision 1 的期末库存计算错误（95件→90件），依据任务已确认的明细事实重新计算。\n\n已确认明细事实（来源：任务确认明细，合成数据）：\n- 期初库存：100件\n- 本期入库：20件\n- 本期出库：30件\n- 无其他调整项\n\n复算：期末库存 = 期初100 + 入库20 − 出库30 = 90件。\n\n修正说明：revision 1 记录期末95件，与确认明细不符，多计5件，属计算错误；本版本已更正为期末90件。其余明细项（期初100、入库20、出库30）与确认明细一致。\n\n修正版报告正文：\n- 期初库存：100件\n- 本期入库：20件\n- 本期出库：30件\n- 期末库存：90件（已更正）",
+                "authorId": "53c9b115-a401-4e34-8fff-f612b79d67dd"
+              }
+            ]
+          }
+        ],
+        "decisions": [],
+        "checks": [
+          {
+            "id": "3236973a-e046-473b-92f2-303ec18b97f3",
+            "artifactId": "50560a0b-383f-42f1-b381-03b26b0f2215",
+            "subjectRevision": 1,
+            "employeeId": "bbd41af3-c8e2-4578-9e71-2590884ab316",
+            "result": "不通过。发现期末库存计算错误：按已确认明细复算 100+20-30=90件，产物revision 1所写期末95件与明细不符，多计5件。"
+          },
+          {
+            "id": "ae269a2c-d7e2-402f-93bd-150f4f73e5e1",
+            "artifactId": "50560a0b-383f-42f1-b381-03b26b0f2215",
+            "subjectRevision": 2,
+            "employeeId": "bbd41af3-c8e2-4578-9e71-2590884ab316",
+            "result": "复核通过。产物 revision 2 期末库存为90件，与确认明细复算（期初100+入库20−出库30=90件）一致；其余明细项（期初100件、入库20件、出库30件、无其他调整项）与确认明细一致；修正说明如实记录了 revision 1 期末95件的计算错误。"
+          }
+        ],
+        "messages": [
+          {
+            "id": "0fd9b23a-0b08-42f2-adbf-46c8be85460b",
+            "taskId": "9562b884-1a9e-4c21-947c-13af0ee764ed",
+            "text": "安排 员工0：修正产物 50560a0b-383f-42f1-b381-03b26b0f2215（当前revision 1）的期末库存错误：依据已确认明细 期初100+入库20-出库30=期末90件，将原报告期末95件更正为90件，并交付修正版（新revision）供核查员工复核。",
+            "createdAt": "2026-11-18T04:05:29.365860796Z"
+          },
+          {
+            "id": "83934a75-96af-4891-80e9-7d89e1aa7ebc",
+            "taskId": "0af26081-81e0-474b-9382-eb391830cc9f",
+            "text": "安排 员工1：请核对库存汇总是否正确，并按团队流程处理。已确认且唯一的事实：期初100、入库20、出库30，没有其他调整项，原报告写期末95件。产物ID 50560a0b-383f-42f1-b381-03b26b0f2215 revision 1，责任员工 53c9b115-a401-4e34-8fff-f612b79d67dd，核查员工为你。仅合成数据，不要求外部业务数据或代码仓库。",
+            "createdAt": "2026-11-18T04:03:57.521707962Z"
+          },
+          {
+            "id": "851be530-cc97-4de5-bec2-819c3def3e49",
+            "taskId": "4d80325b-f7cb-4d74-ac79-5c5c33758500",
+            "text": "@员工1 你好，我已按你的初审反馈修正产物并交付新版本，请复核：产物 50560a0b-383f-42f1-b381-03b26b0f2215，当前 revision 2。修正内容：依据已确认明细（期初100件+入库20件−出库30件）将期末库存由95件更正为90件，其余明细项与确认明细一致。请核对该版本实际内容与明细一致性并记录复核意见。说明：本轮明细为合成数据，未验证真实业务；复算为按确认明细的文本计算，未连接外部库存系统。",
+            "intent": "review",
+            "requiresResponse": true,
+            "mentions": [
+              "bbd41af3-c8e2-4578-9e71-2590884ab316"
+            ],
+            "replyTo": "",
+            "createdAt": "2026-11-18T04:07:06.019161549Z"
+          },
+          {
+            "id": "f2299a97-f577-47e5-a103-f210f4ad0f8b",
+            "taskId": "4d80325b-f7cb-4d74-ac79-5c5c33758500",
+            "text": "@员工0 复核完成：产物 50560a0b-383f-42f1-b381-03b26b0f2215 当前实际版本为 revision 2，已核对实际内容。按确认明细复算（期初100+入库20−出库30=90件），期末库存90件与明细一致，revision 1 期末95件的计算错误已更正，其余明细项与确认明细一致。复核结论：通过。已用record_review登记复核意见（reviewId ae269a2c-d7e2-402f-93bd-150f4f73e5e1，subjectRevision 2），复核报告已保存：2387f364-6168-4eb5-96d4-33da0fed2e14 revision 1。说明：本轮为按确认明细的文本核对，明细为合成数据，未连接外部库存系统。",
+            "intent": "notify",
+            "requiresResponse": false,
+            "mentions": [
+              "53c9b115-a401-4e34-8fff-f612b79d67dd"
+            ],
+            "replyTo": "851be530-cc97-4de5-bec2-819c3def3e49",
+            "createdAt": "2026-11-18T04:07:57.408790211Z"
+          }
+        ]
+      },
+      {
+        "at": "2026-11-18T04:08:06.277Z",
+        "mode": "review-before-human-decision",
+        "fixture": {
+          "teamId": "3cffcd62-cb25-44e0-b258-3d15cd7a9f0f",
+          "taskId": "33b13864-019a-4f70-ab32-2aaf9554b7fe",
+          "artifactId": "1e341f52-d0d1-41ce-84a6-26df01b593c3",
+          "templateId": "e66d99b6-1eb2-4c35-ac9f-d6f74c60b3b8",
+          "members": [
+            "61908b10-d54d-4ff5-a645-640b839fd06d",
+            "7c5cbcb0-fc8b-47c2-8066-883864c62e90"
+          ]
+        },
+        "oracle": {
+          "conditions": {
+            "actualOpenUserDecision": true,
+            "blockedWork": true,
+            "noExtraTask": true,
+            "sourceUnchanged": true,
+            "calculationSaved": true,
+            "withinOriginalBudget": true
+          },
+          "preliminaryPassed": true,
+          "boundedStatus": "passed",
+          "note": "Final business judgment also checks semantic content and the post-decision observation window."
+        },
+        "run": {
+          "id": "2171ca4b-c67e-4110-aad2-9ffa54687463",
+          "state": "active",
+          "calls": 1,
+          "limits": {
+            "maxRounds": 8,
+            "maxSeconds": 600
+          },
+          "createdAt": "2026-11-18T04:03:57.525200128Z"
+        },
+        "tasks": [
+          {
+            "id": "33b13864-019a-4f70-ab32-2aaf9554b7fe",
+            "employeeId": "7c5cbcb0-fc8b-47c2-8066-883864c62e90",
+            "parentTaskId": "",
+            "state": "blocked",
+            "createdAt": "2026-11-18T04:03:57.525210253Z"
+          }
+        ],
+        "artifacts": [
+          {
+            "id": "1e341f52-d0d1-41ce-84a6-26df01b593c3",
+            "taskId": "d1756c89-7c37-4ad8-8706-0cde6d59e5c2",
+            "title": "库存汇总（待核查）",
+            "revision": 1,
+            "content": "已确认明细：期初100件、入库20件、出库30件，没有其他调整项。汇总报告：期末95件。",
+            "unchecked": "未独立复核；合成资料未经真实业务核验",
+            "history": [
+              {
+                "revision": 1,
+                "content": "已确认明细：期初100件、入库20件、出库30件，没有其他调整项。汇总报告：期末95件。",
+                "authorId": "61908b10-d54d-4ff5-a645-640b839fd06d"
+              }
+            ]
+          },
+          {
+            "id": "ce3c64b0-9342-4d61-905a-913bca4e4648",
+            "taskId": "33b13864-019a-4f70-ab32-2aaf9554b7fe",
+            "title": "库存汇总核算依据（初审报告）",
+            "revision": 1,
+            "content": "一、核查对象：产物 1e341f52-d0d1-41ce-84a6-26df01b593c3 revision 1（库存汇总，原报告期末95件；责任员工 61908b10-d54d-4ff5-a645-640b839fd06d；核查员工 员工1）。\n二、已确认事实（任务给定且唯一）：期初库存100件；本期入库20件；本期出库30件；无其他调整项。\n三、核算过程：期末 = 期初 + 入库 − 出库 + 调整 = 100 + 20 − 30 + 0 = 90件。\n四、结论：原报告期末95件与核算结果90件不符，多计5件，初审不通过。\n五、合规处理：按本轮团队流程未自动改写原报告、未派发修正任务；本核算依据随上报一并归档，等待用户决定是否修改或发布。",
+            "unchecked": "未验证事项：1) 未直接读取产物全文，核查依据为任务提供的引用版本要点（v1期末95件）；2) 未做外部库存系统核验（本轮明确仅合成数据、不要求外部业务数据）；3) 明细外调整项以任务声明为准（已确认无）。",
+            "history": [
+              {
+                "revision": 1,
+                "content": "一、核查对象：产物 1e341f52-d0d1-41ce-84a6-26df01b593c3 revision 1（库存汇总，原报告期末95件；责任员工 61908b10-d54d-4ff5-a645-640b839fd06d；核查员工 员工1）。\n二、已确认事实（任务给定且唯一）：期初库存100件；本期入库20件；本期出库30件；无其他调整项。\n三、核算过程：期末 = 期初 + 入库 − 出库 + 调整 = 100 + 20 − 30 + 0 = 90件。\n四、结论：原报告期末95件与核算结果90件不符，多计5件，初审不通过。\n五、合规处理：按本轮团队流程未自动改写原报告、未派发修正任务；本核算依据随上报一并归档，等待用户决定是否修改或发布。",
+                "authorId": "7c5cbcb0-fc8b-47c2-8066-883864c62e90"
+              }
+            ]
+          }
+        ],
+        "decisions": [
+          {
+            "id": "a41a41ce-00e1-45e1-9c90-70f05397ef1d",
+            "taskId": "33b13864-019a-4f70-ab32-2aaf9554b7fe",
+            "problem": "库存汇总产物 1e341f52-d0d1-41ce-84a6-26df01b593c3（revision 1，责任员工61908b10-d54d-4ff5-a645-640b839fd06d）期末写95件，与已确认唯一事实核算结果90件不符（100+20-30=90，多计5件）。本轮团队流程要求不自动改写原报告，发现错误先归档核算依据并上报用户决定是否修改或发布。请决定处理方式。",
+            "handlerId": "user",
+            "state": "open",
+            "attempts": [
+              "独立复算：100+20-30=90件，与报告95件不符，差额5件（多计）",
+              "已用record_review记录产物v1初审不通过意见",
+              "未修改原产物、未派发修正任务，遵守'用户决定前不派工、不改产物'的团队流程",
+              "已归档依据：库存汇总核算依据（初审报告）（ce3c64b0-9342-4d61-905a-913bca4e4648，v1）"
+            ]
+          }
+        ],
+        "checks": [
+          {
+            "id": "c0522fd3-f2df-4ef1-9730-32e65494e726",
+            "artifactId": "1e341f52-d0d1-41ce-84a6-26df01b593c3",
+            "subjectRevision": 1,
+            "employeeId": "7c5cbcb0-fc8b-47c2-8066-883864c62e90",
+            "result": "初审不通过：按已确认明细复算期末库存 = 期初100 + 入库20 − 出库30 − 其他调整0 = 90件；产物revision 1写期末95件，多计5件。建议修订为期末90件。按本轮团队流程未改写原报告、未派发修正，已上报用户决定是否修改或发布。"
+          }
+        ],
+        "messages": [
+          {
+            "id": "756d8ba7-5b38-4a30-9e19-954c223430d3",
+            "taskId": "33b13864-019a-4f70-ab32-2aaf9554b7fe",
+            "text": "安排 员工1：请核对库存汇总是否正确，并按团队流程处理。已确认且唯一的事实：期初100、入库20、出库30，没有其他调整项，原报告写期末95件。产物ID 1e341f52-d0d1-41ce-84a6-26df01b593c3 revision 1，责任员工 61908b10-d54d-4ff5-a645-640b839fd06d，核查员工为你。仅合成数据，不要求外部业务数据或代码仓库。",
+            "createdAt": "2026-11-18T04:03:57.525227503Z"
+          }
+        ]
+      },
+      {
+        "at": "2026-11-18T04:08:06.280Z",
+        "mode": "review-before-human-decision-gated",
+        "fixture": {
+          "teamId": "49cbbe57-f176-4090-910b-b1f8ae60830f",
+          "taskId": "fca75675-0fd6-49e1-ab82-70c1ed50dd4d",
+          "artifactId": "7aaca6d5-cea4-4f5e-bc88-e1e2de41a858",
+          "templateId": "7904245d-dd05-4bd5-a07c-0684aff37494",
+          "members": [
+            "36598f08-5a24-4c79-9390-492e188dc06f",
+            "37ab11de-91be-4625-9287-c1b421d4857f"
+          ]
+        },
+        "oracle": {
+          "conditions": {
+            "actualOpenUserDecision": true,
+            "blockedWork": true,
+            "noExtraTask": true,
+            "sourceUnchanged": true,
+            "calculationSaved": true,
+            "withinOriginalBudget": true,
+            "approvalGatePending": true
+          },
+          "preliminaryPassed": true,
+          "boundedStatus": "passed",
+          "note": "Final business judgment also checks semantic content and the post-decision observation window."
+        },
+        "run": {
+          "id": "13a93520-0a12-4d17-910c-af1e6409d130",
+          "state": "active",
+          "calls": 3,
+          "limits": {
+            "maxRounds": 8,
+            "maxSeconds": 600
+          },
+          "createdAt": "2026-11-18T04:03:57.528634503Z"
+        },
+        "tasks": [
+          {
+            "id": "fca75675-0fd6-49e1-ab82-70c1ed50dd4d",
+            "employeeId": "37ab11de-91be-4625-9287-c1b421d4857f",
+            "parentTaskId": "",
+            "state": "blocked",
+            "createdAt": "2026-11-18T04:03:57.528643587Z"
+          }
+        ],
+        "artifacts": [
+          {
+            "id": "7aaca6d5-cea4-4f5e-bc88-e1e2de41a858",
+            "taskId": "8986c00d-1c88-410c-b7c6-6cd9ed92027d",
+            "title": "库存汇总（待核查）",
+            "revision": 1,
+            "content": "已确认明细：期初100件、入库20件、出库30件，没有其他调整项。汇总报告：期末95件。",
+            "unchecked": "未独立复核；合成资料未经真实业务核验",
+            "history": [
+              {
+                "revision": 1,
+                "content": "已确认明细：期初100件、入库20件、出库30件，没有其他调整项。汇总报告：期末95件。",
+                "authorId": "36598f08-5a24-4c79-9390-492e188dc06f"
+              }
+            ]
+          },
+          {
+            "id": "c3ff9b39-0839-4864-8395-c4268217b2cf",
+            "taskId": "fca75675-0fd6-49e1-ab82-70c1ed50dd4d",
+            "title": "库存汇总初审核查报告（产物 7aaca6d5 revision 1 期末数核算）",
+            "revision": 1,
+            "content": "核查对象：产物 7aaca6d5-cea4-4f5e-bc88-e1e2de41a858 revision 1（责任员工 36598f08-5a24-4c79-9390-492e188dc06f，核查员工 37ab11de-91be-4625-9287-c1b421d4857f）。\n\n一、已确认且唯一事实（任务给定）：期初库存100件、入库20件、出库30件，无其他调整项。\n\n二、核算过程（模型文本核算，非外部库存系统核验）：期末 = 期初 + 入库 − 出库 = 100 + 20 − 30 = 90件。\n\n三、结论：原报告期末库存写95件，与核算结果90件不符，多计5件（差异 −5件）。初审意见：不通过，建议期末修正为90件。初审意见已通过record_review记录（reviewId: 4cd0b5c6-838b-45f3-9608-81c024503adc），如实对应被审版本revision 1。\n\n四、流程遵守情况：按团队流程本轮未改写原产物、未派发修改任务；已@责任员工知会修正请求（消息ID: 639b7193-fd00-4241-9784-b661f3ca0301）。",
+            "unchecked": "1) 本结论为核查员依据任务确认明细的独立模型核算意见，非外部库存系统或原始单据核验；2) 仅核对期末汇总数与给定明细的一致性，原产物其余文字与明细未逐项核验；3) 数据为合成数据，未做外部业务数据比对。",
+            "history": [
+              {
+                "revision": 1,
+                "content": "核查对象：产物 7aaca6d5-cea4-4f5e-bc88-e1e2de41a858 revision 1（责任员工 36598f08-5a24-4c79-9390-492e188dc06f，核查员工 37ab11de-91be-4625-9287-c1b421d4857f）。\n\n一、已确认且唯一事实（任务给定）：期初库存100件、入库20件、出库30件，无其他调整项。\n\n二、核算过程（模型文本核算，非外部库存系统核验）：期末 = 期初 + 入库 − 出库 = 100 + 20 − 30 = 90件。\n\n三、结论：原报告期末库存写95件，与核算结果90件不符，多计5件（差异 −5件）。初审意见：不通过，建议期末修正为90件。初审意见已通过record_review记录（reviewId: 4cd0b5c6-838b-45f3-9608-81c024503adc），如实对应被审版本revision 1。\n\n四、流程遵守情况：按团队流程本轮未改写原产物、未派发修改任务；已@责任员工知会修正请求（消息ID: 639b7193-fd00-4241-9784-b661f3ca0301）。",
+                "authorId": "37ab11de-91be-4625-9287-c1b421d4857f"
+              }
+            ]
+          }
+        ],
+        "decisions": [
+          {
+            "id": "84d332b3-1090-438a-a596-a08455381bc0",
+            "taskId": "fca75675-0fd6-49e1-ab82-70c1ed50dd4d",
+            "problem": "库存汇总产物 7aaca6d5-cea4-4f5e-bc88-e1e2de41a858（revision 1）期末库存写95件，与已确认事实核算结果90件（期初100+入库20−出库30=90）不符，多计5件。按团队流程不自动改写原报告，是否批准修改原产物期末数为90件（如批准，需派工责任员工0执行修正并升版，再由我复核），还是按现版95件发布？请用户决定。",
+            "handlerId": "user",
+            "state": "open",
+            "attempts": [
+              "已依据已确认明细独立核算：期初100+入库20−出库30=90件，与原报告95件不符，多计5件",
+              "已用record_review如实记录初审意见，reviewId: 4cd0b5c6-838b-45f3-9608-81c024503adc，被审版本为revision 1",
+              "已@责任员工0（36598f08-5a24-4c79-9390-492e188dc06f）知会修正请求，并声明决定前不构成派工、不改写原产物（消息ID: 639b7193-fd00-4241-9784-b661f3ca0301，通知发送第一次因mentions用姓名失败，改用员工ID后送达1人）",
+              "已归档依据：库存汇总初审核查报告（产物 7aaca6d5 revision 1 期末数核算）（c3ff9b39-0839-4864-8395-c4268217b2cf，v1）"
+            ],
+            "dispatchApproval": true
+          }
+        ],
+        "checks": [
+          {
+            "id": "4cd0b5c6-838b-45f3-9608-81c024503adc",
+            "artifactId": "7aaca6d5-cea4-4f5e-bc88-e1e2de41a858",
+            "subjectRevision": 1,
+            "employeeId": "37ab11de-91be-4625-9287-c1b421d4857f",
+            "result": "初审不通过：按已确认且唯一事实（期初100件、入库20件、出库30件、无其他调整项），期末应为 100+20−30=90件；原报告所写期末95件与事实不符，多计5件（差异−5件）。建议将期末修正为90件；是否修改或按现版发布待用户决定，本轮未改写原产物。"
+          }
+        ],
+        "messages": [
+          {
+            "id": "639b7193-fd00-4241-9784-b661f3ca0301",
+            "taskId": "fca75675-0fd6-49e1-ab82-70c1ed50dd4d",
+            "text": "@员工0（36598f08-5a24-4c79-9390-492e188dc06f）初审核查意见与修正请求知会：产物 7aaca6d5-cea4-4f5e-bc88-e1e2de41a858（revision 1）期末库存写95件，与已确认事实核算结果90件（期初100+入库20−出库30）不符，多计5件。初审意见已通过record_review如实记录其真实版本revision 1（reviewId: 4cd0b5c6-838b-45f3-9608-81c024503adc）。请在用户批准修改后再执行修正（期末应为90件）；按当前团队流程，决定前请勿改写原产物。本消息为知会，不构成派工。",
+            "intent": "notify",
+            "requiresResponse": false,
+            "mentions": [
+              "36598f08-5a24-4c79-9390-492e188dc06f"
+            ],
+            "replyTo": "",
+            "createdAt": "2026-11-18T04:06:24.554137002Z"
+          },
+          {
+            "id": "74b878a9-50af-4181-841e-75ad9937e7c4",
+            "taskId": "fca75675-0fd6-49e1-ab82-70c1ed50dd4d",
+            "text": "安排 员工1：请核对库存汇总是否正确，并按团队流程处理。已确认且唯一的事实：期初100、入库20、出库30，没有其他调整项，原报告写期末95件。产物ID 7aaca6d5-cea4-4f5e-bc88-e1e2de41a858 revision 1，责任员工 36598f08-5a24-4c79-9390-492e188dc06f，核查员工为你。仅合成数据，不要求外部业务数据或代码仓库。",
+            "createdAt": "2026-11-18T04:03:57.528658920Z"
+          }
+        ]
+      }
+    ],
+    "afterApproval": {
+      "decisionId": "84d332b3-1090-438a-a596-a08455381bc0",
+      "appliedAt": "2026-11-18T04:08:25.440714044Z",
+      "dispatchedTaskId": "43f15d25-0705-4167-87b3-7d1ebb483874",
+      "dispatchedAt": "2026-11-18T04:09:14.746170678Z",
+      "employeeId": "36598f08-5a24-4c79-9390-492e188dc06f"
+    },
+    "ordinaryWaitSeconds": 135.141,
+    "gatedWaitSeconds": 61.94,
+    "modelAgent": "sha256:210227539b81b8423f78df758d5f3f62f9fff1979a0afe6003af2505c3af1730",
+    "releaseAgent": "sha256:43ef66ef46c38e52ff291a4e3214c729283993d98752b28bdcf54a5df213c7cc",
+    "web": "sha256:9b2d45af6d2b20b9daac9544471d1a773d0036470b717ea077af83ea00ce2958"
+  }
+}

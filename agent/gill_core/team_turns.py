@@ -282,20 +282,76 @@ class TeamTurn:
 
         :param calls: Persisted complete tool calls.
         """
-        parsed = parse_calls(calls)
-        for index, call in enumerate(parsed):
+        batch = list(zip(parse_calls(calls), calls))
+        escalation_pending = any(call["name"] == "ask_superior" for call, _ in batch)
+        if escalation_pending:
+            first_escalation = next(i for i, (call, _) in enumerate(batch) if call["name"] == "ask_superior")
+            before, waiting = batch[:first_escalation], batch[first_escalation:]
+            reports = [entry for entry in waiting if self.new_completion_report(entry[0]) is not None]
+            batch = before + reports + [entry for entry in waiting if entry not in reports]
+        for index, (call, _) in enumerate(batch):
             self.control = await self.op("heartbeat")
             if self.stopping():
                 return
             try:
-                output = await self.dispatch(call)
+                if escalation_pending and self.conflicts_with_escalation(call):
+                    output = {"error": "DECISION_PENDING: 本轮请求上报问题，相关工作与完成须等待决定。",
+                              "executed": False}
+                    if (report := self.new_completion_report(call)) is not None:
+                        saved = await self.save_tool_report(call["id"], report)
+                        output = {**output, "artifactId": saved["id"], "artifactSaved": True,
+                                  "completionApplied": False}
+                else:
+                    output = await self.dispatch(call)
             except Exception as error:
                 if getattr(error, "external_unknown", False):
                     raise
                 output = {"error": str(error)[:1200], "executed": False}
             self.history.append({"role": "tool", "tool_call_id": call["id"],
                                  "content": json.dumps(output, ensure_ascii=False)})
-            await self.save_checkpoint(calls[index + 1:])
+            await self.save_checkpoint([raw for _, raw in batch[index + 1:]])
+
+    @staticmethod
+    def new_completion_report(call: dict) -> dict | None:
+        """
+        Find evidence that can be preserved without altering an existing artifact.
+
+        :param call: Parsed tool call.
+        :returns: New report payload or None.
+        """
+        report = call["arguments"].get("artifact")
+        if call["name"] == "complete_task" and isinstance(report, dict) and not {"id", "expectedRevision"}.intersection(report):
+            return report
+        return None
+
+    async def save_tool_report(self, identifier: str, report: dict) -> dict:
+        """
+        Persist explicitly submitted evidence under the tool call's stable identity.
+
+        :param identifier: Persisted model tool call ID.
+        :param report: Submitted artifact payload.
+        :returns: Committed artifact response with id (str) and revision (int).
+        """
+        if not isinstance(report, dict):
+            raise ValueError("Report must be an object")
+        if set(report) - {"id", "expectedRevision", "title", "content", "unchecked", "remaining"}:
+            raise ValueError("Report contains unsupported fields")
+        return await self.command("artifact.save", report, identifier + "-artifact")
+
+    @staticmethod
+    def conflicts_with_escalation(call: dict) -> bool:
+        """
+        Identify dependent work that cannot precede a decision from the same response.
+
+        :param call: Parsed call with a registered name and arguments object.
+        :returns: Whether dispatch would start dependent work or conclude the task.
+        """
+        name, args = call["name"], call["arguments"]
+        if name == "assign_task":
+            return args.get("dependsOnTaskIds") != []
+        if name == "update_task":
+            return "employeeId" in args or args.get("state") in {"queued", "completed"}
+        return name in {"complete_task", "request_integration"}
 
     async def dispatch(self, call: dict) -> dict:
         """
@@ -306,14 +362,37 @@ class TeamTurn:
         """
         name, args = call["name"], call["arguments"]
         if name == "complete_task" and "artifact" in args:
-            if not isinstance(args["artifact"], dict):
-                raise ValueError("complete_task.artifact must be an object")
-            if set(args["artifact"]) - {"id", "expectedRevision", "title", "content", "unchecked", "remaining"}:
-                raise ValueError("complete_task.artifact contains unsupported fields")
-            await self.command("artifact.save", args["artifact"], call["id"] + "-artifact")
+            await self.save_tool_report(call["id"], args["artifact"])
             return await self.command("run.complete", {}, call["id"])
+        if name == "ask_superior" and "evidence" in args:
+            evidence = args["evidence"]
+            attempts = args.get("attempts", [])
+            if not isinstance(evidence, dict) or {"id", "expectedRevision"}.intersection(evidence) or not isinstance(attempts, list):
+                raise ValueError("Decision evidence must be a new report with attempts as an array")
+            saved = await self.save_tool_report(call["id"], evidence)
+            payload = {key: value for key, value in args.items() if key != "evidence"}
+            receipt = f"已归档依据：{evidence['title']}（{saved['id']}，v{saved['revision']}）"
+            payload["attempts"] = [*attempts, receipt]
+            return {**await self.command("issue.escalate", payload, call["id"]), "evidenceArtifactId": saved["id"]}
+        if name in {"notify_team", "team_message"}:
+            notice = {key: args[key] for key in ("text", "mentions", "replyTo") if key in args}
+            # The gateway treats employee messages as notices, including in-flight legacy calls.
+            if name == "team_message":
+                if "requiresResponse" in args:
+                    notice["requiresResponse"] = args["requiresResponse"]
+                return await self.command("message.send", notice, call["id"])
+            return await self.command("message.send", {**notice, "intent": "notify"}, call["id"])
+        if name == "request_peer_review":
+            review = {"text": args["text"], "mentions": [args["employeeId"]], "intent": "review"}
+            if "replyTo" in args:
+                review["replyTo"] = args["replyTo"]
+            return await self.command("message.send", review, call["id"])
         if name in ACTION_NAMES:
-            return await self.command(ACTION_NAMES[name], args, call["id"])
+            result = await self.command(ACTION_NAMES[name], args, call["id"])
+            if name == "record_review":
+                return {"reviewId": result["id"], "artifactId": args["artifactId"],
+                        "subjectRevision": args["subjectRevision"]}
+            return result
         if name == "search_knowledge":
             return search_sources(self.context.get("knowledge", []), args["query"])
         key = self.key(call["id"])

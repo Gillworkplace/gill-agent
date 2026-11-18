@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { api } from '../api'
 import { useTeams } from './store'
 import { stateLabel } from './presentation'
+import TaskSources from './TaskSources.vue'
 const props=defineProps<{teamId:string}>(),store=useTeams()
 const tasks=computed(()=>Object.values(store.data.tasks).filter(t=>t.teamId===props.teamId))
 const members=computed(()=>Object.values(store.data.employees).filter(e=>e.teamId===props.teamId))
@@ -16,6 +17,7 @@ async function reconcile(executionId:string){try{await store.command('execution.
  <details v-if="tasks.length" class="team-card"><summary>任务与执行核实 · {{tasks.length}} 项</summary>
   <article v-for="task in tasks" :key="task.id" class="team-card">
    <b>{{store.data.employees[task.employeeId]?.name}} · {{stateLabel(task.state)}}</b><p>{{task.goal}}</p><p class="team-muted">{{task.reason}}</p>
+   <TaskSources :task="task"/>
    <div class="team-row" v-if="!['completed','cancelled'].includes(task.state)">
     <button class="secondary small" :disabled="store.busy" @click="update(task.id,'blocked')">阻断此任务</button>
     <button class="secondary small" :disabled="store.busy||['needs_reconciliation','unknown'].includes(task.state)" @click="update(task.id,'queued')">明确恢复</button>

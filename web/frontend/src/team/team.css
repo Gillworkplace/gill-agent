@@ -12,3 +12,5 @@
 .team-app .template-list{width:auto}
 .team-app .team-status-panel{transform:none}
 @media(max-width:768px){.team-status-panel{left:auto}}
+
+.composer-routing label > span{white-space:nowrap}.real-message-bubble > small + .team-badge{margin-left:8px}
