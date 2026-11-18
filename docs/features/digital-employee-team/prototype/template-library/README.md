@@ -15,3 +15,5 @@
 2026-11-18 在浏览器对照原型和真实 Web 服务。相同四个模板下，1440 × 960 和 390 × 844 的每张卡片坐标与尺寸相同。详情侧栏能展开模板实际包含的 Skill，编辑提交后返回库并读取新版本。摘要来自已有工作指令或文本 Skill 描述，两者均为空时留空。真实模板数据、工作空间状态与提交反馈以服务返回为准。
 
 前端 18 项单测、类型检查、生产构建和 7 项基础浏览器回归通过。另实测按 Skill 搜索、键盘关闭详情后恢复焦点、保存新版本、连续与批量导入。真实模型完成两轮模板草稿，浏览器明确保存后可在手机端从该模板创建员工。实现截图见[桌面](../../../../../gui-test-screenshots/v20261118-full-closure-catalog-desktop.png)、[详情](../../../../../gui-test-screenshots/v20261118-full-closure-catalog-detail.png)和[手机](../../../../../gui-test-screenshots/v20261118-full-closure-catalog-mobile.png)。
+
+弹窗定位回归在旧版测得导入弹窗左上角为 `(0, 0)`。修复后在 Chrome 核对导入、新建、编辑在桌面及手机视口居中，390 × 500 下可滚动到保存按钮，详情抽屉仍位于右侧。[导入弹窗桌面截图](../../../../../gui-test-screenshots/v20261118-full-closure-catalog-import-dialog-desktop.png) · [手机截图](../../../../../gui-test-screenshots/v20261118-full-closure-catalog-import-dialog-mobile.png)

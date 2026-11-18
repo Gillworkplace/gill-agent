@@ -148,7 +148,11 @@
 .catalog-skill ul {margin:10px 0 2px;padding-left:22px;font-size:12px;color:var(--catalog-muted);overflow-wrap:anywhere}
 .catalog-prompt,.catalog-inline-skill {white-space:pre-wrap}
 .catalog-shared-list {margin:0;padding-left:22px;font-size:13px;line-height:1.7;color:var(--catalog-muted);overflow-wrap:anywhere}
-.team-template-route .catalog-form-dialog {width:min(500px,100% - 30px);max-width:none;border-radius:16px;overflow:auto}
+.team-template-route .catalog-form-dialog {
+ position:fixed;inset:0;margin:auto;
+ width:min(500px,100% - 30px);max-width:none;height:fit-content;max-height:calc(100% - 30px);
+ border-radius:16px;overflow:auto;
+}
 .team-template-route .catalog-form-dialog h2 {margin:0;font-size:21px}
 .team-template-route .catalog-form-dialog .catalog-form-copy {margin:8px 0 0;color:var(--catalog-muted);line-height:1.6}
 .team-template-route .catalog-form-dialog label {margin:14px 0 5px;color:var(--catalog-ink);font-size:13px;font-weight:650}
