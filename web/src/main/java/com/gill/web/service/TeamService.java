@@ -29,15 +29,25 @@ public class TeamService {
             if(!map(s,"tasks").has(taskId))continue;ObjectNode task=get(s,"tasks",taskId);
             task.put("executionId",Objects.toString(job.get("job_id"),"")).put("sandboxId",Objects.toString(job.get("sandbox_id"),""));
             String status=Objects.toString(job.get("state"),"");
-            if(status.equals("needs_reconciliation"))task.put("state",status);
-            else if(status.equals("running")&&!Boolean.TRUE.equals(job.get("lease_valid")))task.put("state","unknown");
+            if(status.equals("needs_reconciliation")||(status.equals("running")&&!Boolean.TRUE.equals(job.get("lease_valid"))))
+                projectUnknownExecution(s,task,job,status.equals("needs_reconciliation")?status:"unknown");
         }
         return s;
+    }
+    private void projectUnknownExecution(ObjectNode s,ObjectNode task,Map<String,Object> job,String state) {
+        task.put("state",state);
+        ObjectNode run=get(s,"runs",text(task,"runId"));
+        if(!text(run,"state").equals("needs_reconciliation"))run.put("state",state);
+        String integrationId=Objects.toString(job.get("integration_id"),"");
+        JsonNode integration=map(s,"integrations").path(integrationId);
+        if(integration instanceof ObjectNode record&&text(record,"state").equals("queued"))record.put("state",state);
     }
     public List<Map<String,Object>> events(long uid,long after) {return db.events(uid,after);}
 
     @Transactional
     public ObjectNode command(long uid,String key,String kind,ObjectNode payload) {
+        if(Set.of("integration.result","version.record").contains(kind))
+            throw new IllegalArgumentException("SCOPE_FORBIDDEN: 版本与集成结果由实际执行器提交");
         return execute(uid,new TeamActor("user",Long.toString(uid),null),key,kind,payload);
     }
     private ObjectNode execute(long uid,TeamActor actor,String key,String kind,ObjectNode payload) {
@@ -51,7 +61,8 @@ public class TeamService {
             return parse(prior.get("result"));
         }
         if(kind.equals("task.update")&&payload.has("employeeId")&&db.runningTask(uid,required(payload,"taskId"))>0)throw new IllegalArgumentException("BUSY: 任务仍在执行，请先阻断并等待当前调用结束后改派");
-        if((kind.equals("run.complete")||(kind.equals("task.update")&&(payload.has("employeeId")||Set.of("queued","completed").contains(text(payload,"state")))))&&db.unresolvedTask(uid,required(payload,"taskId"))>0)
+        if((Set.of("run.complete","integration.request").contains(kind)||(kind.equals("task.update")&&
+            (payload.has("employeeId")||Set.of("queued","completed").contains(text(payload,"state")))))&&db.unresolvedTask(uid,required(payload,"taskId"))>0)
             throw new IllegalArgumentException("ACTION_RESULT_UNKNOWN: 请先核实尚未确认的外部动作");
         ObjectNode result=kind.equals("execution.reconcile")?reconcile(uid,s,actor,payload):engine.apply(s,actor,kind,payload);
         if(kind.equals("run.control")) {
@@ -201,6 +212,9 @@ public class TeamService {
             if(kind.equals("run.control")||kind.equals("employee.create")||kind.equals("knowledge.save"))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 员工无权执行");
             if(!body.has("teamId"))body.put("teamId",text(p,"teamId"));
             if(!body.has("taskId"))body.put("taskId",text(p,"taskId"));
+            if(kind.equals("integration.result")&&(!text(p,"kind").equals("integration")||
+                !required(p,"integrationId").equals(required(body,"integrationId"))))
+                throw new IllegalArgumentException("SCOPE_FORBIDDEN: 只能提交当前集成执行的结果");
             if(Set.of("document.save","message.send","task.assign","issue.escalate","integration.request").contains(kind)&&!text(body,"taskId").equals(text(p,"taskId")))
                 throw new IllegalArgumentException("SCOPE_FORBIDDEN: 此动作必须使用当前执行任务");
             ObjectNode run=get(s,"runs",text(p,"runId"));
@@ -237,7 +251,7 @@ public class TeamService {
                 return node("state","budget_exceeded");
             }
             if(kind.equals("model"))run.put("calls",run.path("calls").asInt()+1);
-            task.put("state","running");
+            if(!text(task,"state").equals("completed"))task.put("state","running");
         }
         String id=id();db.startAction(id,job,key,hash,kind,args.toString());return node("id",id,"state","dispatched");
     }
@@ -302,7 +316,16 @@ public class TeamService {
         }
         task.put("state","paused").put("reason","核实结果已记录，等待明确恢复");
         for(JsonNode m:map(s,"messages"))if(text(m,"subjectId").equals(text(task,"id")))((ObjectNode)m).put("status","responded");
-        db.resolveJob(id);return node("id",id,"state","reconciled");
+        if(text(payload,"kind").equals("integration")) {
+            ObjectNode integration=get(s,"integrations",required(payload,"integrationId"));
+            if(text(integration,"state").equals("queued"))
+                integration.put("state","reconciled").set("reconciliation",record.deepCopy());
+        }
+        db.resolveJob(id);
+        ObjectNode run=get(s,"runs",text(task,"runId"));
+        if(db.unreconciledRun(uid,text(run,"id"))==0&&Set.of("active","needs_reconciliation").contains(text(run,"state")))
+            run.put("state","paused");
+        return node("id",id,"state","reconciled");
     }
     private ObjectNode lateResult(String id,ObjectNode p) {
         Map<String,Object> job=db.job(id);if(job==null)throw new IllegalArgumentException("NOT_FOUND: 执行不存在");

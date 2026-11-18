@@ -137,6 +137,7 @@ async def main() -> None:
     results.append(await escalation_batch(True))
     results.append(await bundled_decision_evidence())
     results.append(await legacy_notice_replay())
+    results.append(await complete_with_assignment())
     Path("/tmp/gill-completion-protocol.json").write_text(json.dumps(results, ensure_ascii=False, indent=2))
     print(json.dumps(results, ensure_ascii=False))
 
@@ -222,6 +223,36 @@ async def legacy_notice_replay() -> dict:
         assert notice["intent"] == "notify" and len(state["tasks"]) == 1
         assert [item["state"] for item in state["deliveries"].values()] == ["notified"]
         return {"mode": "legacy-notice-replay", "passed": True, "messageId": notice["id"]}
+    finally:
+        await fixture.close()
+
+
+async def complete_with_assignment() -> dict:
+    """
+    Verify that a finish-and-assign retry reuses both committed results.
+
+    :returns: Mode (str), success (bool), and stable assigned task ID (str).
+    """
+    fixture = Fixture()
+    await fixture.start()
+    try:
+        employee, task = fixture.turn.context["employee"], fixture.turn.context["task"]
+        peer = await fixture.command("employee.create", {"teamId": task["teamId"],
+            "templateId": employee["templateId"], "name": "接手测试"})
+        report = {"title": "本环节报告", "content": "交接后结束当前任务", "unchecked": "合成输入"}
+        call = {"id": "compound", "name": "complete_task", "arguments": {
+            "assign": {"employeeId": peer["id"], "goal": "开始后续工作"}, "artifact": report}}
+        receipt = await fixture.turn.dispatch(call)
+        assert await fixture.turn.dispatch(call) == receipt
+        child_id = receipt["handoff"]["id"]
+        state = await fixture.state()
+        assert receipt["state"] == state["tasks"][fixture.task_id]["state"] == "completed"
+        assert len(state["tasks"]) == 2 and len(state["artifacts"]) == 1
+        assert state["tasks"][child_id]["employeeId"] == peer["id"]
+        child = await fixture.client.claim()
+        assert child["payload"]["taskId"] == child_id
+        await fixture.client.operation(child, "finish", state="stopped", result={"fixture": "verified queued handoff"})
+        return {"mode": "completion-with-assignment", "passed": True, "childTaskId": child_id}
     finally:
         await fixture.close()
 

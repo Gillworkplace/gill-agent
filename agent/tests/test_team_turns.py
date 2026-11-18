@@ -47,6 +47,12 @@ class ProtocolTests(unittest.TestCase):
         self.assertNotIn("requiresResponse",tools["notify_team"]["parameters"]["properties"])
         self.assertIn("employeeId",tools["request_peer_review"]["parameters"]["required"])
 
+    def test_legacy_team_without_explicit_limits_uses_platform_defaults(self) -> None:
+        system = build_system({"run": {"calls": 1, "limits": None, "state": "active"}})
+        self.assertIn('"maxRounds": 25', system)
+        self.assertIn('"maxSeconds": 900', system)
+        self.assertIn('"remainingCalls": 24', system)
+
     def test_handoff_request_is_not_confused_with_sender_completion(self) -> None:
         tools = {s["function"]["name"]: s["function"] for s in tool_schemas()}
         self.assertIn("不会启动核查或正式任务", tools["notify_team"]["description"])

@@ -1,6 +1,6 @@
 # 团队基础设施实现契约
 
-2026-11-18，v1.4。需求依据为 D18～D40、专题 v0.9 及六条已批准的运行政策 P01～06。D40 增加分开的群聊操作和按工作启用的派工审批。早期修复见[修改反馈](acceptance_fix_feedback_20261117.md)。
+2026-11-18，v1.5。需求依据为 D18～D40、专题 v0.9 及六条已批准的运行政策 P01～06。D40 增加分开的群聊操作和按工作启用的派工审批。v1.5 补齐交接与当前任务收尾、未知动作的事实展示及恢复。早期修复见[修改反馈](acceptance_fix_feedback_20261117.md)。
 
 ## 1. 组件与事实边界
 
@@ -79,7 +79,7 @@ Python `team_worker → team_turns → team_client` 通过内部 HTTP 协议领�
 
 operation 包含 context、heartbeat、checkpoint、sandbox、command、action、action-result、finish、late-result。动作先持久意图后外部执行；响应及完整工具调用 ID 先保存检查点，逐调用保存结果。已成功动作从 receipt 回放；未知动作不盲目重放。
 
-失租且存在 dispatched/unknown 动作转 needs_reconciliation；没有未决副作用才允许重新领取并增加 fence。旧 fence 不能修改当前事实；晚到结果仅追加未核实 lateReports，不能推进任务。人须核查外部请求是否结束及真实结果、用量，再明确记录证据；原始结果不改成伪造成功。
+失租且存在 dispatched/unknown 动作转 needs_reconciliation。运行、任务和关联集成都展示待核实事实。没有未决副作用才允许重新领取并增加 fence。旧 fence 不能修改当前事实，晚到结果保存为核实依据。人核查外部请求是否结束及真实结果和用量后，可明确记录结论。任务仍为暂停，明确恢复后才调度新代次。已核实的旧集成记录原样保留，项目基线保持原值。需要继续集成时，用户或员工明确发出新集成请求，由当前目标与实际检查决定是否应用。真实集成结果须由对应的执行实例记录，单独的集成工作保留源任务已完成的事实。
 
 任务generation（默认1）区别于配置revision和租约fence。决定明确或任务显式重排后使用新generation，旧工作不能再发模型/工具或改当前任务，仍可落已发请求的真实回执。PG领取校验当前generation，且同任务turn不能并发、不能绕过旧未决动作。每用户聚合锁内检查当前代次是否已有queued/running/paused/needs_reconciliation工作；暂停中答复只保留queued意图，人工恢复后补齐缺失工作，重复恢复不重派。保存事务也补齐已就绪任务，不把queued标签当作已有执行。旧paused代次不自动重放；正常人工暂停的原代次继续用原检查点恢复。
 
@@ -92,6 +92,8 @@ operation 包含 context、heartbeat、checkpoint、sandbox、command、action�
 暂停/停止独立提交，模型流在控制到达后取消；已发出的外部工具请求不会被假称撤销，仍等回执或标未知。finish 以真实未决 action 判定，而非信任 Worker 的 done。运行时沙箱清理器同时识别 V1 会话和 team_jobs 所属资源。沙箱 TTL 后连接可能失败，持久 bundle 仍可恢复代码；未归档临时文件及模型内部状态不保证跨资源销毁恢复。
 
 complete_task模型工具可带可选artifact（字段同record_artifact），由Python以稳定callId派生两个requestKey顺序提交artifact.save与run.complete。保存失败不提出完成；完成校验失败保留报告，重放复用原请求结果。每次模型意图预留后刷新context，将run.calls/limits/state传入system；调用上限为run所有协作员工共享，包含本次已预留请求，不承诺还有下一轮。它不是跨命令原子事务，也不会按文本或产物存在自动完成；旧空参数兼容。详见[收尾修复与验证](completion_fix_feedback_20261118.md)。
+
+当前任务收尾还可带一项 assign 正式派工或 review 核查邀请。执行器先保存显式提交的证据，再提交交接，收到成功回执后提出完成。派工和核查保留独立身份及许可校验。若交接已提交但完成状态未确认，回执仍包含实际交接结果。重放沿用各步骤的稳定请求键。未配置限额的在途工作按平台既有默认值 25 次、900 秒装配模型请求，配置了限额的工作沿用该运行的限额。
 
 同一模型响应明确包含 `ask_superior` 时，执行器在提交前识别依赖该决定的派工、恢复、集成和完成。证据保存、纯通知及已声明的独立派工沿用现有范围。同一响应把新报告放入 `complete_task.artifact` 时，只将提交的新报告先保存，再执行上报，保持任务待决。工具回执使用原调用 ID 和幂等请求键。跨响应的硬阻断取决于已存在的决定或另一项明确可执行的先决条件。详见[持续回归记录](closure_20261118.md)。
 

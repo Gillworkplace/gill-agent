@@ -8,7 +8,7 @@
 
 模型用 `notify_team` 发通知和意见、`request_peer_review` 邀请核查、`assign_task` 正式派工。旧员工 `team_message` 聊天请求按通知收件，重放保留原请求参数和标识。用户启用派工审批时，以当前上下文和网关为准，主任务用 `ask_superior(dispatchApproval=true)` 发起许可申请。模型预留后读取共享运行调用数和上限。实际外部回执与模型判断分开注入。
 
-`archive_document` 归档当前关联项目的文档。`complete_task` 可携带 `artifact` 最终报告，先保存再请求完成，使用稳定请求标识支持重放。失败保留成果，网关继续拦截暂停、未决问题和未知动作。已有合格成果可用空参数提交完成。
+`archive_document` 归档当前关联项目的文档。`complete_task` 可携带 `artifact` 最终报告，以及一项 `assign` 派工或 `review` 核查。执行器依次保存证据、提交交接、提出完成，并使用稳定请求标识支持重放。完成未确认时仍返回已经提交的交接回执。已有合格成果可用空参数提交完成。
 
 任务代次与依赖等待由网关校验，Worker按heartbeat停止新调用，在途结果继续回存。
 

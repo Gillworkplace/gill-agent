@@ -353,6 +353,49 @@ class TeamTurn:
             return "employeeId" in args or args.get("state") in {"queued", "completed"}
         return name in {"complete_task", "request_integration"}
 
+    async def send_peer_review(self, args: dict, identifier: str) -> dict:
+        """
+        Publish a targeted review request in the current task context.
+
+        :param args: Review text, employee ID and optional reply message ID.
+        :param identifier: Stable review request identity.
+        :returns: Committed message id (str), intent (str) and recipient count (int).
+        """
+        review = {"text": args["text"], "mentions": [args["employeeId"]], "intent": "review"}
+        if "replyTo" in args:
+            review["replyTo"] = args["replyTo"]
+        return await self.command("message.send", review, identifier)
+
+    async def complete(self, identifier: str, args: dict) -> dict:
+        """
+        Commit submitted evidence and explicit handoff before ending this task.
+
+        :param identifier: Persisted model tool call ID.
+        :param args: Completion parameters with optional artifact and one assign or review request.
+        :returns: Completion id (str) and state (str), or a handoff receipt (dict),
+            completion status (str) and error (str) when completion is unconfirmed.
+        """
+        if set(args) - {"artifact", "assign", "review"} or {"assign", "review"} <= args.keys():
+            raise ValueError("Completion can include one explicit assign or review request")
+        if any(not isinstance(args[key], dict) for key in {"assign", "review"} & args.keys()):
+            raise ValueError("Completion assign and review arguments must be objects")
+        if "artifact" in args:
+            await self.save_tool_report(identifier, args["artifact"])
+        handoff = None
+        if "assign" in args:
+            handoff = await self.command("task.assign", args["assign"], identifier + "-handoff")
+        if "review" in args:
+            handoff = await self.send_peer_review(args["review"], identifier + "-handoff")
+        try:
+            result = await self.command("run.complete", {}, identifier)
+        except (httpx.HTTPError, ValueError) as error:
+            if handoff is None:
+                raise
+            return {"handoff": handoff, "completion": "unconfirmed", "error": str(error)[:1200]}
+        if handoff is not None:
+            result["handoff"] = handoff
+        return result
+
     async def dispatch(self, call: dict) -> dict:
         """
         Dispatch only registered domain commands or isolated tools.
@@ -361,9 +404,8 @@ class TeamTurn:
         :returns: Actual command/tool result dictionary.
         """
         name, args = call["name"], call["arguments"]
-        if name == "complete_task" and "artifact" in args:
-            await self.save_tool_report(call["id"], args["artifact"])
-            return await self.command("run.complete", {}, call["id"])
+        if name == "complete_task":
+            return await self.complete(call["id"], args)
         if name == "ask_superior" and "evidence" in args:
             evidence = args["evidence"]
             attempts = args.get("attempts", [])
@@ -383,10 +425,7 @@ class TeamTurn:
                 return await self.command("message.send", notice, call["id"])
             return await self.command("message.send", {**notice, "intent": "notify"}, call["id"])
         if name == "request_peer_review":
-            review = {"text": args["text"], "mentions": [args["employeeId"]], "intent": "review"}
-            if "replyTo" in args:
-                review["replyTo"] = args["replyTo"]
-            return await self.command("message.send", review, call["id"])
+            return await self.send_peer_review(args, call["id"])
         if name in ACTION_NAMES:
             result = await self.command(ACTION_NAMES[name], args, call["id"])
             if name == "record_review":

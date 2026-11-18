@@ -31,8 +31,9 @@ final class RuntimePolicy {
         ObjectNode task=TaskAdoption.createTask(s,tid,target,required(p,"goal"),parent,p);
         TaskFlow.recordDispatchDependencies(s,task,parent,p);
         enqueue(s,node("kind","turn","teamId",tid,"employeeId",target,"taskId",text(task,"id"),"runId",text(task,"runId")));
-        message(s,tid,a.type(),a.id(),"安排 "+text(get(s,"employees",target),"name")+"："+text(task,"goal"),"assignment").put("taskId",text(task,"id"));
-        return node("id",text(task,"id"));
+        ObjectNode notice=message(s,tid,a.type(),a.id(),"安排 "+text(get(s,"employees",target),"name")+"："+text(task,"goal"),"assignment");
+        notice.put("taskId",text(task,"id")).put("runId",text(task,"runId"));
+        return node("id",text(task,"id"),"messageId",text(notice,"id"));
     }
     private static ObjectNode update(ObjectNode s,TeamActor a,ObjectNode p) {
         ObjectNode task=get(s,"tasks",required(p,"taskId"));TaskAccess.authorize(s,a,task);
@@ -54,6 +55,8 @@ final class RuntimePolicy {
         }
         if(state.equals("queued")&&!text(task,"state").equals("queued")) {
             if(!TaskFlow.blockingDecision(s,task).isBlank())throw new IllegalArgumentException("DEPENDENCY_UNRESOLVED: 相关事项等待明确决定");
+            ObjectNode run=get(s,"runs",text(task,"runId"));
+            if(text(run,"state").equals("paused")&&!run.path("manualPaused").asBoolean())run.put("state","active");
             task.put("generation",TaskFlow.generation(task)+1);
             enqueue(s,node("kind","turn","teamId",text(task,"teamId"),"employeeId",text(task,"employeeId"),"taskId",text(task,"id"),"runId",text(task,"runId")));
         }

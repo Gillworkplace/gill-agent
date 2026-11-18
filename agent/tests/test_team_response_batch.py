@@ -68,6 +68,36 @@ class ResponseBatchTests(unittest.IsolatedAsyncioTestCase):
                                     ("issue.escalate", {**inputs, "attempts": ["已归档依据：Evidence（report，v1）"]}, "question")])
         self.assertEqual(result["evidenceArtifactId"], "report")
 
+    async def test_explicit_handoff_can_be_completed_using_one_model_response(self) -> None:
+        self.turn.command = AsyncMock(side_effect=[{"id": "report"}, {"id": "child"}, {"state": "completed"}])
+        report = {"title": "Report", "content": "Verified result", "unchecked": "Synthetic"}
+        handoff = {"employeeId": "peer", "goal": "Apply the approved correction", "decisionId": "approved"}
+        result = await self.turn.dispatch({"id": "final", "name": "complete_task",
+                                           "arguments": {"artifact": report, "assign": handoff}})
+        self.assertEqual([item.args for item in self.turn.command.await_args_list], [
+            ("artifact.save", report, "final-artifact"),
+            ("task.assign", handoff, "final-handoff"),
+            ("run.complete", {}, "final"),
+        ])
+        self.assertEqual(result["handoff"]["id"], "child")
+
+    async def test_failed_review_handoff_leaves_original_task_unfinished(self) -> None:
+        self.turn.command = AsyncMock(side_effect=[{"id": "report"}, ValueError("review was not sent")])
+        report = {"title": "Report", "content": "Verified result", "unchecked": "Synthetic"}
+        handoff = {"employeeId": "peer", "text": "Check saved revision 2"}
+        with self.assertRaisesRegex(ValueError, "review was not sent"):
+            await self.turn.dispatch({"id": "final", "name": "complete_task",
+                                      "arguments": {"artifact": report, "review": handoff}})
+        self.assertEqual([item.args[0] for item in self.turn.command.await_args_list], ["artifact.save", "message.send"])
+
+    async def test_failed_completion_reports_the_handoff_that_already_happened(self) -> None:
+        self.turn.command = AsyncMock(side_effect=[{"id": "child"}, ValueError("missing evidence")])
+        result = await self.turn.dispatch({"id": "final", "name": "complete_task", "arguments": {
+            "assign": {"employeeId": "peer", "goal": "Apply correction"}}})
+        self.assertEqual(result["handoff"]["id"], "child")
+        self.assertEqual(result["completion"], "unconfirmed")
+        self.assertIn("missing evidence", result["error"])
+
     async def test_new_report_is_preserved_even_if_combined_completion_follows_escalation(self) -> None:
         self.turn.command = AsyncMock(return_value={"id": "committed"})
         report = {"title": "Report", "content": "Evidence", "unchecked": "External data"}

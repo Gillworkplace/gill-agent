@@ -52,3 +52,4 @@ Python `agent/tests/acceptance_network_probe.py`仅新建/清理自己的连通�
 reacceptance-results-ui.mjs按ACCEPTANCE_MODEL_FIXTURES只读查看实际模型结果；界面正确显示失败不等于业务通过。reacceptance-extra-ui.mjs查看真实额外模型产物。reacceptance-native-drag.mjs读取本轮3员工专用账户文件gill-reacceptance-drag-accounts.json，用原生CDP鼠标事件并检查可信drag/drop及保存，非手工派发DragEvent；手机物理拖动不在该设施覆盖范围。
 
 Python reacceptance_git_sources.py读取本轮匿名代码快照及输出路径，经TeamSandbox重连两个源，检查分支/commit/各自文件及功能；用agent/.venv和已有配置。Git页面须等负例实际检查结束后运行，首次提前等待超时保留。所有实际结果与测试设施修正见[再次验收](../../../../docs/features/digital-employee-team/reacceptance_20261118.md)，不修改产品实现来换取通过。
+完整回归使用独立测试库。full-closure-models.mjs 准备模型任务，full-closure-verify-models.mjs 验证实际审批后收尾与空白项目集成。full-closure-adoption.mjs 验证真实配置建议、人明确采用、重规划和跨团队派生边界。full-closure-boundaries.mjs 验证并行文档归档。full-closure-browser.mjs 验证真实浏览器生成及采用模板，也能查看隔离账号的云端未知状态和真实检查证据。模型任务和模拟领取使用各自的工作队列。调用及断连记录见专题 full_acceptance_20261118.md。

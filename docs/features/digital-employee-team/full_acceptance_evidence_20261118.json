@@ -1,0 +1,1479 @@
+{
+  "images": {
+    "modelWorker": "sha256:68c19a631f9e2db215b4e4c7657f1b1eb00e9a83877c247b0e83ad27dc35d27b",
+    "modelGateway": "sha256:482b39c121f76372e1737dec3dcdf116865417eb42b00e2e3a780728f4b5c468",
+    "faultGateway": "sha256:7cf129d1f571577d544b2b7070d288f95c6d00513d5f3dc4d37271a5c66323a4"
+  },
+  "historical": [
+    {
+      "case": "approval-closeout",
+      "task": "4aeab80f-70f1-4d61-8b4b-f01ee3501c09",
+      "runId": "f6b72006-97e6-4037-9910-b0a04a640b1d",
+      "runState": "waiting",
+      "calls": 8,
+      "tasks": [
+        {
+          "id": "4aeab80f-70f1-4d61-8b4b-f01ee3501c09",
+          "state": "completed",
+          "purpose": "work",
+          "receipts": [
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "ask_superior"
+              ]
+            },
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "assign_task"
+              ]
+            },
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "notify_team"
+              ]
+            },
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "notify_team"
+              ]
+            },
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "complete_task"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "5e8d1196-7eae-4873-b3c8-8d13b9ef169a",
+          "state": "blocked",
+          "purpose": "review"
+        },
+        {
+          "id": "f3085488-ed74-4f4c-94bb-f52531f2446f",
+          "state": "completed",
+          "purpose": "work",
+          "receipts": [
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "record_artifact"
+              ]
+            },
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "request_peer_review"
+              ]
+            },
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "complete_task"
+              ]
+            }
+          ]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "1fcb0216-b1ba-4341-b3eb-2906ae7d2b6f",
+          "state": "applied",
+          "path": [
+            "13bdb1b2-5ac6-49bd-a7e7-48e7cb189ed6"
+          ],
+          "handler": "user",
+          "approved": true
+        }
+      ],
+      "checks": [],
+      "codeVersions": []
+    },
+    {
+      "case": "hierarchy-direct",
+      "task": "064beedc-7a23-457c-8a71-9074729b382a",
+      "runId": "ee03e8ce-256f-43fe-92e2-a5780692245f",
+      "runState": "completed",
+      "calls": 3,
+      "tasks": [
+        {
+          "id": "064beedc-7a23-457c-8a71-9074729b382a",
+          "state": "completed",
+          "purpose": "work",
+          "receipts": [
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "ask_superior"
+              ]
+            },
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "complete_task"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fd144232-b3a6-436e-a2a3-4cacb36a92e9",
+          "state": "completed",
+          "purpose": "work",
+          "receipts": [
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "respond_decision"
+              ]
+            }
+          ]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "48fe251d-97e3-4cb2-a55b-98ca9d428e2b",
+          "state": "applied",
+          "path": [
+            "944bd5dd-7865-4513-9e84-87db2b920a22"
+          ],
+          "handler": "af729fcf-97ae-4796-92d2-b24a56065e56"
+        }
+      ],
+      "checks": [],
+      "codeVersions": []
+    },
+    {
+      "case": "hierarchy-upper",
+      "task": "640015ee-d79f-47af-941c-8697e26833a8",
+      "runId": "aa301b73-bf3a-4127-aa2d-e38f64dc6259",
+      "runState": "completed",
+      "calls": 4,
+      "tasks": [
+        {
+          "id": "1ec9a0d3-d9b4-4778-929b-a6f69483a6f6",
+          "state": "completed",
+          "purpose": "work",
+          "receipts": [
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "respond_decision"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "640015ee-d79f-47af-941c-8697e26833a8",
+          "state": "completed",
+          "purpose": "work",
+          "receipts": [
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "ask_superior"
+              ]
+            },
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "complete_task"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "692e1fc0-7e5a-42ad-b499-11bb66a04657",
+          "state": "completed",
+          "purpose": "work",
+          "receipts": [
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "record_review",
+                "respond_decision"
+              ]
+            }
+          ]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "c7359931-b672-46a0-953f-66a860613f48",
+          "state": "applied",
+          "path": [
+            "1b877ed8-b75b-4cd3-a41f-220794c05776",
+            "3e883424-4327-4cda-a443-aeddfe571a91"
+          ],
+          "handler": "1dd60868-3f48-4747-a5f1-3d1b765bbfad"
+        }
+      ],
+      "checks": [
+        {
+          "artifact": "12b2823c-c201-4a93-87e5-360f79d5e5b4",
+          "revision": 1,
+          "result": "核查结论：该核算报告作为上报依据成立，可据此逐级上报决策。1) 来源事实部分准确：本任务确无挂载知识源（knowledgeIds为空），本轮确无任何外部执行回执，报告均如实披露，无虚构；2) 方案A/方案B对比明确标注为推断，未冒充事实，符合“区分来源事实与推断”要求；3) 问题描述与两个选项（方案A仅已核实资料、方案B含待核实资料并标注复核）表述完整、互斥、含影响说明；4) 报告未代替任何人拍板，明确等待上级决定，符合逐级升级流程。"
+        }
+      ],
+      "codeVersions": []
+    },
+    {
+      "case": "hierarchy-human",
+      "task": "b57144e1-7248-4d70-b4ec-fe30b2a01d3b",
+      "runId": "a251122d-56f9-421b-b397-fd5f60169b63",
+      "runState": "completed",
+      "calls": 7,
+      "tasks": [
+        {
+          "id": "0329db18-6a9e-4a83-bd85-cc1f91c514f7",
+          "state": "completed",
+          "purpose": "work",
+          "receipts": [
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "search_knowledge"
+              ]
+            },
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "shell"
+              ]
+            },
+            {
+              "kind": "shell",
+              "state": "succeeded",
+              "exit": 0
+            },
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "record_artifact"
+              ]
+            },
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "ask_superior"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "827e7594-25af-40c3-a31c-a9c00899dc1a",
+          "state": "completed",
+          "purpose": "work",
+          "receipts": [
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "respond_decision"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "b57144e1-7248-4d70-b4ec-fe30b2a01d3b",
+          "state": "completed",
+          "purpose": "work",
+          "receipts": [
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "ask_superior"
+              ]
+            },
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "complete_task"
+              ]
+            }
+          ]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "dad13ef8-db02-4ea8-88d6-7d4aed71a540",
+          "state": "applied",
+          "path": [
+            "1251e8b1-4deb-4e3d-949a-44f96daf0d0b",
+            "207cbb65-7dd7-4aeb-afca-2c573fd705db",
+            "64694bd6-7ef2-491b-8330-76dc26577da4"
+          ],
+          "handler": "user"
+        }
+      ],
+      "checks": [],
+      "codeVersions": []
+    },
+    {
+      "case": "blank-code",
+      "task": "52d9d163-7102-43b2-b9de-de5e3d3b0b6c",
+      "runId": "a7f697e7-2b39-43d7-972b-fdd0edf4c86e",
+      "runState": "needs_reconciliation",
+      "calls": 1,
+      "tasks": [
+        {
+          "id": "52d9d163-7102-43b2-b9de-de5e3d3b0b6c",
+          "state": "needs_reconciliation",
+          "purpose": "work",
+          "receipts": [
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "file_write"
+              ]
+            },
+            {
+              "kind": "file_write",
+              "state": "unknown"
+            }
+          ]
+        }
+      ],
+      "decisions": [],
+      "checks": [],
+      "codeVersions": []
+    },
+    {
+      "case": "knowledge-derivative",
+      "task": "64a439ce-c7b7-4cde-9798-2e8bd39c63e8",
+      "runId": "f18935b4-9847-4203-8689-ca04e7f1b205",
+      "runState": "completed",
+      "calls": 3,
+      "tasks": [
+        {
+          "id": "64a439ce-c7b7-4cde-9798-2e8bd39c63e8",
+          "state": "completed",
+          "purpose": "work",
+          "receipts": [
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "search_knowledge",
+                "revise_template"
+              ]
+            },
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "record_artifact"
+              ]
+            },
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "complete_task"
+              ]
+            }
+          ]
+        }
+      ],
+      "decisions": [],
+      "checks": [],
+      "codeVersions": []
+    }
+  ],
+  "firstRetest": [
+    {
+      "case": "approval-closeout",
+      "task": "362aca1e-9ecd-4a94-8ee5-59571692bd65",
+      "runId": "189b479c-56ea-4727-a046-e1aa6ed442f2",
+      "runState": "completed",
+      "calls": 8,
+      "tasks": [
+        {
+          "id": "362aca1e-9ecd-4a94-8ee5-59571692bd65",
+          "state": "completed",
+          "purpose": "work",
+          "receipts": [
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "ask_superior"
+              ]
+            },
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "complete_task"
+              ]
+            },
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "assign_task"
+              ]
+            },
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "complete_task"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "7ade65ea-e846-49a6-a208-3b3f70fb121e",
+          "state": "completed",
+          "purpose": "work",
+          "receipts": [
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "record_artifact"
+              ]
+            },
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "request_peer_review"
+              ]
+            },
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "complete_task"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "d66e3e18-037a-45ac-959a-57a1cdc698eb",
+          "state": "completed",
+          "purpose": "review",
+          "receipts": [
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "record_review",
+                "notify_team",
+                "complete_task"
+              ]
+            }
+          ]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "80b6c867-1dd7-46e7-b80f-d4229cb74392",
+          "state": "applied",
+          "path": [
+            "7baffad8-4c66-41b0-990a-3c871822e536"
+          ],
+          "handler": "user",
+          "approved": true
+        }
+      ],
+      "checks": [
+        {
+          "artifact": "bea41fb3-c012-4291-be20-f92bc9d0d5e6",
+          "revision": 2,
+          "result": "通过。实际新版v2（revision 2）期末数量90件正确：按确认合成资料独立核算期初100 + 入库20 − 出库30 = 90件，与修订后数字及核算报告36c1cc83-1678-4640-b6dd-39994a45a38d v1结论一致。改动范围正确：仅期末数由95件改为90件一项，期初100、入库20、出库30、无额外调整等口径保持不变，符合用户许可决定80b6c867-1dd7-46e7-b80f-d4229cb74392的修正范围。依据链（核算报告v1、许可决定）引用属实。v2可作为最终确认版本。"
+        }
+      ],
+      "codeVersions": []
+    },
+    {
+      "case": "blank-code",
+      "task": "fa6f0b2c-ea0a-444e-ab19-41b4bb8eb558",
+      "runId": "b098d6ca-6f04-4056-861d-ba69f2232622",
+      "runState": "active",
+      "calls": 5,
+      "tasks": [
+        {
+          "id": "fa6f0b2c-ea0a-444e-ab19-41b4bb8eb558",
+          "state": "awaiting_followup",
+          "purpose": "work",
+          "receipts": [
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "file_write"
+              ]
+            },
+            {
+              "kind": "file_write",
+              "state": "succeeded"
+            },
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "shell"
+              ]
+            },
+            {
+              "kind": "shell",
+              "state": "succeeded",
+              "exit": 0
+            },
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "save_version"
+              ]
+            },
+            {
+              "kind": "save_version",
+              "state": "succeeded",
+              "exit": 0
+            },
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "archive_document"
+              ]
+            },
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "complete_task"
+              ]
+            },
+            {
+              "kind": "git.integrate",
+              "state": "succeeded",
+              "exit": 0
+            }
+          ]
+        }
+      ],
+      "decisions": [],
+      "checks": [
+        {
+          "artifact": "e7f4f7c5-6655-4403-83b1-7a93ef9083c1",
+          "revision": 1,
+          "result": "模型意见：通过（主观判断，按任务指示记录，非实测结论）"
+        }
+      ],
+      "codeVersions": [
+        "8ef988a825efbffd3ea6017b997e5ec47f26a21c"
+      ]
+    }
+  ],
+  "compactHandoffRetest": [
+    {
+      "case": "approval-closeout",
+      "task": "db8d91d9-079f-4027-af56-b3668b150e0c",
+      "runId": "f65c3dbe-c4b5-4a62-a4c3-2944faf66449",
+      "runState": "completed",
+      "calls": 5,
+      "tasks": [
+        {
+          "id": "a089d65d-0754-4e01-9d43-72ad8c9c2864",
+          "state": "completed",
+          "purpose": "work",
+          "receipts": [
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "record_artifact"
+              ]
+            },
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "complete_task"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "db8d91d9-079f-4027-af56-b3668b150e0c",
+          "state": "completed",
+          "purpose": "work",
+          "receipts": [
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "ask_superior"
+              ]
+            },
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "complete_task"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "ef6cef42-dce0-48cb-90f0-3b4e244aa8dd",
+          "state": "completed",
+          "purpose": "review",
+          "receipts": [
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "record_review",
+                "notify_team",
+                "complete_task"
+              ]
+            }
+          ]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "8c1345c8-03c7-47cb-9590-4a3794442b22",
+          "state": "applied",
+          "path": [
+            "103d4f3c-cc4a-445d-ac4f-b0b1cecf2103"
+          ],
+          "handler": "user",
+          "approved": true
+        }
+      ],
+      "checks": [
+        {
+          "artifact": "173ed0f7-4523-43c2-8da1-1127240bad3e",
+          "revision": 2,
+          "result": "复核通过。1) 期末库存 90 件核算正确：期初 100 + 入库 20 − 出库 30 = 90，无额外调整，与归档核算产物 eaa03c3e-ea44-4adb-abcc-936f0f49959a v1 结论一致；2) 修订范围：v2 全文显示期初 100、入库 20、出库 30 维持原记载，修订仅限期末数量（95→90）及核算说明，与员工0工作报告 9638086d v1 一致；3) 历史版本保留：产物以版本化方式更新（expectedRevision=1 → revision 2），v1 作为历史版本保留未覆盖。"
+        }
+      ],
+      "codeVersions": []
+    }
+  ],
+  "finalModel": {
+    "earlier": [
+      {
+        "mode": "blank-code",
+        "passed": true,
+        "task": "be72adbc-ecb3-44f9-ad1c-e1ed5fea02d6",
+        "calls": 7,
+        "version": "ca16b43651fb81af78b2fe43c023e3573f468379",
+        "artifact": "f3f9954e-f9d4-4e45-b026-cbdb1471f919",
+        "integration": "4f6cda4d-2ed0-460e-80ba-933b3d36bdcd",
+        "baseline": "234057074e07f78e6015bbdf16d96efd04f96bb2",
+        "actualCheck": 0
+      },
+      {
+        "mode": "approval-closeout",
+        "passed": true,
+        "run": "97e22e45-d979-47ba-9564-19c1534619f0",
+        "calls": 5,
+        "taskStates": [
+          "completed",
+          "completed",
+          "completed"
+        ],
+        "decision": "90e7f6e7-80fb-4b7b-a2b6-df472eef60d4",
+        "source": "0c19365f-af2b-4b84-852f-66a3744e9e79",
+        "revision": 2,
+        "review": "ddc38951-3e82-4ded-9c8a-5806247bd405",
+        "finalReport": "14e742a4-d673-488a-afd5-61e4520a9d8e"
+      }
+    ],
+    "pending": [
+      {
+        "decision": "90e7f6e7-80fb-4b7b-a2b6-df472eef60d4",
+        "preApprovalCalls": 1,
+        "preApprovalTasks": 1,
+        "originalRevision": 1
+      }
+    ]
+  },
+  "authorityAndKnowledge": [
+    {
+      "case": "authority-replan",
+      "task": "5ecaab42-fe25-473b-a53b-47df520e982a",
+      "runId": "175b92ac-6cbf-40c0-a25a-e2624cb724c2",
+      "runState": "completed",
+      "calls": 3,
+      "tasks": [
+        {
+          "id": "5ecaab42-fe25-473b-a53b-47df520e982a",
+          "state": "completed",
+          "purpose": "work",
+          "receipts": [
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "complete_task"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "67608931-3471-4256-9303-c34352b6230a",
+          "state": "completed",
+          "purpose": "work",
+          "receipts": [
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "search_knowledge"
+              ]
+            },
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "complete_task"
+              ]
+            }
+          ]
+        }
+      ],
+      "decisions": [],
+      "checks": [],
+      "codeVersions": []
+    },
+    {
+      "case": "no-cross-team-derivative",
+      "task": "34df73ca-ae99-41f2-8695-2a885b6a2a2c",
+      "runId": "e9eb20b2-8c49-4107-9685-eaab6e1b3027",
+      "runState": "completed",
+      "calls": 2,
+      "tasks": [
+        {
+          "id": "34df73ca-ae99-41f2-8695-2a885b6a2a2c",
+          "state": "completed",
+          "purpose": "work",
+          "receipts": [
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "search_knowledge"
+              ]
+            },
+            {
+              "kind": "model",
+              "state": "succeeded",
+              "tools": [
+                "complete_task"
+              ]
+            }
+          ]
+        }
+      ],
+      "decisions": [],
+      "checks": [],
+      "codeVersions": []
+    }
+  ],
+  "api": [
+    {
+      "id": "A01-identities-and-authority",
+      "ac": [
+        "AC-11",
+        "AC-17",
+        "AC-26",
+        "AC-34"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T04:40:11.772Z",
+      "details": {
+        "attempts": [
+          {
+            "kind": "knowledge.save",
+            "status": 403
+          },
+          {
+            "kind": "employee.create",
+            "status": 403
+          },
+          {
+            "kind": "team.update",
+            "status": 403
+          },
+          {
+            "kind": "message.send",
+            "status": 403
+          }
+        ],
+        "crossUserStatus": 403,
+        "employeeIds": [
+          "ea3c70b4-d1d0-4dc0-bddc-7f8176f43590",
+          "1e612c4e-165f-4c47-9641-2d8aed1aff7e",
+          "a6cba503-9f2c-4213-ad38-4d75e2db15fb"
+        ]
+      },
+      "finishedAt": "2026-11-18T04:40:12.162Z"
+    },
+    {
+      "id": "A02-definition-CAS-and-tree",
+      "ac": [
+        "AC-06",
+        "AC-16",
+        "AC-30"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T04:40:12.166Z",
+      "details": {
+        "concurrentStatuses": [
+          200,
+          409
+        ],
+        "cycleStatus": 400,
+        "teamId": "d253d9ed-68a0-4b19-8973-932e9f9fd315"
+      },
+      "finishedAt": "2026-11-18T04:40:12.356Z"
+    },
+    {
+      "id": "A03-knowledge-and-task-snapshots",
+      "ac": [
+        "AC-06",
+        "AC-12",
+        "AC-26",
+        "AC-27",
+        "AC-29"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T04:40:12.359Z",
+      "details": {
+        "source": "3f3d6cb1-65dc-4b14-9e79-757636414e26",
+        "readRevisions": [
+          1,
+          2
+        ],
+        "unmountedSources": 0,
+        "history": 2
+      },
+      "finishedAt": "2026-11-18T04:40:12.588Z"
+    },
+    {
+      "id": "A04-template-adoption-and-conflict",
+      "ac": [
+        "AC-19",
+        "AC-28",
+        "AC-29"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T04:40:12.591Z",
+      "details": {
+        "taskVersions": [
+          1,
+          2,
+          2
+        ],
+        "templateRevision": 3,
+        "iterationSource": {
+          "id": "462923df-a047-4b89-b5e7-806b19e80743",
+          "name": "自迭代候选",
+          "prompt": "模板v3不同规则",
+          "reason": "发现可改进的工作方式",
+          "skills": [],
+          "draftId": "",
+          "authorId": "4e31e3e8-8a89-4fa4-b9cb-9113934fe520",
+          "revision": 3,
+          "updatedAt": "2026-11-18T04:40:12.784985885Z",
+          "authorType": "employee",
+          "originTeamId": "1ee9df21-c234-439e-aeb6-dd0fabeaaf29",
+          "authorizedTeamIds": [
+            "1ee9df21-c234-439e-aeb6-dd0fabeaaf29"
+          ]
+        }
+      },
+      "finishedAt": "2026-11-18T04:40:12.808Z"
+    },
+    {
+      "id": "A05-project-documents-and-agent-archiving",
+      "ac": [
+        "AC-22"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T04:40:12.810Z",
+      "details": {
+        "project": "79158fdf-06dc-4fa6-8ed8-0d20e2be2190",
+        "doc": "2529ae36-c1c2-4fd5-8cd1-a094fe3f527e"
+      },
+      "finishedAt": "2026-11-18T04:40:12.977Z"
+    },
+    {
+      "id": "B01-multiple-superiors-and-human",
+      "ac": [
+        "AC-09",
+        "AC-10",
+        "AC-31"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T04:40:13.019Z",
+      "details": {
+        "path": [
+          "1e74360e-5231-46ed-9482-9b742c66db23",
+          "7b104013-3b5f-425f-8560-9fa7d10795d2",
+          "d61b651b-5bf4-4937-bda8-3656b7f64c53"
+        ],
+        "sourceTask": "16a14fb9-2f54-47bd-9e6c-6db1158423ed",
+        "decision": "6aa4a71d-5bb2-4c99-ac1c-2d54b6c04a99",
+        "handlerBeforeAnswer": "user"
+      },
+      "finishedAt": "2026-11-18T04:40:13.233Z"
+    },
+    {
+      "id": "B02-answer-during-human-pause-then-resume",
+      "ac": [
+        "AC-07",
+        "AC-09",
+        "AC-16",
+        "AC-31"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T04:40:13.235Z",
+      "details": {
+        "taskId": "6b512e2c-1ce1-43d9-9021-e8678b0cb74f",
+        "resumedJob": "3a72e538-30de-4577-917d-f98b409dd37d"
+      },
+      "finishedAt": "2026-11-18T04:40:13.399Z"
+    },
+    {
+      "id": "B03-stale-decision-cannot-revive-cancelled-task",
+      "ac": [
+        "AC-10",
+        "AC-16",
+        "AC-31"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T04:40:13.402Z",
+      "details": {
+        "status": 409,
+        "taskState": "cancelled"
+      },
+      "finishedAt": "2026-11-18T04:40:13.566Z"
+    },
+    {
+      "id": "B04-unknown-actions-fences-and-reconciliation",
+      "ac": [
+        "AC-05",
+        "AC-07",
+        "AC-16",
+        "AC-32"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T04:40:13.569Z",
+      "details": {
+        "unknownState": "needs_reconciliation",
+        "staleStatus": 409,
+        "lateState": "recorded-not-applied",
+        "taskState": "paused"
+      },
+      "finishedAt": "2026-11-18T04:40:13.746Z"
+    },
+    {
+      "id": "B05-review-must-reference-existing-artifact-version",
+      "ac": [
+        "AC-04",
+        "AC-32"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T04:40:13.749Z",
+      "details": {
+        "status": 409
+      },
+      "finishedAt": "2026-11-18T04:40:13.924Z"
+    },
+    {
+      "id": "B06-invalid-superior-must-report-configuration-exception",
+      "ac": [
+        "AC-09",
+        "AC-10"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T04:40:13.926Z",
+      "details": {
+        "decisionId": "f1dde9c7-0804-4270-a94c-f4718be5f780"
+      },
+      "finishedAt": "2026-11-18T04:40:14.090Z"
+    },
+    {
+      "id": "G01-direct-superior-resolves-original-task",
+      "ac": [
+        "AC-09",
+        "AC-10"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T04:40:14.129Z",
+      "details": {
+        "decision": "27e30bbb-5602-4efb-9eb3-59057a6e41fe",
+        "original": "b3e1f7b9-0eb8-4b3e-a997-d645cb0a1cb3",
+        "resumed": "5751a640-f2f6-444c-87af-955bfbc9b1ce"
+      },
+      "finishedAt": "2026-11-18T04:40:14.336Z"
+    },
+    {
+      "id": "G02-reassignment-invalidates-the-old-decision",
+      "ac": [
+        "AC-16",
+        "AC-31"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T04:40:14.338Z",
+      "details": {
+        "oldTask": "7c59211b-2522-41e1-8acb-0a9e4f469ae2",
+        "newTask": "4f9807e1-a3a3-4934-8843-9b2664c84c3c",
+        "lateStatus": 409
+      },
+      "finishedAt": "2026-11-18T04:40:14.519Z"
+    },
+    {
+      "id": "G03-other-task-project-cannot-be-impersonated",
+      "ac": [
+        "AC-22",
+        "AC-11"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T04:40:14.521Z",
+      "details": {
+        "deniedStatus": 403,
+        "document": "a0c1c308-e8c3-434a-8fbe-1466f67fbbd6",
+        "sourceTask": "75877b10-6caf-4d67-9f8b-36270aff8474"
+      },
+      "finishedAt": "2026-11-18T04:40:14.694Z"
+    },
+    {
+      "id": "G04-dependency-wait-independent-work-and-paused-resolution",
+      "ac": [
+        "AC-07",
+        "AC-09",
+        "AC-16",
+        "AC-34"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T04:40:14.702Z",
+      "details": {
+        "decision": "fbacc29f-aa6b-4bdb-b235-d7b617447a78",
+        "relatedTask": "60b50d06-69da-4916-9baf-d77b4acd0134",
+        "independentTask": "2b48389a-2e96-43ee-98cf-493dce2c5160",
+        "held": "paused",
+        "independent": "dispatched",
+        "resumedTasks": [
+          "1f11098b-0e55-4023-a1dd-5585e68abbec",
+          "60b50d06-69da-4916-9baf-d77b4acd0134"
+        ]
+      },
+      "finishedAt": "2026-11-18T04:40:14.930Z"
+    },
+    {
+      "id": "G05-higher-superior-disabled-is-reported",
+      "ac": [
+        "AC-09",
+        "AC-31"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T04:40:14.932Z",
+      "details": {
+        "decision": "d6db9c85-0695-4632-a7d0-6cd6930a3d3d",
+        "invalidSuperior": "934b4079-6353-4921-9b28-99a35aac6091",
+        "handler": "user",
+        "configurationError": "上级配置异常：934b4079-6353-4921-9b28-99a35aac6091 已禁用，已转交用户评估。"
+      },
+      "finishedAt": "2026-11-18T04:40:15.119Z"
+    },
+    {
+      "id": "G06-invalid-review-versions-do-not-pollute-history",
+      "ac": [
+        "AC-04",
+        "AC-32"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T04:40:15.122Z",
+      "details": {
+        "artifact": "f1c87bac-2e5e-4b66-8e5b-24926e2b9a95",
+        "currentRevision": 2,
+        "retainedReviewRevision": 1,
+        "rejected": [
+          {
+            "revision": 0,
+            "status": 400
+          },
+          {
+            "revision": -1,
+            "status": 400
+          },
+          {
+            "revision": 1.5,
+            "status": 400
+          },
+          {
+            "revision": 999,
+            "status": 409
+          }
+        ]
+      },
+      "finishedAt": "2026-11-18T04:40:15.309Z"
+    },
+    {
+      "id": "Y01-cross-team-knowledge-read-through-leased-context",
+      "ac": [
+        "AC-26",
+        "AC-27",
+        "AC-29"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T04:40:15.727Z",
+      "details": {
+        "source": "582e11a4-6081-4201-8d14-2bccf67e1201",
+        "firstRead": 1,
+        "firstAfterUpdate": 2,
+        "secondTeamRead": 2,
+        "unmountedSources": 0
+      },
+      "finishedAt": "2026-11-18T04:40:15.949Z"
+    },
+    {
+      "id": "Y02-derived-template-permission-and-knowledge-copy",
+      "ac": [
+        "AC-27",
+        "AC-28",
+        "AC-29"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T04:40:15.951Z",
+      "details": {
+        "template": "cdb6a60a-d3eb-4779-9edb-17af81b572a7",
+        "deniedCopy": 400,
+        "deniedCrossTeamCreation": 403,
+        "crossTeamReadRevisions": [
+          1,
+          2
+        ],
+        "inheritedKnowledge": 0
+      },
+      "finishedAt": "2026-11-18T04:40:16.160Z"
+    },
+    {
+      "id": "D40-01-cross-turn-notice-and-peer-review",
+      "ac": [
+        "AC-09",
+        "AC-34"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T04:40:16.197Z",
+      "details": {
+        "notice": "2594a778-6006-4db5-8eab-94b4ff028cc2",
+        "review": "d25704de-94c4-47f9-96ea-e7e39b7c2f6b",
+        "decision": "ee3f9f57-01ac-49d1-8837-153c7d7e3edc",
+        "formalRejection": "DEPENDENCY_UNRESOLVED"
+      },
+      "finishedAt": "2026-11-18T04:40:16.392Z"
+    },
+    {
+      "id": "D40-02-only-explicit-human-approval-unlocks-early-dispatch",
+      "ac": [
+        "AC-09",
+        "AC-16",
+        "AC-34"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T04:40:16.399Z",
+      "details": {
+        "decision": "71b28690-c466-4931-a53b-f8a11602c0a5",
+        "task": "96c1b647-dbda-4f08-be6b-2b43f12914c1",
+        "dispatched": "59d94768-482a-4955-99d8-60474de40da2",
+        "deniedActor": 403
+      },
+      "finishedAt": "2026-11-18T04:40:16.629Z"
+    },
+    {
+      "id": "AC23-same-project-document-edits-stay-attributed",
+      "ac": [
+        "AC-16",
+        "AC-22",
+        "AC-23"
+      ],
+      "status": "passed",
+      "startedAt": "2026-11-18T04:40:16.677Z",
+      "details": {
+        "project": "159d8a24-0929-486a-a99a-de788da73d98",
+        "document": "3d35140e-4021-416e-b7a0-e4b7eaeae0ad",
+        "sourceTasks": [
+          "6b8da964-197d-4178-b4ad-f784d7c4590c",
+          "3a4703c4-4213-4691-a51a-51bcdd388654"
+        ],
+        "conflictStatus": 409
+      },
+      "finishedAt": "2026-11-18T04:40:16.878Z"
+    }
+  ],
+  "browser": [
+    {
+      "id": "C01-navigation-and-team-directory",
+      "ac": [
+        "AC-18",
+        "AC-21",
+        "AC-25"
+      ],
+      "status": "passed",
+      "at": "2026-11-18T04:40:20.481Z"
+    },
+    {
+      "id": "C02-tree-drag-select-save-and-mobile",
+      "ac": [
+        "AC-30"
+      ],
+      "status": "passed",
+      "at": "2026-11-18T04:40:22.644Z"
+    },
+    {
+      "id": "C03-per-employee-mount",
+      "ac": [
+        "AC-26",
+        "AC-27"
+      ],
+      "status": "passed",
+      "at": "2026-11-18T04:40:23.929Z"
+    },
+    {
+      "id": "C04-template-preview-and-Skills",
+      "ac": [
+        "AC-01",
+        "AC-19",
+        "AC-20"
+      ],
+      "status": "passed",
+      "at": "2026-11-18T04:40:25.574Z"
+    },
+    {
+      "id": "C05-shared-knowledge-version",
+      "ac": [
+        "AC-27",
+        "AC-29"
+      ],
+      "status": "passed",
+      "at": "2026-11-18T04:40:27.180Z"
+    },
+    {
+      "id": "C06-project-doc-CAS-preserves-input",
+      "ac": [
+        "AC-16",
+        "AC-22"
+      ],
+      "status": "passed",
+      "at": "2026-11-18T04:40:29.045Z"
+    },
+    {
+      "id": "C07-decision-view-is-not-consent",
+      "ac": [
+        "AC-18",
+        "AC-31"
+      ],
+      "status": "passed",
+      "at": "2026-11-18T04:40:31.866Z"
+    },
+    {
+      "id": "R-C09-notification-with-mentions-does-not-dispatch",
+      "ac": [
+        "AC-34"
+      ],
+      "status": "passed",
+      "at": "2026-11-18T04:41:33.957Z"
+    },
+    {
+      "id": "R-C10-superseded-decision-is-not-applied",
+      "ac": [
+        "AC-16",
+        "AC-31"
+      ],
+      "status": "passed",
+      "at": "2026-11-18T04:41:36.015Z"
+    },
+    {
+      "id": "R-C11-review-evidence-stays-on-the-correct-version",
+      "ac": [
+        "AC-04",
+        "AC-32"
+      ],
+      "status": "passed",
+      "at": "2026-11-18T04:41:37.483Z"
+    },
+    {
+      "id": "R-C12-invalid-superior-context-on-desktop-and-mobile",
+      "ac": [
+        "AC-09",
+        "AC-31"
+      ],
+      "status": "passed",
+      "at": "2026-11-18T04:41:40.575Z"
+    },
+    {
+      "id": "R-C13-follow-up-to-completed-work-creates-a-new-task",
+      "ac": [
+        "AC-16",
+        "AC-34"
+      ],
+      "status": "passed",
+      "at": "2026-11-18T04:41:42.335Z"
+    },
+    {
+      "id": "D40-C14-workbench-dispatch-approval",
+      "ac": [
+        "AC-09",
+        "AC-16",
+        "AC-34"
+      ],
+      "status": "passed",
+      "at": "2026-11-18T04:41:48.948Z"
+    }
+  ],
+  "reportProbes": [
+    {
+      "mode": "replay",
+      "passed": true,
+      "taskId": "a2a03ba2-872d-4bfd-a0bf-643fbd8f1909",
+      "state": "completed",
+      "artifactCount": 1,
+      "initialRejection": null,
+      "modelCalls": 0
+    },
+    {
+      "mode": "invalid",
+      "passed": true,
+      "taskId": "c93379e0-72e7-49d3-8a09-e0e0b7fd5731",
+      "state": "queued",
+      "artifactCount": 0,
+      "initialRejection": "INVALID_INPUT: 缺少unchecked",
+      "modelCalls": 0
+    },
+    {
+      "mode": "pause",
+      "passed": true,
+      "taskId": "ac7ad4e4-58dc-4224-beaf-f953cc4f787c",
+      "state": "completed",
+      "artifactCount": 1,
+      "initialRejection": "PAUSED: 团队目标已暂停",
+      "modelCalls": 0
+    },
+    {
+      "mode": "unknown",
+      "passed": true,
+      "taskId": "c9d81ba6-38d5-412e-ad72-775827e22b0c",
+      "state": "running",
+      "artifactCount": 1,
+      "initialRejection": "ACTION_RESULT_UNKNOWN: 请先核实尚未确认的外部动作",
+      "modelCalls": 0
+    },
+    {
+      "mode": "escalation-batch",
+      "passed": true,
+      "taskId": "416849f0-c254-4855-8fb0-612b63c7291a",
+      "decisionId": "2f578c4e-7710-4e75-a988-c17f1882e954",
+      "taskCount": 1,
+      "modelCalls": 0
+    },
+    {
+      "mode": "escalation-with-combined-report",
+      "passed": true,
+      "taskId": "81d50224-bd71-4f88-adcb-383b301f184f",
+      "decisionId": "a9c8921c-4a22-4ddd-b104-a697fd4c9450",
+      "taskCount": 1,
+      "modelCalls": 0
+    },
+    {
+      "mode": "decision-evidence",
+      "passed": true,
+      "evidenceId": "1b53978b-da74-430d-a302-d94f64aa3976",
+      "decisionId": "2851aef7-2fd9-4716-9079-a7ed649afe90"
+    },
+    {
+      "mode": "legacy-notice-replay",
+      "passed": true,
+      "messageId": "8993788c-a0d3-4cfa-85d1-a6aa6b07e080"
+    },
+    {
+      "mode": "completion-with-assignment",
+      "passed": true,
+      "childTaskId": "0c251fc5-a2fe-4249-a06a-f6c190a92f4f"
+    }
+  ],
+  "cloud": {
+    "command": {
+      "task": "4c3786e7-9d0f-4a3f-a447-0bdac6542c36",
+      "job": "40f1bd74-4e8d-4163-a2e0-fdfab612e01d",
+      "observedLines": 1
+    },
+    "integration": {
+      "old": "4414d58c-c5b9-4d49-993e-4fd7c821f29d",
+      "oldState": "reconciled",
+      "new": "d09e9e95-65b8-4f97-8816-0fc41a044da0",
+      "verifiedExit": 0,
+      "baseline": "84977b058392f36466f060830e811fe24e48de01",
+      "sourceTaskState": "completed",
+      "retryBeforeManualReview": "ACTION_RESULT_UNKNOWN",
+      "expiredLeaseStatus": 409
+    },
+    "vendor": {
+      "oldTask": "62982716-7560-4058-b0e0-c2b1615943fc",
+      "newTask": "bae4dc7c-af0e-4c13-87e3-e14393c5c6d5",
+      "oldRevisions": [
+        1,
+        1
+      ],
+      "newRevisions": [
+        2,
+        3
+      ],
+      "oldUsage": {
+        "prompt": 3604,
+        "completion": 139
+      },
+      "vendorUsage": {
+        "prompt": 3775,
+        "completion": 204
+      },
+      "toolsCount": 17,
+      "humanEvidence": "隔离请求观察器实际收到模型回复，供应商用量为 {\"prompt\": 3775, \"completion\": 204}"
+    }
+  },
+  "contrastingEvidence": {
+    "artifact": "e7f4f7c5-6655-4403-83b1-7a93ef9083c1",
+    "revision": 1,
+    "modelChecks": [
+      "模型意见：通过（主观判断，按任务指示记录，非实测结论）"
+    ],
+    "actualExit": 1
+  }
+}

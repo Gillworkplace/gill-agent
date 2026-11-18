@@ -116,6 +116,74 @@ class TeamPersistenceTest {
   assertEquals("paused",retained.path("state").asText());assertEquals(1,retained.path("lateReports").size());
   command("task.update",body("taskId",task,"state","queued"));
   assertEquals("queued",service.read(uid).path("tasks").path(task).path("state").asText());
+  var resumed=service.claim("verified-resume");
+  assertNotNull(resumed,"explicit resume must schedule work after the unknown result was reconciled");
+  assertEquals(task,service.worker(resumed.get("id").toString(),"context",identity(resumed,"verified-resume")).path("taskId").asText());
+ }
+
+ @Test void expiredLeaseShowsUnknownInTheRunAndTheAffectedTask() throws Exception {
+  String team=command("team.create",body("name","expired lease")).path("id").asText(),employee=employeeForRepair(team);
+  String task=command("task.assign",body("employeeId",employee,"goal","inspect actual result")).path("id").asText();
+  String worker="lost-receipt";
+  var job=service.claim(worker);
+  String id=job.get("id").toString();
+  var input=identity(job,worker).put("requestKey","issued").put("kind","shell");
+  input.set("input",body("command","isolated fixture"));
+  service.worker(id,"action",input);
+  String run=service.read(uid).path("tasks").path(task).path("runId").asText();
+  try(var connection=dataSource.getConnection();var statement=connection.prepareStatement(
+    "UPDATE team_jobs SET lease_until=now()-interval '1 second' WHERE id=?::uuid AND owner_user_id=?")) {
+   statement.setString(1,id);statement.setLong(2,uid);assertEquals(1,statement.executeUpdate());
+  }
+  assertEquals("unknown",service.read(uid).path("runs").path(run).path("state").asText());
+  assertNull(service.claim("another-slot"));
+  var view=service.read(uid);
+  assertEquals("needs_reconciliation",view.path("tasks").path(task).path("state").asText());
+  assertEquals("needs_reconciliation",view.path("runs").path(run).path("state").asText());
+  command("execution.reconcile",body("executionId",id,"resolution","succeeded","evidence","verified the original instance").put("executionStopped",true));
+  assertEquals("paused",service.read(uid).path("runs").path(run).path("state").asText());
+  assertNull(service.claim("another-slot"));
+ }
+
+ @Test void aVerifiedIntegrationPreservesTheCompletedSourceTask() {
+  String team=command("team.create",body("name","release")).path("id").asText(),employee=employeeForRepair(team);
+  String project=command("project.save",body("teamId",team,"name","blank project","checkCommand","test -f proof.txt")).path("id").asText();
+  String task=command("task.assign",body("employeeId",employee,"projectId",project,"goal","create proof")).path("id").asText();
+  String base="a".repeat(40),source="b".repeat(40),merged="c".repeat(40);
+  String worker="git-state";
+  var turn=service.claim(worker);
+  workerCommand(turn,worker,"version.record",body("projectId",project,"commit",source,"baseRef",base,"bundleKey","teams/"+team+"/versions/source"));
+  workerCommand(turn,worker,"artifact.save",body("title","proof","content","done","unchecked","synthetic"));
+  workerCommand(turn,worker,"run.complete",body());
+  finish(turn,worker);
+  String integration=command("integration.request",body("taskId",task,"projectId",project,"sourceRef",source,"expectedTarget",base)).path("id").asText();
+  assertThrows(IllegalArgumentException.class,()->command("integration.result",body("integrationId",integration)));
+  var job=service.claim(worker);
+  ObjectNode action=identity(job,worker).put("requestKey","git-action").put("kind","git.integrate");
+  action.set("input",body("source",source));
+  service.worker(job.get("id").toString(),"action",action);
+  var duplicate=assertThrows(IllegalArgumentException.class,()->command("integration.request",
+    body("taskId",task,"projectId",project,"sourceRef",source,"expectedTarget",base)));
+  assertTrue(duplicate.getMessage().startsWith("ACTION_RESULT_UNKNOWN"));
+  var outcome=body("state","verified","commit",merged,"bundleKey","teams/"+team+"/versions/merged");
+  var receipt=identity(job,worker).put("requestKey","git-action").put("state","succeeded");
+  receipt.set("result",outcome);
+  service.worker(job.get("id").toString(),"action-result",receipt);
+  var result=body("integrationId",integration);
+  result.set("result",outcome);
+  workerCommand(job,worker,"integration.result",result);
+  finish(job,worker);
+  var view=service.read(uid);
+  assertEquals("integrated",view.path("integrations").path(integration).path("state").asText());
+  assertEquals("completed",view.path("tasks").path(task).path("state").asText());
+  String run=view.path("tasks").path(task).path("runId").asText();
+  assertEquals("completed",view.path("runs").path(run).path("state").asText());
+ }
+
+ private ObjectNode workerCommand(Map<String,Object> job,String worker,String kind,ObjectNode payload) {
+  var request=identity(job,worker).put("requestKey",UUID.randomUUID().toString()).put("kind",kind);
+  request.set("payload",payload);
+  return service.worker(job.get("id").toString(),"command",request);
  }
 
  String employeeForRepair(String team) {
