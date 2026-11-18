@@ -8,4 +8,10 @@
 
 2026-11-18 使用 Chrome 走查桌面 1440 × 960 和手机宽度 390 × 844。已通过打开和返回、Skill 展开、搜索与无匹配、示例导入、两轮草稿及编辑保存的走查。截图见[桌面](../../../../../gui-test-screenshots/v20261118-template-library-design-desktop.png)、[手机](../../../../../gui-test-screenshots/v20261118-template-library-design-mobile.png)和[模板详情](../../../../../gui-test-screenshots/v20261118-template-library-design-detail.png)。
 
-同日由产品视角代理按 D41 预评估，结论为可展示。用户确认和技术接入评估待完成。职责摘要为原型示例，生产展示所用的来源待评估。
+同日由产品视角代理按 D41 预评估，结论为可展示。用户随后要求按本原型一比一开发，作为本次实现的视觉与交互基线。
+
+## 实现走查
+
+2026-11-18 在浏览器对照原型和真实 Web 服务。相同四个模板下，1440 × 960 和 390 × 844 的每张卡片坐标与尺寸相同。详情侧栏能展开模板实际包含的 Skill，编辑提交后返回库并读取新版本。摘要来自已有工作指令或文本 Skill 描述，两者均为空时留空。真实模板数据、工作空间状态与提交反馈以服务返回为准。
+
+前端 18 项单测、类型检查、生产构建和 7 项基础浏览器回归通过。另实测按 Skill 搜索、键盘关闭详情后恢复焦点、保存新版本、连续与批量导入。真实模型完成两轮模板草稿，浏览器明确保存后可在手机端从该模板创建员工。实现截图见[桌面](../../../../../gui-test-screenshots/v20261118-full-closure-catalog-desktop.png)、[详情](../../../../../gui-test-screenshots/v20261118-full-closure-catalog-detail.png)和[手机](../../../../../gui-test-screenshots/v20261118-full-closure-catalog-mobile.png)。

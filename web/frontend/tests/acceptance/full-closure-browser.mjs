@@ -2,6 +2,7 @@ import fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import {spawn} from 'node:child_process'
+import {pathToFileURL} from 'node:url'
 import {account,check,origin,request} from './harness.mjs'
 
 const profile=await fs.mkdtemp(path.join(os.tmpdir(),'gill-closure-chrome-'))
@@ -61,7 +62,76 @@ try{
  const switchTo=hash=>evalJs('location.hash='+JSON.stringify(hash))
  await cdp('Runtime.enable')
  await view(1440,1040)
- if(process.argv[2]==='--multiple-skills'){
+ if(process.argv[2]==='--catalog-layout'){
+  const compareCards=async selector=>evalJs(`Array.from(document.querySelectorAll(${JSON.stringify(selector)}),card=>{const {x,y,width,height}=card.getBoundingClientRect();return [x,y,width,height]})`)
+  const matches=(actual,reference)=>actual.length===reference.length&&actual.every((row,index)=>row.every((value,column)=>Math.abs(value-reference[index][column])<=1))
+  await view(1440,960)
+  const prototype=pathToFileURL(path.resolve('docs/features/digital-employee-team/prototype/template-library/index.html')).href
+  await cdp('Page.navigate',{url:prototype})
+  await ui('document.querySelectorAll("#library .card").length===4')
+  const approvedDesktop=await compareCards('#library .card')
+  await view(390,844,true)
+  const approvedMobile=await compareCards('#library .card')
+  const a=await account()
+  const examples=[
+   ['系统设计师','梳理系统边界与约束，输出可评审的技术方案。',['系统设计'],8],
+   ['交互设计马仔','把需求做成可点击的原型，明确页面结构与操作路径。',['交互原型'],6],
+   ['开发马仔','负责前端页面与后端接口，按已确认的方案完成联调。',['前端开发','Python 后端'],20],
+   ['产品马仔','澄清需求，整理产品方案和验收标准。',['需求分析'],4]
+  ]
+  for(const [name,prompt,names,count] of examples){
+   const publicFiles=count===8||count===20?['AGENTS.md','references/hand-off.md']:['AGENTS.md']
+   const perSkill=(count-publicFiles.length)/names.length
+   const paths=names.flatMap(skill=>[`skills/${skill}/SKILL.md`,`skills/${skill}/references/guide.md`,
+    ...Array.from({length:perSkill-2},(_,index)=>`skills/${skill}/references/example-${index+1}.md`)])
+   paths.push(...publicFiles)
+   const upload=await request('/api/v1/team-workspace/template-files',{files:paths.map(path=>({path,data:Buffer.from(path).toString('base64')}))},a.token)
+   check(upload.status===200,'catalog fixture upload rejected',{status:upload.status})
+   await a.ok('template.save',{name,prompt,files:upload.body.files.map(file=>({...file,purpose:file.path.endsWith('/SKILL.md')?'skill':'resource'}))})
+  }
+  await view(1440,960)
+  await cdp('Page.navigate',{url:origin+'/#/templates'})
+  await ui('!!document.querySelector("#login input[type=password]")')
+  await set('#login input',a.username);await set('#login input[type=password]',a.password);await click('#login .btn')
+  await ui('document.querySelectorAll(".catalog-card").length===4')
+  const measure=await compareCards('.catalog-card')
+  check(matches(measure,approvedDesktop),'desktop cards deviate from the approved prototype',{measure,approvedDesktop})
+  await shot('catalog-desktop')
+  await set('.catalog-search input','PYTHON')
+  await ui('document.querySelectorAll(".catalog-card").length===1&&document.querySelector(".catalog-card").textContent.includes("开发马仔")')
+  await set('.catalog-search input','')
+  const developmentCard=`[...document.querySelectorAll('.catalog-card')].find(card=>card.textContent.includes('开发马仔'))`
+  await evalJs(developmentCard+'.focus()')
+  await evalJs(developmentCard+'.click()')
+  await ui('document.querySelector(".catalog-drawer").open&&document.querySelectorAll(".catalog-drawer .catalog-skill").length===2')
+  await click('.catalog-skill summary')
+  await ui('document.querySelector(".catalog-skill[open]").textContent.includes("references/guide.md")')
+  await shot('catalog-detail')
+  await cdp('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27})
+  await cdp('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',windowsVirtualKeyCode:27})
+  await ui('!document.querySelector(".catalog-drawer").open&&document.activeElement.classList.contains("catalog-card")')
+  await set('.catalog-search input','无匹配的样例')
+  await ui('!!document.querySelector(".catalog-empty")')
+  await click('.catalog-empty button')
+  await view(390,844,true)
+  await ui('document.documentElement.scrollWidth===390&&getComputedStyle(document.querySelector(".catalog-grid")).gridTemplateColumns==="358px"')
+  await evalJs('document.activeElement.blur()')
+  const mobileMeasure=await compareCards('.catalog-card')
+  check(matches(mobileMeasure,approvedMobile),'mobile cards deviate from the approved prototype',{mobileMeasure,approvedMobile})
+  await shot('catalog-mobile')
+  await set('.catalog-search input','开发马仔')
+  await click('.catalog-card')
+  await ui('document.querySelector(".catalog-drawer").open')
+  await click('.catalog-drawer .catalog-primary')
+  await ui('document.querySelector(".catalog-form-dialog").open&&document.querySelector("#template-name").value==="开发马仔"')
+  await set('#template-name','开发与联调')
+  await submit('.template-preview')
+  await ui('!document.querySelector(".catalog-form-dialog").open&&document.querySelectorAll(".catalog-card").length===4')
+  const saved=Object.values((await a.read()).templates).find(t=>t.name==='开发与联调')
+  check(saved?.revision===2&&saved.files.length===20,'catalog editor lost files or failed to save a revision')
+  check(!exceptions.length,'browser error when using template catalog',exceptions)
+  console.log(JSON.stringify({case:'catalog-layout',passed:true,measure,approvedDesktop,mobileMeasure,approvedMobile,templates:4}))
+ }else if(process.argv[2]==='--multiple-skills'){
   const a=await account()
   const writeSkill=async (root,name,marker)=>{
    const folder=path.join(root,name)
@@ -80,6 +150,8 @@ try{
   await ui('!!document.querySelector("#login input[type=password]")')
   await set('#login input',a.username);await set('#login input[type=password]',a.password);await click('#login .btn')
   await ui('!!document.querySelector(".template-start")')
+  await click('.template-start-actions button:nth-child(2)')
+  await ui('document.querySelector(".catalog-form-dialog").open&&!!document.querySelector(".catalog-import-select")')
   await cdp('DOM.enable')
   const importFolder=async(folder,count)=>{
    const dom=await cdp('DOM.getDocument')
@@ -103,7 +175,7 @@ try{
   await ui(`document.querySelectorAll('.template-skill-package').length===3&&document.querySelectorAll('.template-file-list li').length===7`)
   await importFolder(second,4)
   await submit('.template-preview')
-  await ui('document.querySelector(".template-preview h2")?.textContent==="模板配置"')
+  await ui('!document.querySelector(".catalog-form-dialog").open&&!!document.querySelector(".catalog-card")')
   const saved=Object.values((await a.read()).templates)[0]
   const names=['frontend-engineer','test-engineer','product-manager','system-designer']
   check(saved.files.length===9&&saved.files.some(f=>f.path==='AGENTS.md'&&f.purpose==='prompt')&&names.every(name=>
@@ -155,7 +227,7 @@ try{
     'import classification did not match the selected files',listed)
   await shot('template-folder-editor')
   await submit('.template-preview')
-  await ui('document.querySelector(".template-preview h2")?.textContent==="模板配置"')
+  await ui('!document.querySelector(".catalog-form-dialog").open&&!!document.querySelector(".catalog-card")')
   const saved=Object.values((await a.read()).templates)[0]
   check(saved.files.length===5&&saved.prompt===''&&saved.versions[0].files.length===5,'file-only template or revision did not save')
   const second=await account()
@@ -244,7 +316,7 @@ try{
  check(!Object.keys(second.templates).length&&second.drafts[draft.id].messages.length===4,'second draft lost source or was implicitly saved')
  await shot('two-turns')
  await submit('.template-preview')
- await ui('document.querySelector(".template-preview h2")?.textContent==="模板配置"')
+ await ui('!document.querySelector(".catalog-form-dialog").open&&!!document.querySelector(".catalog-card")')
  const saved=Object.values((await a.read()).templates)[0]
  check(saved.draftId===draft.id&&saved.skills.some(s=>s.name==='证据核查')&&saved.skills.some(s=>s.name==='冲突上报'),'saved template lost source or skills')
  await switchTo('#/teams/'+team)
