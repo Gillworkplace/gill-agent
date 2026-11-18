@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>数字员工模板 · Gill 交互原型</title>
+<style>
+ :root{
+  --bg:#f7f8fc;--white:#fff;--ink:#19243b;--muted:#53617b;--quiet:#62708a;
+  --line:#dee4f0;--accent:#3e55de;--accent-dark:#3045c5;--tint:#edf0ff;
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--ink);background:var(--bg);font-synthesis:none;
+ }
+ *,*::before,*::after{box-sizing:border-box}
+ body{margin:0;font-size:14px}
+ h1,h2,h3,p{margin:0}
+ button,input,textarea{font:inherit}
+ button{cursor:pointer}
+ button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid #7385f2;outline-offset:3px}
+ [hidden]{display:none!important}
+ .shell{display:grid;grid-template-columns:210px minmax(0,1fr);min-height:100vh}
+ .rail{display:flex;flex-direction:column;background:var(--white);border-right:1px solid var(--line);padding:30px 17px 18px}
+ .brand{display:flex;align-items:center;gap:10px;padding-left:9px;margin-bottom:38px}
+ .brand-mark{display:grid;place-items:center;width:37px;height:37px;border-radius:12px;background:var(--accent);color:white;font-size:24px;font-weight:760}
+ .brand-name{display:block;font-weight:800;font-size:22px;line-height:1;letter-spacing:-.04em}
+ .brand-caption,.rail-caption{color:var(--quiet);font-size:11px}
+ .brand-caption{display:block;margin-top:5px}
+ .rail-caption{margin:0 0 11px 10px}
+ .nav{list-style:none;padding:0;margin:0;display:grid;gap:4px}
+ .nav li{display:flex;align-items:center;gap:11px;padding:12px 11px;color:var(--muted);border-radius:9px;white-space:nowrap;font-size:13px}
+ .nav li[aria-current]{color:var(--accent-dark);background:var(--tint);font-weight:720}
+ .nav-glyph{width:19px;text-align:center;font-size:17px;line-height:1}
+ .account{margin-top:auto;padding:17px 7px 0;border-top:1px solid var(--line);display:flex;align-items:center;gap:9px;color:var(--muted);font-size:12px}
+ .avatar{width:29px;height:29px;display:grid;place-items:center;border-radius:50%;background:var(--tint);color:var(--accent-dark);font-weight:700}
+ .stage{min-width:0;background:radial-gradient(ellipse 690px 360px at 92% 0%,#edf0ff 0%,transparent 90%),var(--bg)}
+ .topbar{height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 33px;background:rgba(255,255,255,.92);border-bottom:1px solid var(--line);font-size:12px}
+ .crumb{display:flex;align-items:center;gap:8px;color:var(--quiet)}
+ .crumb b{color:var(--ink);font-weight:650}
+ .prototype{color:var(--muted);font-size:11px;padding:5px 9px;border:1px solid var(--line);border-radius:6px;background:var(--white);white-space:nowrap}
+ .content{width:min(1120px,100% - 88px);margin:0 auto;padding:48px 0 58px}
+ .page-head{display:flex;justify-content:space-between;align-items:center;gap:22px;padding-bottom:33px}
+ .page-head h1{font-size:clamp(26px,3vw,36px);letter-spacing:-.045em;line-height:1.2;font-weight:790}
+ .page-head p{margin-top:13px;color:var(--muted);line-height:1.65}
+ .actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+ .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 14px;min-height:41px;border:1px solid var(--line);border-radius:9px;color:var(--ink);background:var(--white);font-weight:650;white-space:nowrap}
+ .btn:hover{background:#f3f5fd;border-color:#b4c0ee}
+ .btn.primary{background:var(--accent);color:white;border-color:var(--accent);box-shadow:0 2px 4px #3648ba28}
+ .btn.primary:hover{background:var(--accent-dark);border-color:var(--accent-dark)}
+ .btn:disabled{cursor:default;opacity:.55;box-shadow:none}
+ .toolbar{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:18px 0 16px;border-top:1px solid var(--line)}
+ .toolbar h2{display:flex;align-items:center;gap:9px;font-size:17px;letter-spacing:-.015em}
+ .count{background:#e9edf7;color:#455573;min-width:24px;height:23px;display:grid;place-items:center;padding:0 6px;border-radius:7px;font-size:12px;font-weight:700}
+ .search{position:relative;width:min(278px,100%);display:block}
+ .search-glyph{position:absolute;left:13px;top:12px;width:12px;height:12px;border:1.6px solid var(--quiet);border-radius:50%;pointer-events:none}
+ .search-glyph::after{content:"";position:absolute;left:8px;top:9px;width:6px;height:1.6px;background:var(--quiet);transform:rotate(46deg);transform-origin:left}
+ .search input{width:100%;height:39px;border:1px solid var(--line);border-radius:8px;padding:0 12px 0 35px;background:var(--white);color:var(--ink)}
+ .search input::placeholder{color:var(--quiet)}
+ .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+ .card{display:flex;flex-direction:column;min-width:0;width:100%;text-align:left;position:relative;padding:20px 21px 0;background:var(--white);border:1px solid var(--line);border-radius:14px;color:var(--ink);box-shadow:0 2px 4px #172b5a07;transition:box-shadow .16s,border-color .16s}
+ .card:hover{border-color:#a5b3f6;box-shadow:0 8px 22px #283ca612}
+ .card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:15px}
+ .role-mark{display:grid;place-items:center;flex:none;width:45px;height:45px;border-radius:12px;background:var(--role-bg,#eef0ff);color:var(--role-ink,#4154c5);font:650 25px/1 -apple-system,BlinkMacSystemFont,sans-serif}
+ .design{--role-bg:#f2edff;--role-ink:#7652bf}
+ .coding{--role-bg:#e7f5f2;--role-ink:#187865}
+ .product{--role-bg:#fff1e5;--role-ink:#a25d25}
+ .version{padding:4px 7px;border:1px solid #e6eaf3;border-radius:6px;color:var(--quiet);background:#f7f8fc;font-size:11px;font-weight:700}
+ .card-title{font-size:19px;font-weight:760;line-height:1.32;letter-spacing:-.022em;overflow-wrap:anywhere}
+ .description{color:var(--muted);line-height:1.6;margin-top:6px;min-height:2.55em}
+ .chips{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin:6px 0 17px}
+ .chip{border-radius:6px;padding:4px 8px;background:#eff2f9;color:#41516f;font-size:11px;font-weight:620}
+ .card-foot{margin-top:auto;display:flex;width:100%;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid #ebedf4;padding:12px 0;color:var(--quiet);font-size:12px}
+ .open-hint{display:flex;align-items:center;gap:6px;color:var(--accent-dark);font-weight:700}
+ .empty{grid-column:1/-1;display:grid;justify-items:center;gap:10px;text-align:center;background:var(--white);border:1px dashed #b9c5e8;border-radius:14px;padding:46px 20px;color:var(--muted)}
+ .empty strong{color:var(--ink);font-size:18px}
+ .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+ dialog{padding:0;border:1px solid var(--line);border-radius:16px;color:var(--ink);box-shadow:0 18px 90px #12224e33}
+ dialog::backdrop{background:rgba(17,24,47,.34)}
+ dialog.drawer{margin:0 0 0 auto;inset:0 0 0 auto;width:min(468px,100%);height:100dvh;max-width:100%;max-height:none;border-radius:0;border-right:0;overflow:auto}
+ .drawer-body,.dialog-body{padding:26px}
+ .drawer-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+ .drawer-title{font-size:24px;font-weight:780;margin-top:12px;overflow-wrap:anywhere}
+ .close{min-width:35px;height:35px;padding:0;border-radius:8px;font-size:19px;font-weight:450}
+ .drawer-desc,.section-copy{color:var(--muted);line-height:1.6;margin-top:8px}
+ .drawer-meta{display:flex;gap:8px;margin:13px 0 19px}
+ .detail-section{border-top:1px solid var(--line);padding:17px 0}
+ .detail-section h3{font-size:15px;margin-bottom:8px}
+ .skill-list{display:grid;gap:7px}
+ .skill{border:1px solid var(--line);border-radius:8px;padding:10px 11px}
+ .skill summary{cursor:pointer;font-weight:650;overflow-wrap:anywhere}
+ .skill small{margin-left:7px;color:var(--quiet);font-weight:400}
+ .skill ul{margin:10px 0 2px;padding-left:22px;font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+ .dialog{width:min(500px,100% - 30px)}
+ .dialog h2{font-size:21px}
+ .dialog label{display:block;margin:14px 0 5px;font-size:13px;font-weight:650}
+ .dialog input,.dialog textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;color:var(--ink)}
+ .dialog textarea{min-height:92px;resize:vertical}
+ .dialog .actions{justify-content:flex-end;margin-top:17px}
+ .dialog .entry-actions{justify-content:flex-start;flex-wrap:wrap;margin-top:9px}
+ .shared-list{font-size:13px;line-height:1.7;margin:0;padding-left:22px;color:var(--muted);overflow-wrap:anywhere}
+ .example-list{margin:14px 0 0;padding-left:23px;color:var(--muted);line-height:1.8;font-size:13px}
+ @media (max-width:1000px){.content{width:calc(100% - 54px)}}
+ @media (max-width:760px){
+  .shell{grid-template-columns:1fr}
+  .rail{border-right:0;border-bottom:1px solid var(--line);padding:9px 12px;flex-direction:row;align-items:center;gap:10px}
+  .brand{margin:0;padding:0}
+  .brand-mark{width:29px;height:29px;border-radius:8px;font-size:18px}
+  .brand-copy,.rail-caption,.account,.nav-glyph{display:none}
+  .nav{display:flex;gap:1px}
+  .nav li{padding:8px 7px;font-size:11px}
+  .topbar{padding:0 16px;height:42px}
+  .content{width:calc(100% - 32px);padding:27px 0 38px}
+  .page-head{align-items:flex-start;flex-direction:column;gap:14px;padding-bottom:20px}
+  .page-head p{margin-top:8px}
+  .toolbar{padding:14px 0 12px}
+  .toolbar h2{font-size:15px;white-space:nowrap}
+  .search{max-width:180px}
+  .grid{gap:11px}
+  .card{padding:15px 14px 0}
+  .card-title{font-size:17px}
+  .description{min-height:0;margin-bottom:8px}
+  .card-foot{font-size:11px}
+ }
+ @media(max-width:515px){
+  .grid{grid-template-columns:1fr}
+  .card-top{margin-bottom:9px}
+  .chips{margin-bottom:12px}
+ }
+ @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="shell">
+ <aside class="rail" aria-label="Gill 工作空间导航示意">
+  <div class="brand"><span class="brand-mark" aria-hidden="true">g</span><div class="brand-copy"><span class="brand-name">Gill</span><span class="brand-caption">数字员工团队</span></div></div>
+  <p class="rail-caption">我的工作空间</p>
+  <ul class="nav">
+   <li><span class="nav-glyph" aria-hidden="true">◉</span>工作台</li>
+   <li aria-current="page"><span class="nav-glyph" aria-hidden="true">◇</span>数字员工模板</li>
+   <li><span class="nav-glyph" aria-hidden="true">♧</span>团队</li>
+   <li><span class="nav-glyph" aria-hidden="true">▤</span>知识库</li>
+  </ul>
+  <div class="account"><span class="avatar" aria-hidden="true">管</span>团队管理员</div>
+ </aside>
+ <div class="stage">
+  <header class="topbar">
+   <span class="crumb">我的工作空间 <span aria-hidden="true">/</span> <b>数字员工模板</b></span>
+   <span class="prototype">交互原型 · 示例数据</span>
+  </header>
+  <main class="content">
+   <header class="page-head">
+    <div><h1>数字员工模板</h1><p>为团队复用工作指令、Skills 和参考文件。</p></div>
+    <div class="actions">
+     <button class="btn" type="button" id="import"><span aria-hidden="true">↥</span> 导入文件夹</button>
+     <button class="btn primary" type="button" id="create"><span aria-hidden="true">＋</span> 新建模板</button>
+    </div>
+   </header>
+   <section aria-labelledby="library-title">
+    <div class="toolbar">
+     <h2 id="library-title"><span id="library-heading">已保存模板</span> <span id="count" class="count" aria-live="polite"></span></h2>
+     <label class="search">
+      <span class="search-glyph" aria-hidden="true"></span><span class="visually-hidden">搜索模板或 Skill</span>
+      <input id="search" type="search" placeholder="搜索模板或 Skill">
+     </label>
+    </div>
+    <div id="library" class="grid"></div>
+   </section>
+  </main>
+ </div>
+</div>
+
+<template id="card">
+ <button class="card" type="button">
+  <span class="card-top"><span class="role-mark" aria-hidden="true"></span><span class="version"></span></span>
+  <span class="card-title"></span>
+  <span class="description"></span>
+  <span class="chips"></span>
+  <span class="card-foot"><span class="file-count"></span><span class="open-hint">查看模板 <span aria-hidden="true">→</span></span></span>
+ </button>
+</template>
+
+<dialog id="preview" class="drawer" aria-labelledby="preview-title">
+ <div class="drawer-body">
+  <div class="drawer-top"><span id="preview-mark" class="role-mark" aria-hidden="true"></span><button class="btn close" data-close type="button" aria-label="关闭模板详情">×</button></div>
+  <h2 id="preview-title" class="drawer-title"></h2>
+  <p id="preview-description" class="drawer-desc"></p>
+  <div id="preview-meta" class="drawer-meta"></div>
+  <section class="detail-section" aria-labelledby="skills-title">
+   <h3 id="skills-title">Skills</h3><div id="preview-skills" class="skill-list"></div>
+  </section>
+  <section class="detail-section" aria-labelledby="shared-title">
+   <h3 id="shared-title">工作指令</h3><p id="preview-prompt" class="section-copy"></p>
+  </section>
+  <section id="preview-files" class="detail-section" aria-labelledby="files-title" hidden>
+   <h3 id="files-title">模板公共文件</h3><ul id="shared-files" class="shared-list"></ul>
+  </section>
+  <button class="btn primary" id="edit" type="button">编辑模板</button>
+ </div>
+</dialog>
+
+<dialog id="editor" class="dialog" aria-labelledby="editor-title">
+ <form id="template-form" class="dialog-body">
+  <div class="drawer-top"><h2 id="editor-title"></h2><button class="btn close" data-close type="button" aria-label="关闭编辑">×</button></div>
+  <p id="editor-hint" class="section-copy"></p>
+  <div id="conversation" hidden>
+   <label for="conversation-input">你需要怎样的数字员工？</label>
+   <textarea id="conversation-input" maxlength="240" placeholder="例如：核查资料来源并整理证据。"></textarea>
+   <div class="actions entry-actions">
+    <button id="generate" class="btn primary" type="button" disabled>生成示例草稿</button>
+    <button id="manual" class="btn" type="button">手动填写</button>
+   </div>
+   <p id="draft-status" class="section-copy" role="status"></p>
+  </div>
+  <button id="load-example" class="btn" type="button" hidden>载入示例目录</button>
+  <ul id="imported-skills" class="example-list" hidden></ul>
+  <div id="editor-fields">
+   <label for="editor-name">模板名称</label><input id="editor-name" required maxlength="40">
+   <label for="editor-prompt">工作描述</label><textarea id="editor-prompt" required maxlength="240"></textarea>
+  </div>
+  <div class="actions">
+   <button class="btn" data-close type="button">取消</button>
+   <button id="save" class="btn primary" type="submit">保存模板</button>
+  </div>
+ </form>
+</dialog>
+<script>
+ const exampleSkill=(name,folder,...references)=>({name,folder,files:['SKILL.md',...references]})
+ const templates=[
+  {id:1,name:'系统设计师',description:'梳理系统边界与约束，输出可评审的技术方案。',icon:'◎',tone:'architecture',
+   prompt:'先梳理现有系统的职责和约束，再给出可验证的技术方案与验收路径。',
+   skills:[exampleSkill('系统设计','system-designer','references/architecture.md','references/interfaces.md','references/data-model.md','references/verification.md','references/delivery.md')],
+   shared:['AGENTS.md','references/project-glossary.md'],revision:1},
+  {id:2,name:'交互设计马仔',description:'把需求做成可点击的原型，明确页面结构与操作路径。',icon:'◫',tone:'design',
+   prompt:'沿用当前产品的交互习惯，用静态原型演示关键状态、切换和返回路径。',
+   skills:[exampleSkill('交互原型','interaction-designer','references/prototype-workflow.md','references/review-conflicts.md','references/prototype-delivery.md','references/accessibility.md')],shared:['AGENTS.md'],revision:1},
+  {id:3,name:'开发马仔',description:'负责前端页面与后端接口，按已确认的方案完成联调。',icon:'‹›',tone:'coding',
+   prompt:'按确认的技术方案实现前后端，保留联调记录，把无法独立判断的问题交由上级评估。',
+   skills:[exampleSkill('前端开发','frontend-engineer','references/interaction-accessibility.md','references/architecture-state.md','references/requests-security.md','references/testing-verification.md','references/performance.md','references/delivery.md','references/motion-design.md','references/visual-hierarchy.md'),
+    exampleSkill('Python 后端','python-backend-engineer','references/development-workflow.md','references/service-layer.md','references/data-model.md','references/api-validation.md','references/concurrency.md','references/testing.md','references/delivery.md','references/runtime.md')],shared:['AGENTS.md','references/hand-off.md'],revision:1},
+  {id:4,name:'产品马仔',description:'澄清需求，整理产品方案和验收标准。',icon:'◇',tone:'product',
+   prompt:'区分已确认的需求和待验证的假设，并为每条交付约定写出可核对的验收标准。',
+   skills:[exampleSkill('需求分析','product-manager','references/product-document-template.md','references/role-deliverables.md')],shared:['AGENTS.md'],revision:1}
+ ]
+ const byId=id=>document.getElementById(id)
+ const element=(tag,text,css)=>{
+  const node=document.createElement(tag)
+  node.textContent=text
+  if(css)node.className=css
+  return node
+ }
+ const library=byId('library')
+ const search=byId('search')
+ const preview=byId('preview')
+ const editor=byId('editor')
+ const nameInput=byId('editor-name')
+ const promptInput=byId('editor-prompt')
+ const conversationInput=byId('conversation-input')
+ let activeTemplate=null
+ let formMode='create'
+ let importSkills=[]
+ let nextId=5
+
+ function createCard(template){
+  const card=byId('card').content.firstElementChild.cloneNode(true)
+  const get=selector=>card.querySelector(selector)
+  get('.role-mark').textContent=template.icon
+  get('.role-mark').classList.add(template.tone)
+  get('.card-title').textContent=template.name
+  get('.version').textContent='v'+template.revision
+  get('.description').textContent=template.description
+  get('.file-count').textContent=fileCount(template)+' 个文件'
+  get('.chips').replaceChildren(...template.skills.map(skill=>element('span',skill.name,'chip')))
+  card.addEventListener('click',()=>openPreview(template))
+  return card
+ }
+
+ function fileCount(template){return template.shared.length+template.skills.reduce((total,skill)=>total+skill.files.length,0)}
+
+ function renderLibrary(){
+  const term=search.value.trim().toLowerCase()
+  const found=templates.filter(t=>[t.name,...t.skills.flatMap(s=>[s.name,s.folder])].some(word=>word.toLowerCase().includes(term)))
+  byId('library-heading').textContent=term?'匹配模板':'已保存模板'
+  byId('count').textContent=found.length
+  library.replaceChildren(...found.map(createCard))
+  if(found.length)return
+  const empty=element('div','','empty')
+  const clear=element('button','清空搜索','btn')
+  clear.type='button'
+  clear.addEventListener('click',()=>{search.value='';renderLibrary();search.focus()})
+  empty.append(element('strong','没有匹配的模板'),element('p','可以换一个模板名或 Skill 名称。'),clear)
+  library.append(empty)
+ }
+
+ function openPreview(template){
+  activeTemplate=template
+  const mark=byId('preview-mark')
+  mark.className='role-mark '+template.tone
+  mark.textContent=template.icon
+  byId('preview-title').textContent=template.name
+  byId('preview-description').textContent=template.description
+  byId('preview-prompt').textContent=template.prompt
+  byId('preview-meta').replaceChildren(element('span','v'+template.revision,'version'),element('span',fileCount(template)+' 个文件','chip'))
+  byId('preview-files').hidden=template.shared.length===0
+  byId('shared-files').replaceChildren(...template.shared.map(file=>element('li',file)))
+  const rows=template.skills.map(skill=>{
+   const details=element('details','','skill')
+   const summary=element('summary',skill.name)
+   summary.append(element('small','skills/'+skill.folder+'/'))
+   const files=element('ul','')
+   files.replaceChildren(...skill.files.map(file=>element('li',file)))
+   details.append(summary,files)
+   return details
+  })
+  byId('preview-skills').replaceChildren(...(rows.length?rows:[element('p','暂无 Skills','section-copy')]))
+  preview.showModal()
+ }
+
+ function startForm(mode){
+  formMode=mode
+  importSkills=[]
+  const importMode=mode==='import'
+  const editMode=mode==='edit'
+  const createMode=mode==='create'
+  byId('editor-title').textContent=importMode?'导入文件夹':editMode?'编辑模板':'新建模板'
+  byId('editor-hint').textContent=importMode?'使用示例目录查看多个 Skill 的导入效果。':editMode?'修改模板名称或工作描述，模拟保存为新版本。':'可通过对话生成草稿，也可以直接填写。'
+  byId('conversation').hidden=!createMode
+  conversationInput.value=''
+  byId('generate').disabled=true
+  byId('draft-status').textContent=''
+  byId('load-example').hidden=!importMode
+  byId('load-example').style.marginTop='14px'
+  byId('imported-skills').hidden=true
+  byId('editor-fields').hidden=!editMode
+  byId('save').hidden=!editMode
+  nameInput.value=editMode?activeTemplate.name:''
+  promptInput.value=editMode?activeTemplate.description:''
+  if(preview.open)preview.close()
+  editor.showModal()
+  if(createMode)conversationInput.focus()
+  if(editMode)nameInput.focus()
+ }
+
+ conversationInput.addEventListener('input',()=>{byId('generate').disabled=!conversationInput.value.trim()})
+ function showFields(){
+  byId('editor-fields').hidden=false
+  byId('save').hidden=false
+  nameInput.focus()
+ }
+ byId('generate').addEventListener('click',()=>{
+  const request=conversationInput.value.trim()
+  if(!request)return
+  nameInput.value=nameInput.value||'新员工模板'
+  promptInput.value=[promptInput.value,request].filter(Boolean).join('\n').slice(0,240)
+  conversationInput.value=''
+  byId('generate').disabled=true
+  byId('draft-status').textContent='已更新示例草稿，可以继续补充或保存。'
+  showFields()
+ })
+ byId('manual').addEventListener('click',()=>{
+  byId('conversation').hidden=true
+  showFields()
+ })
+
+ byId('load-example').addEventListener('click',()=>{
+  importSkills=[exampleSkill('来源核验','source-check','references/criteria.md'),exampleSkill('交叉复核','peer-review','references/checklist.md')]
+  const imported=byId('imported-skills')
+  imported.replaceChildren(...importSkills.map(skill=>element('li','skills/'+skill.folder+'/SKILL.md')))
+  imported.hidden=false
+  nameInput.value='资料核查'
+  promptInput.value='核实资料来源，对照证据并整理核查结果。'
+  showFields()
+ })
+ byId('template-form').addEventListener('submit',event=>{
+  event.preventDefault()
+  const name=nameInput.value.trim()
+  const description=promptInput.value.trim()
+  if(!name||!description)return
+  if(formMode==='edit'){
+   Object.assign(activeTemplate,{name,description,revision:activeTemplate.revision+1})
+  }else{
+   templates.push({id:nextId++,name,description,prompt:description,revision:1,tone:'architecture',icon:'◇',skills:importSkills,shared:[]})
+  }
+  editor.close()
+  search.value=''
+  renderLibrary()
+ })
+ document.querySelectorAll('[data-close]').forEach(button=>button.addEventListener('click',()=>button.closest('dialog').close()))
+ for(const dialog of [editor,preview]){
+  dialog.addEventListener('click',event=>{
+   if(event.target===dialog)dialog.close()
+  })
+ }
+ search.addEventListener('input',renderLibrary)
+ byId('import').addEventListener('click',()=>startForm('import'))
+ byId('create').addEventListener('click',()=>startForm('create'))
+ byId('edit').addEventListener('click',()=>startForm('edit'))
+ renderLibrary()
+</script>
+</body>
+</html>
