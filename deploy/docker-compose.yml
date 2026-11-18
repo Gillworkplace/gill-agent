@@ -36,6 +36,7 @@ services:
       context: ../agent
       dockerfile: agentd/Dockerfile
     environment:
+      - GILL_TEAM_EXECUTOR=${GILL_TEAM_EXECUTOR:-sandbox}
       - GILL_TEAM_WORKER_SECRET=${GILL_TEAM_WORKER_SECRET:-}
       - GILL_TEAM_WEB_URL=http://web:8080
       - GILL_TEAM_WORKER_SLOTS=${GILL_TEAM_WORKER_SLOTS:-3}
@@ -67,6 +68,7 @@ services:
     build: ../web
     ports: ["8080:8080"]
     environment:
+      - GILL_TEAM_EXECUTOR=${GILL_TEAM_EXECUTOR:-sandbox}
       - GILL_TEAM_WORKER_SECRET=${GILL_TEAM_WORKER_SECRET:-}
       - DB_URL=jdbc:postgresql://postgres:5432/gill
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-gillpass}

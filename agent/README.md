@@ -8,6 +8,8 @@
 
 `team_template_files` 从草稿或任务快照加载对应版本的指令和 Skill。`read_template_file` 按清单路径读取参考文件。需要使用沙箱时，模板目录在 `/tmp/gill-template` 中按原结构展开。
 
+团队本地执行由 `gill team-worker` 启动。CLI 使用 `team_client → team_worker → team_turns → team_local_sandbox` 与同一网关协作，在指定本机目录下创建独立工作区。远程与本地执行均复用 `TeamGit` 及工作项处理。可用命令及目录见[部署说明](../docs/05-deploy.md#团队执行端启动方式)。
+
 模型用 `notify_team` 发通知和意见、`request_peer_review` 邀请核查、`assign_task` 正式派工。旧员工 `team_message` 聊天请求按通知收件，重放保留原请求参数和标识。用户启用派工审批时，以当前上下文和网关为准，主任务用 `ask_superior(dispatchApproval=true)` 发起许可申请。模型预留后读取共享运行调用数和上限。实际外部回执与模型判断分开注入。
 
 `archive_document` 归档当前关联项目的文档。`complete_task` 可携带 `artifact` 最终报告，以及一项 `assign` 派工或 `review` 核查。执行器依次保存证据、提交交接、提出完成，并使用稳定请求标识支持重放。完成未确认时仍返回已经提交的交接回执。已有合格成果可用空参数提交完成。

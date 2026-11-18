@@ -6,6 +6,30 @@
 
 ## 0. 部署总览
 
+### 团队执行端启动方式
+
+执行端部署契约 v1.7 对应 D42。
+
+在 `deploy` 目录运行以下命令可选执行端。先完成或暂停当前工作，再重启 Web 与 Agent。已领取的任务按原执行类型和目录恢复。
+
+```sh
+# CubeSandbox
+GILL_TEAM_EXECUTOR=sandbox docker compose up -d --build web agentd
+
+# CLI 本地执行
+GILL_TEAM_EXECUTOR=cli docker compose up -d --build web agentd
+```
+
+在 CLI 所在的 macOS 或 Linux 机器，先按 [Agent 安装说明](../agent/README.md) 安装并启用项目虚拟环境。从仓库根目录构建本机 Docker 镜像，再用个人访问令牌登录与启动执行器。
+
+```sh
+docker build -t gill-local-executor:latest deploy/local-executor
+gill login --server http://localhost:8080 --token "$GILL_TOKEN"
+gill team-worker --project '计算器 DEMO' --directory /path/to/calculator --env-file /path/to/gill-agent/deploy/.env
+```
+
+省略 `--directory` 会使用当前目录。省略 `--project` 只领取未关联项目的任务。两个同名项目可用项目 ID 区分。`--env-file` 用来读取部署端执行凭据、模型及 MinIO 配置。CLI 在另一台机器时，使用它可访问的 Gill URL 和 `MINIO_ENDPOINT`。默认本机 MinIO 位于 `http://localhost:9000`。工作区的 `workspace/`、命令日志 `commands.jsonl` 与 `transfers/` 中的 bundle 可在 CLI 选定目录下 `.gill/workspaces/` 查看。已有 Git 项目会从项目目标分支的提交加载；本地未提交修改保存在原目录。自定义工具链可通过 `GILL_LOCAL_EXECUTOR_IMAGE` 指定兼容 Docker 镜像。
+
 团队协议 v1.6 要求同步更新 Web 与 Agent。模板文件使用现有 `MINIO_BUCKET`，存于 `templates/<uid>/<sha256>`，沿用内部服务凭据。单次最多上传 128 个文件，单文件 8 MiB，整包 20 MiB，生效指令及 Skill 文件合计 128 KiB。若安装入口反向代理，需允许 Base64 请求体开销。模板文件清单沿用现有 JSONB 字段。
 
 团队协议 v1.5 使用 Web 与 Agent 同步构建，沿用当前表结构。需要保留待核实动作、晚到回执和人工核实记录。共享同一云沙箱池的隔离验收库需要协调既有沙箱清理器，避免另一实例把尚在验收的资源当作孤儿清理。

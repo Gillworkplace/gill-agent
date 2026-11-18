@@ -22,3 +22,5 @@ docker compose up -d --build web agentd
 ```
 
 打开 <http://localhost:8080>。凭据不入库。当前标准模型接口已恢复，两轮模板生成及三员工协作案例已完成实际续验，见[模型续验记录](docs/features/digital-employee-team/model_validation.md)。有限案例不代替完整业务或独立验收。
+
+需要在 CLI 所在机器的目录执行团队任务时，通过启动命令选择 CLI 模式。命令、目录绑定及工作区位置见[团队执行端启动方式](docs/05-deploy.md#团队执行端启动方式)。

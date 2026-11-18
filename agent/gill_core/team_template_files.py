@@ -1,7 +1,6 @@
 """Expose frozen template instructions and files only to the adopting execution."""
 from __future__ import annotations
 
-import asyncio
 import io
 import tarfile
 
@@ -79,7 +78,7 @@ class TemplatePackage:
                 entry.size = len(data)
                 bundle.addfile(entry, io.BytesIO(data))
         remote = "/tmp/gill-template-files.tar"
-        await asyncio.to_thread(sandbox.box.files.write, remote, archive.getvalue())
+        await sandbox.write_transfer(remote, archive.getvalue())
         result = await sandbox.run(f"mkdir -p {TEMPLATE_DIRECTORY} && tar -xf {remote} -C {TEMPLATE_DIRECTORY}")
         if result["exitCode"] != 0:
             raise RuntimeError("模板文件未能加载到当前沙箱")

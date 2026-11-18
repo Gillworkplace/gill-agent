@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import httpx
+from .team_local_sandbox import LocalWorker
 
 
 class TeamClient:
@@ -20,14 +21,18 @@ class TeamClient:
         self.http = httpx.AsyncClient(base_url=base_url.rstrip("/") + "/internal/team-worker/",
                                       headers={"X-Team-Worker-Secret": secret}, timeout=20, trust_env=False)
 
-    async def claim(self) -> dict:
+    async def claim(self, local: LocalWorker | None = None) -> dict:
         """
         Claim one durable work item.
 
+        :param local: Authenticated local runner binding when claiming CLI work.
         :returns: Work item fields, or an empty dictionary when no item is eligible.
         """
-        response = await self.http.post("claim", json={"workerId": self.worker_id})
-        response.raise_for_status()
+        scope = {"workerId": self.worker_id}
+        if local:
+            scope.update(localOwnerId=local.owner_id, localProjectId=local.project_id, localRunner=local.binding)
+        response = await self.http.post("claim", json=scope)
+        self._check(response)
         result = response.json()
         for key in ("payload", "checkpoint"):
             if isinstance(result.get(key), str):

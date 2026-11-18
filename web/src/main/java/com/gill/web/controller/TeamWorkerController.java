@@ -26,7 +26,13 @@ public class TeamWorkerController {
     }
     @PostMapping("/claim")
     public Object claim(@RequestHeader(value="X-Team-Worker-Secret",required=false) String token,@RequestBody ObjectNode body){
-        authenticate(token);var job=service.claim(body.path("workerId").asText());return job==null?Map.of():job;
+        authenticate(token);
+        boolean cli="cli".equals(System.getenv().getOrDefault("GILL_TEAM_EXECUTOR","sandbox"));
+        long owner=body.path("localOwnerId").asLong();
+        if(owner>0&&!cli)throw new ResponseStatusException(HttpStatus.CONFLICT,"当前部署使用 Sandbox 执行，请使用 CLI 模式启动服务");
+        String mode=owner>0?"cli":cli?"templates":"sandbox";
+        var job=service.claim(body.path("workerId").asText(),mode,owner,body.path("localProjectId").asText(),body.path("localRunner").asText());
+        return job==null?Map.of():job;
     }
     @PostMapping("/jobs/{id}/{operation}")
     public ObjectNode operate(@RequestHeader(value="X-Team-Worker-Secret",required=false) String token,

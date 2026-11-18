@@ -154,8 +154,14 @@ public class TeamService {
         }
     }
     public Map<String,Object> claim(String worker) {
+        return claim(worker,"sandbox",0,"","");
+    }
+    public Map<String,Object> claim(String worker,String mode,long owner,String project,String runner) {
         if(worker==null||!worker.matches("[a-zA-Z0-9._-]{1,100}"))throw new IllegalArgumentException("INVALID_INPUT: 无效workerId");
-        db.reconcileExpired();return db.claim(worker);
+        if(!Set.of("sandbox","templates","cli").contains(mode)||("cli".equals(mode)&&(owner<=0||!runner.matches("[0-9a-f]{24}")||
+            (!project.isEmpty()&&!project.matches("[a-f0-9-]{36}")))))
+            throw new IllegalArgumentException("INVALID_INPUT: 无效 CLI 工作区绑定");
+        db.reconcileExpired();return db.claim(worker,mode,owner,project,runner);
     }
     private Map<String,Object> leased(String id,ObjectNode input) {
         Map<String,Object> job=db.job(id);

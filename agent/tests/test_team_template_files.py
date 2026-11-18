@@ -32,9 +32,10 @@ class TemplatePackageTests(unittest.IsolatedAsyncioTestCase):
         data = bytes([0, 255, 0, 42])
         sandbox = Mock()
         sandbox.run = AsyncMock(return_value={"exitCode": 0})
+        sandbox.write_transfer = AsyncMock()
         with patch("gill_core.team_template_files.read_template_file", AsyncMock(return_value=data)):
             await package.stage(sandbox)
-        target, archive = sandbox.box.files.write.call_args.args
+        target, archive = sandbox.write_transfer.call_args.args
         self.assertTrue(target.startswith("/tmp/"))
         with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
             self.assertEqual(tar.getnames(), ["assets/fixture.bin"])

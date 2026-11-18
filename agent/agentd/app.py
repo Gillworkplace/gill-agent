@@ -476,7 +476,8 @@ class AgentDaemon:
         from fastapi import FastAPI
         import uvicorn
 
-        asyncio.create_task(self.sweep())
+        if os.getenv("GILL_TEAM_EXECUTOR", "sandbox") != "cli":
+            asyncio.create_task(self.sweep())
         from gill_core.team_worker import run_team_workers
         asyncio.create_task(run_team_workers(self.settings))
         app = FastAPI(title="gill-agentd")

@@ -1,9 +1,8 @@
 """受控本地 Git 版本、隔离需求工作区及真实检查后的项目基线集成。"""
 from __future__ import annotations
-import asyncio
-import base64
 import re
 import shlex
+import uuid
 from .team_objects import TeamObjects
 from .team_sandbox import TeamSandbox
 
@@ -46,24 +45,35 @@ class TeamGit:
 
         :returns: Actual preparation command result.
         """
-        project = self.context.get("project", {})
-        exists = await self.sandbox.run("test -d .git")
+        local = self.sandbox.uses_local_directory
+        exists = await self.sandbox.run("test -f /tmp/gill-project-ready" if local else "test -d .git")
         if exists["exitCode"] == 0:
             return exists
+        result = await self._initialize()
+        if local and result["exitCode"] == 0:
+            await self.sandbox.write_transfer("/tmp/gill-project-ready", b"ready")
+        return result
+
+    async def _initialize(self) -> dict:
+        project = self.context.get("project", {})
         # Install Git without cloning first, then restore the explicit immutable baseline.
-        prepared = await self.sandbox.prepare_git({}, self.context["taskId"])
+        bootstrap = {"targetBranch": project.get("targetBranch") or "main", "baselineBundle": project.get("baselineBundle"),
+                     "sourceHead": not project}
+        prepared = await self.sandbox.prepare_git(bootstrap, self.context["taskId"])
         if prepared["exitCode"] != 0:
             return prepared
         key = project.get("baselineBundle", "")
         if key:
             data = await self.objects.read(key)
-            await asyncio.to_thread(self.sandbox.box.files.write, "/tmp/gill-base.bundle", data)
+            await self.sandbox.write_transfer("/tmp/gill-base.bundle", data)
             target = project.get("targetBranch") or "main"
             baseline = project["baselineCommit"]
             return await self.sandbox.run(
                 "git fetch /tmp/gill-base.bundle '+refs/heads/*:refs/remotes/base/*' && "
                 "git checkout -B " + shlex.quote(target) + " " + shlex.quote(baseline) +
                 " && git checkout -B " + shlex.quote("work/" + self.context["taskId"]))
+        if self.sandbox.uses_local_directory:
+            return prepared
         url = project.get("repositoryUrl", "")
         if url:
             if not url.startswith("https://") or "@" in url.split("://", 1)[1].split("/", 1)[0]:
@@ -84,12 +94,11 @@ class TeamGit:
 
         :returns: Archive reference with bundleKey, sha256 and sizeBytes.
         """
-        result = await self.sandbox.run("git bundle create /tmp/gill-version.bundle --all && "
-                                        "base64 /tmp/gill-version.bundle > /tmp/gill-version.b64", 120)
+        path = f"/tmp/gill-version-{uuid.uuid4().hex}.bundle" if self.sandbox.uses_local_directory else "/tmp/gill-version.bundle"
+        result = await self.sandbox.run(f"git bundle create {path} --all", 120)
         if result["exitCode"] != 0:
             raise RuntimeError(result["stderr"])
-        encoded = await asyncio.to_thread(self.sandbox.box.files.read, "/tmp/gill-version.b64")
-        return await self.objects.save(base64.b64decode(encoded))
+        return await self.objects.save(await self.sandbox.read_transfer(path))
 
     async def save(self, summary: str) -> dict:
         """
@@ -127,7 +136,7 @@ class TeamGit:
         if prepared["exitCode"] != 0:
             return prepared
         data = await self.objects.read(source["bundleKey"])
-        await asyncio.to_thread(self.sandbox.box.files.write, "/tmp/gill-source.bundle", data)
+        await self.sandbox.write_transfer("/tmp/gill-source.bundle", data)
         checkout = await self.sandbox.run("git checkout " + shlex.quote(target) + " && git rev-parse HEAD")
         if checkout["exitCode"] != 0 or checkout["stdout"].strip() != request["expectedTarget"]:
             raise ValueError("工作区目标与请求基线不一致")

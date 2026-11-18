@@ -11,9 +11,21 @@
  <insert id="enqueue">INSERT INTO team_jobs(id,owner_user_id,team_id,payload) VALUES(#{id}::uuid,#{uid},NULLIF(#{team},'')::uuid,#{payload}::jsonb)</insert>
  <select id="claim" resultType="map" affectData="true">
  WITH picked AS (
- SELECT j.id FROM team_jobs j WHERE
+ SELECT j.id FROM team_jobs j LEFT JOIN team_workspaces w ON w.owner_user_id=j.owner_user_id WHERE
  (j.state='queued' OR (j.state='running' AND j.lease_until&lt;now()
  AND NOT EXISTS(SELECT 1 FROM team_actions a WHERE a.job_id=j.id AND a.state IN ('dispatched','unknown'))))
+ <choose>
+ <when test="mode == 'cli'">
+ AND j.owner_user_id=#{owner} AND j.payload-&gt;&gt;'kind' IN ('turn','integration')
+ AND COALESCE(j.payload-&gt;&gt;'executor','cli')='cli' AND COALESCE(j.payload-&gt;&gt;'localRunner',#{runner})=#{runner}
+ AND (j.sandbox_id IS NULL OR j.sandbox_id LIKE ('cli-' || #{runner} || '-%'))
+ AND COALESCE(w.document-&gt;'workItems'-&gt;(w.document-&gt;'runs'-&gt;(j.payload-&gt;&gt;'runId')-&gt;&gt;'workItemId')-&gt;&gt;'projectId','')=#{project}
+ </when>
+ <otherwise>
+ AND COALESCE(j.payload-&gt;&gt;'executor','sandbox')='sandbox'
+ <if test="mode == 'templates'">AND j.payload-&gt;&gt;'kind'='template'</if>
+ </otherwise>
+ </choose>
  AND (j.payload-&gt;&gt;'kind' IS DISTINCT FROM 'turn' OR COALESCE((j.payload-&gt;&gt;'generation')::int,1)=
  COALESCE((SELECT (w.document-&gt;'tasks'-&gt;(j.payload-&gt;&gt;'taskId')-&gt;&gt;'generation')::int
  FROM team_workspaces w WHERE w.owner_user_id=j.owner_user_id),1))
@@ -22,9 +34,11 @@
  AND other.payload-&gt;&gt;'taskId'=j.payload-&gt;&gt;'taskId' AND other.payload-&gt;&gt;'kind'='turn'
  AND ((other.state='running' AND other.lease_until&gt;now()) OR EXISTS(
  SELECT 1 FROM team_actions a WHERE a.job_id=other.id AND a.state IN ('dispatched','unknown')))))
- ORDER BY j.created_at FOR UPDATE SKIP LOCKED LIMIT 1
+ ORDER BY j.created_at FOR UPDATE OF j SKIP LOCKED LIMIT 1
  ) UPDATE team_jobs j SET state='running',worker_id=#{worker},fence=fence+1,
- lease_until=now()+interval '40 seconds',updated_at=now()
+ lease_until=now()+interval '40 seconds',updated_at=now(),
+ payload=j.payload || jsonb_build_object('executor',CAST(CASE WHEN #{mode}='cli' THEN 'cli' ELSE 'sandbox' END AS text))
+ <if test="mode == 'cli'">|| jsonb_build_object('localRunner',CAST(#{runner} AS text))</if>
  FROM picked WHERE j.id=picked.id
  RETURNING j.id::text,j.owner_user_id,j.team_id::text,j.payload::text,j.checkpoint::text,j.sandbox_id,j.fence
  </select>

@@ -11,6 +11,7 @@ from .team_client import TeamClient
 from .llm import LLM
 from .team_protocol import ACTION_NAMES, build_system, parse_calls, tool_schemas, search_sources
 from .team_sandbox import TeamSandbox
+from .team_local_sandbox import LocalDockerSandbox, LocalWorker
 from .team_template_files import TEMPLATE_DIRECTORY, TemplatePackage
 
 log = logging.getLogger(__name__)
@@ -19,15 +20,17 @@ log = logging.getLogger(__name__)
 class TeamTurn:
     """Execute one leased job using separate model history and sandbox references."""
 
-    def __init__(self, client: TeamClient, settings: Settings, job: dict) -> None:
+    def __init__(self, client: TeamClient, settings: Settings, job: dict, local: LocalWorker | None = None) -> None:
         """
         Initialize this execution.
 
         :param client: Authenticated internal TeamClient.
         :param settings: Project model and sandbox settings.
         :param job: Fenced durable work item.
+        :param local: Authorized CLI machine and directory, when assigned to a local worker.
         """
         self.client, self.settings, self.job = client, settings, job
+        self.local = local
         self.control = {}
         self.lost = False
         self.sandbox = None
@@ -488,15 +491,25 @@ class TeamTurn:
         """Lazily create/connect this execution's resource and persist its actual ID."""
         if self.sandbox:
             return
-        self.sandbox = TeamSandbox(self.settings, self.context.get("sandboxId", ""))
-        identifier = await self.sandbox.connect()
+        previous = self.context.get("sandboxId", "")
+        if self.local:
+            project = self.context.get("project", {})
+            if project.get("id", "") != self.local.project_id:
+                raise ValueError("领取的项目与 CLI 启动配置不一致")
+            sandbox = LocalDockerSandbox(self.local.directory, self.job["id"], previous, self.local.runner_id)
+        else:
+            if self.context.get("executor") == "cli" or previous.startswith("cli-"):
+                raise ValueError("本地工作必须由 CLI 执行器接续")
+            sandbox = TeamSandbox(self.settings, previous)
+        identifier = await sandbox.connect()
         await self.op("sandbox", sandboxId=identifier)
-        if self.context.get("project"):
+        if self.context.get("project") or self.local:
             from .team_git import TeamGit
-            prepared = await TeamGit(self.sandbox, self.context).prepare()
+            prepared = await TeamGit(sandbox, self.context).prepare()
             if prepared.get("exitCode", 0) != 0:
                 raise RuntimeError(prepared.get("stderr", "工作区初始化失败"))
-        await self.template_package().stage(self.sandbox)
+        await self.template_package().stage(sandbox)
+        self.sandbox = sandbox
 
     async def execute_tool(self, name: str, args: dict) -> dict:
         """

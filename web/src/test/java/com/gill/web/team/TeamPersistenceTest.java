@@ -38,6 +38,31 @@ class TeamPersistenceTest {
  }
  ObjectNode body(String... fields){ObjectNode n=json.createObjectNode();for(int i=0;i<fields.length;i+=2)n.put(fields[i],fields[i+1]);return n;}
  ObjectNode command(String kind,ObjectNode p){return service.command(uid,UUID.randomUUID().toString(),kind,p);}
+ @Test void cliClaimIsScopedAndKeepsTheOriginalRunnerWhenResumed() throws Exception {
+  String team=command("team.create",body("name","local team")).path("id").asText();
+  String template=command("template.save",body("name","employee","prompt","work carefully")).path("id").asText();
+  String employee=command("employee.create",body("name","local employee","teamId",team,"templateId",template)).path("id").asText();
+  String project=command("project.save",body("teamId",team,"name","local project")).path("id").asText();
+  String task=command("task.assign",body("employeeId",employee,"projectId",project,"goal","create local artifact")).path("id").asText();
+  String runner="a".repeat(24);
+  assertNull(service.claim("template-slot","templates",0,"",""));
+  assertNull(service.claim("another-account","cli",uid+1,project,runner));
+  assertNull(service.claim("without-project","cli",uid,"",runner));
+  var job=service.claim("local-slot","cli",uid,project,runner);
+  assertNotNull(job);
+  String id=job.get("id").toString();
+  var identity=body("workerId","local-slot").put("fence",((Number)job.get("fence")).longValue());
+  var context=service.worker(id,"context",identity);
+  assertEquals(task,context.path("task").path("id").asText());
+  assertEquals("cli",context.path("executor").asText());
+  service.worker(id,"sandbox",identity.deepCopy().put("sandboxId","cli-"+runner+"-"+id));
+  try(var c=dataSource.getConnection();var p=c.prepareStatement("UPDATE team_jobs SET lease_until=now()-interval '1 second' WHERE id=?::uuid")) {
+   p.setString(1,id);p.executeUpdate();
+  }
+  assertNull(service.claim("cloud-slot"));
+  assertNull(service.claim("different-directory","cli",uid,project,"b".repeat(24)));
+  assertEquals(id,service.claim("resumed-local-slot","cli",uid,project,runner).get("id"));
+ }
  @Test void durableIdempotencyRejectsDifferentPayloadAndKeepsSingleTeam() {
   var p=body("name","persistent team");
   var first=service.command(uid,"same-key","team.create",p);

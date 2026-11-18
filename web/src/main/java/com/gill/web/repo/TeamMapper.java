@@ -16,7 +16,8 @@ public interface TeamMapper extends BaseMapper<TeamWorkspaceRow> {
     void event(@Param("uid") long uid,@Param("team") String team,@Param("kind") String kind,@Param("payload") String payload);
     List<Map<String,Object>> events(@Param("uid") long uid,@Param("after") long after);
     void enqueue(@Param("id") String id,@Param("uid") long uid,@Param("team") String team,@Param("payload") String payload);
-    Map<String,Object> claim(@Param("worker") String worker);
+    Map<String,Object> claim(@Param("worker") String worker,@Param("mode") String mode,
+                            @Param("owner") long owner,@Param("project") String project,@Param("runner") String runner);
     Map<String,Object> job(@Param("id") String id);
     int renew(@Param("id") String id,@Param("worker") String worker,@Param("fence") long fence);
     int finish(@Param("id") String id,@Param("worker") String worker,@Param("fence") long fence,@Param("state") String state,@Param("result") String result);

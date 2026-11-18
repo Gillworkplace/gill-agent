@@ -1,6 +1,7 @@
 """每个执行实例独立的远程沙箱及受控工作区版本操作。"""
 from __future__ import annotations
 import asyncio
+import base64
 import os
 import shlex
 from pathlib import PurePosixPath
@@ -9,6 +10,8 @@ from .config import Settings
 
 class TeamSandbox:
     """Own one durable remote resource reference without sharing session history."""
+
+    uses_local_directory = False
 
     def __init__(self, settings: Settings, sandbox_id: str = "") -> None:
         """
@@ -92,6 +95,29 @@ class TeamSandbox:
         target = self.path(path)
         content = await asyncio.to_thread(self.box.files.read, target)
         return {"path": target, "content": str(content)[-60000:]}
+
+    async def write_transfer(self, path: str, data: bytes) -> None:
+        """
+        Stage a binary artifact at an executor-controlled path.
+
+        :param path: Executor-owned transfer path.
+        :param data: Original artifact bytes.
+        """
+        await asyncio.to_thread(self.box.files.write, path, data)
+
+    async def read_transfer(self, path: str) -> bytes:
+        """
+        Read a generated artifact as bytes.
+
+        :param path: Executor-owned transfer path.
+        :returns: Downloaded bytes.
+        """
+        encoded_path = "/tmp/gill-transfer.b64"
+        result = await self.run("base64 " + shlex.quote(path) + " > " + encoded_path, 120)
+        if result["exitCode"] != 0:
+            raise RuntimeError(result["stderr"])
+        encoded = await asyncio.to_thread(self.box.files.read, encoded_path)
+        return base64.b64decode(encoded)
 
     async def prepare_git(self, project: dict, task_id: str) -> dict:
         """

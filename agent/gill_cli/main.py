@@ -2,6 +2,7 @@
 # 注意：本文件不能使用 from __future__ import annotations —— typer 需要运行时真实类型注解
 import asyncio
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -13,10 +14,12 @@ from rich.panel import Panel
 from gill_core import __version__
 from gill_core.config import Settings
 from gill_core.loop import run_task
+from .team_worker_command import team_worker
 
 app = typer.Typer(add_completion=False, help="Gill Agent CLI", no_args_is_help=True,
                   context_settings={"help_option_names": ["-h", "--help"]})
 console = Console()
+app.command("team-worker")(team_worker)
 
 SYSTEM_HINT = "\n约定：回答用简洁中文；给结论和产物路径；不要输出多余客套。"
 
