@@ -10,7 +10,7 @@ const busy = ref(false)
 
 async function submit(register: boolean) {
   if (busy.value) return
-  busy.value = true; err.value = ''
+  busy.value = true; err.value = ''; auth.expired = false
   try {
     if (register) await auth.register(username.value, password.value)
     await auth.login(username.value, password.value)
@@ -25,6 +25,7 @@ async function submit(register: boolean) {
     <div class="card">
       <h1>Gill Agent</h1>
       <p>数字员工团队平台 · 私有部署</p>
+      <p v-if="auth.expired" role="status">登录已失效，请重新登录。</p>
       <div class="field"><input v-model="username" placeholder="用户名（3-32 位字母数字）" @keydown.enter="submit(false)"></div>
       <div class="field"><input v-model="password" type="password" placeholder="密码（≥8 位，含字母数字）" @keydown.enter="submit(false)"></div>
       <button class="btn" :disabled="busy" @click="submit(false)">登录</button>

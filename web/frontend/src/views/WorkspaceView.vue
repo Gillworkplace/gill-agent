@@ -79,6 +79,7 @@ function onKey(e: KeyboardEvent) {
 onMounted(async () => {
   window.addEventListener('keydown', onKey)
   await auth.me()
+  if (!auth.loggedIn) return
   await ws.loadSpaces()
   await ws.loadSessions()
   if (ws.sessions.length) await openSession(ws.sessions[0].id)

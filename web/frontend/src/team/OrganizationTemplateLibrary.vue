@@ -83,12 +83,12 @@ async function save(){
 </script>
 
 <template>
- <section class="team-page template-page">
-  <div class="catalog-content organization-template-library">
-   <header class="catalog-head">
+ <section class="team-page">
+  <div class="team-list-page organization-template-library">
+   <header class="team-page-head team-list-head">
     <div><h1>组织模板</h1><p>复用团队的协作方式与角色的职责标准。</p></div>
-    <button type="button" class="catalog-button catalog-primary" @click="edit()">
-     {{tab==='team'?'新建团队模板':'新建角色模板'}}
+    <button type="button" class="team-entry-primary" @click="edit()">
+     <span aria-hidden="true">＋</span> {{tab==='team'?'新建团队模板':'新建角色模板'}}
     </button>
    </header>
    <nav class="team-tabs" aria-label="组织模板类型">
@@ -119,7 +119,7 @@ async function save(){
    </details>
   </div>
 
-  <dialog ref="dialog" class="catalog-form-dialog organization-template-dialog" aria-labelledby="org-template-title" @cancel.prevent="close" @click.self="close">
+  <dialog ref="dialog" class="organization-template-dialog" aria-labelledby="org-template-title" @cancel.prevent="close" @click.self="close">
    <form v-if="open" class="organization-template-editor" @submit.prevent="save">
     <header class="team-row between">
      <h2 id="org-template-title">{{current?'编辑':sourceKey.startsWith('legacy:')?'转换为':'新建'}}{{tab==='team'?'团队模板':'角色模板'}}</h2>
@@ -167,6 +167,7 @@ async function save(){
 .organization-template-library .team-card details{margin-bottom:12px}
 .organization-template-history{margin-top:16px}
 .organization-template-history .team-row{margin-top:8px}
+.organization-template-editor h2{margin:0;font-size:21px}
 .organization-template-editor fieldset{border:1px solid var(--team-line);border-radius:8px;margin:12px 0;padding:8px 12px}
 .organization-template-editor fieldset input{width:auto}
 .organization-template-editor fieldset label{margin:5px 0}

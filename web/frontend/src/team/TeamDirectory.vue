@@ -46,8 +46,8 @@ async function mount(id:string,source:string,remove=false){if(!source)return;try
 </script>
 <template>
  <div class="team-page">
-  <div v-if="!team" class="team-directory">
-   <header class="team-page-head team-directory-head">
+  <div v-if="!team" class="team-directory team-list-page">
+   <header class="team-page-head team-list-head">
     <div><h1>团队</h1><p>管理员工、项目和协作规则。</p></div>
     <button v-if="teams.length" type="button" class="team-entry-primary" @click="$emit('create-team')"><span aria-hidden="true">＋</span> 新建团队</button>
    </header>

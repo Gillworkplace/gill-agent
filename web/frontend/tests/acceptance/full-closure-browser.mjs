@@ -276,6 +276,64 @@ try{
   }
   check(!exceptions.length,'Chrome raised an exception during Skill imports')
   console.log(JSON.stringify({case:'multiple-skills',passed:true,skills:names.length,files:saved.files.length}))
+ }else if(process.argv[2]==='--workspace-layout-session'){
+  const a=await account()
+  const fillLogin=async password=>{
+   await set('#login input',a.username)
+   await set('#login input[type=password]',password)
+   await click('#login .btn')
+  }
+  await cdp('Page.navigate',{url:origin+'/#/templates'})
+  await ui('!!document.querySelector("#login")')
+  await fillLogin('wrong-password-1')
+  await ui('document.querySelector("#login .err")?.textContent==="用户名或密码错误"')
+  await fillLogin(a.password)
+  await ui('document.querySelector(".organization-template-library h1")?.textContent==="组织模板"')
+  const geometry=selectors=>evalJs(`JSON.stringify(${JSON.stringify(selectors)}.map(selector=>{
+   const node=document.querySelector(selector),{x,y,width,height}=node.getBoundingClientRect()
+   return [x,y,width,height,getComputedStyle(node).fontSize]
+  }))`)
+  for(const width of [1440,390]){
+   await view(width,width===390?844:1040,width===390)
+   const shellSelectors=['.team-nav','.team-brand','.team-topbar','.team-nav nav a','.team-nav footer']
+   let shell,list
+   for(const [route,label] of [['teams','团队'],['knowledge','知识库'],['templates','组织模板'],['workbench','工作台']]){
+    await switchTo('#/'+route)
+    await ui(`document.querySelector('.team-topbar > span')?.textContent===${JSON.stringify(label)}`)
+    const actual=await geometry(shellSelectors)
+    shell??=actual
+    check(shell===actual,route+' has different navigation or top bar geometry',{width})
+    check(await evalJs('document.documentElement.scrollWidth===innerWidth'),route+' has horizontal page overflow',{width})
+    if(route==='workbench')continue
+    const page=await geometry(['.team-list-page','.team-list-head h1'])
+    const [listBox,headingBox]=JSON.parse(page)
+    const layout=[listBox[0],listBox[1],listBox[2],headingBox[0],headingBox[1],headingBox[4]]
+    list??=layout.join(',')
+    check(list===layout.join(','),route+' has different list or heading alignment',{width})
+   }
+   await switchTo('#/templates')
+   await ui('!!document.querySelector(".organization-template-library")')
+   await shot('organization-shell-'+(width===390?'mobile':'desktop'),'20261119')
+  }
+  const invalidToken='invalid-acceptance-session'
+  const rejected=await request('/api/v1/team-workspace',undefined,invalidToken)
+  check(rejected.status===401&&rejected.body.error?.code==='AUTH-1004','fixture did not produce an authentication rejection')
+  const before=await evalJs('performance.timeOrigin')
+  await evalJs(`localStorage.setItem('gill_token',${JSON.stringify(invalidToken)})`)
+  await ui(`performance.timeOrigin!==${before} && !!document.querySelector('#login [role=status]')`)
+  check(await evalJs('!localStorage.getItem("gill_token")&&!localStorage.getItem("gill_user")&&!document.querySelector(".team-app")'),'rejected session was retained')
+  await shot('session-expired-mobile','20261119')
+  await fillLogin(a.password)
+  await ui('document.querySelector(".organization-template-library h1")?.textContent==="组织模板"')
+  const reset = await evalJs(`(() => {
+   localStorage.setItem('gill_token',${JSON.stringify(invalidToken)})
+   history.replaceState(null,'','#/legacy')
+   return performance.timeOrigin
+  })()`)
+  await cdp('Page.reload')
+  await ui(`performance.timeOrigin!==${reset} && !localStorage.getItem('gill_token') && !!document.querySelector('#login [role=status]')`)
+  check(!exceptions.length,'Chrome raised an exception during layout or login recovery')
+  console.log(JSON.stringify({case:'workspace-layout-session',passed:true,desktop:true,mobile:true,invalidSession:true,relogin:true,legacyStartup:true}))
  }else if(process.argv[2]==='--organization-templates'){
   const a=await account()
   await cdp('Page.navigate',{url:origin+'/#/templates'})
@@ -283,7 +341,7 @@ try{
   await set('#login input',a.username);await set('#login input[type=password]',a.password);await click('#login .btn')
   await ui('document.querySelector(".organization-template-library h1")?.textContent==="组织模板"')
   await click('.organization-template-library nav button:nth-child(2)')
-  await click('.organization-template-library .catalog-primary')
+  await click('.organization-template-library .team-entry-primary')
   await ui('document.querySelector(".organization-template-dialog")?.open')
   await set('#org-template-name','复核角色模板')
   await set('#org-template-prompt','ROLE_STANDARD 核对依据并归档结论')
@@ -291,7 +349,7 @@ try{
   await ui('!document.querySelector(".organization-template-dialog").open')
   const roleTemplate=Object.values((await a.read()).organizationTemplates)[0]
   await click('.organization-template-library nav button:first-child')
-  await click('.organization-template-library .catalog-primary')
+  await click('.organization-template-library .team-entry-primary')
   await ui('document.querySelector(".organization-template-dialog")?.open')
   await set('#org-template-name','协作团队模板')
   await set('#org-template-prompt','TEAM_FLOW 先检查，再交付')

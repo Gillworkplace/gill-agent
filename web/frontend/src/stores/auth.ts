@@ -2,15 +2,21 @@ import { defineStore } from 'pinia'
 import { api } from '../api'
 import type { MeInfo } from '../types'
 
+const EXPIRED_NOTICE = 'gill_session_expired'
+
 export const useAuth = defineStore('auth', {
-  state: () => ({
-    user: localStorage.getItem('gill_user') || '',
-    myUid: null as number | null,
-    role: '',
-    // token 的响应式镜像：loggedIn 若直接读 localStorage（非响应式），computed 零依赖永不失效，
-    // 登录成功后视图会卡在登录页（登录按钮"无反应"）
-    tok: localStorage.getItem('gill_token') || ''
-  }),
+  state: () => {
+    const expired = sessionStorage.getItem(EXPIRED_NOTICE) === '1'
+    sessionStorage.removeItem(EXPIRED_NOTICE)
+    return {
+      user: localStorage.getItem('gill_user') || '',
+      myUid: null as number | null,
+      role: '',
+      // 保留响应式 token，让登录状态即时驱动视图。
+      tok: localStorage.getItem('gill_token') || '',
+      expired
+    }
+  },
   getters: {
     loggedIn: (s) => !!s.tok
   },
@@ -35,9 +41,12 @@ export const useAuth = defineStore('auth', {
     async saveInstructions(v: string) {
       await api('/auth/me/instructions', { custom_instructions: v }, 'PATCH')
     },
-    logout() {
+    logout(expired = false) {
+      if (!this.tok) return
       localStorage.removeItem('gill_token')
       localStorage.removeItem('gill_user')
+      if (expired) sessionStorage.setItem(EXPIRED_NOTICE, '1')
+      this.expired = expired
       this.tok = ''
       location.reload()
     }

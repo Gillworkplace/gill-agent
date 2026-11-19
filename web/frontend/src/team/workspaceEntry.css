@@ -36,32 +36,32 @@
  color:#fff;background:var(--entry-accent);font-size:14px;font-weight:650;white-space:nowrap;
 }
 .team-app .team-entry-primary:not(:disabled):hover {filter:none;background:var(--entry-accent-hover)}
-.team-directory {max-width:1120px;margin:0 auto;padding-top:8px}
-.team-directory-head {align-items:center;margin-bottom:25px}
-.team-app .team-directory-head h1 {margin:0;color:var(--entry-ink);font-size:32px;line-height:1.2}
-.team-app .team-directory-head p {margin:8px 0 0;color:var(--entry-muted);font-size:14px}
+.team-list-page {max-width:1120px;margin:0 auto;padding-top:8px}
+.team-list-head {align-items:center;margin-bottom:25px}
+.team-app .team-list-head h1 {margin:0;color:var(--entry-ink);font-size:32px;line-height:1.2}
+.team-app .team-list-head p {margin:8px 0 0;color:var(--entry-muted);font-size:14px}
 .team-directory .team-directory-card {
  padding:20px;border-color:#e0e6f4;border-radius:14px;min-height:0;
 }
 .team-directory-card .team-directory-description {color:var(--entry-muted)}
 .team-directory-card .team-row {margin-top:14px}
 
-.team-app .team-create-dialog {
+.team-app :is(.team-create-dialog,.organization-template-dialog) {
  position:fixed;inset:0;margin:auto;width:min(520px,100% - 30px);max-width:none;
  height:fit-content;max-height:calc(100% - 30px);overflow:auto;padding:0;
  border:1px solid #dce3f1;border-radius:16px;background:#fff;color:var(--entry-ink);
  box-shadow:0 18px 70px #14234c33;font-size:14px;
 }
-.team-create-dialog::backdrop {background:#17213c58}
-.team-create-dialog form {padding:25px 27px}
+:is(.team-create-dialog,.organization-template-dialog)::backdrop {background:#17213c58}
+:is(.team-create-dialog,.organization-template-dialog) form {padding:25px 27px}
 .team-create-header {display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
 .team-app .team-create-header h2 {margin:0;font-size:23px;line-height:1.3}
 .team-app .team-create-close {
  flex:none;width:33px;height:33px;min-height:0;padding:0;border:1px solid #dce3f1;border-radius:8px;
  background:#fff;color:#273751;font-size:19px;
 }
-.team-app .team-create-dialog label {margin:14px 0 5px;color:var(--entry-ink);font-size:13px;font-weight:650}
-.team-app .team-create-dialog textarea {min-height:0;line-height:1.65}
+.team-app :is(.team-create-dialog,.organization-template-dialog) label {margin:14px 0 5px;color:var(--entry-ink);font-size:13px;font-weight:650}
+.team-app :is(.team-create-dialog,.organization-template-dialog) textarea {min-height:0;line-height:1.65}
 .team-create-optional {margin-left:6px;color:var(--entry-muted);font-size:12px;font-weight:400}
 .team-create-rules {margin-top:15px;padding-top:12px;border-top:1px solid #e7edf6}
 .team-app .team-create-rules summary {padding:0;color:#344565;font-size:14px;font-weight:650}
@@ -72,7 +72,7 @@
 @media(max-width:768px) {
  .workbench-welcome {padding:20px 16px}
  .team-empty-state {padding:33px 16px 30px}
- .team-directory {padding-top:4px}
- .team-app .team-directory-head h1 {font-size:27px}
- .team-create-dialog form {padding:21px 17px}
+ .team-list-page {padding-top:4px}
+ .team-app .team-list-head h1 {font-size:27px}
+ :is(.team-create-dialog,.organization-template-dialog) form {padding:21px 17px}
 }

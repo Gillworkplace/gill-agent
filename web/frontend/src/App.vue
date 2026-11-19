@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onBeforeMount, onMounted, onUnmounted } from 'vue'
+import { SESSION_EXPIRED } from './api'
 import { useAuth } from './stores/auth'
 import LoginView from './views/LoginView.vue'
 import WorkspaceView from './views/WorkspaceView.vue'
@@ -11,6 +12,9 @@ onUnmounted(()=>window.removeEventListener('hashchange',updateRoute))
 
 const auth = useAuth()
 const view = computed(() => auth.loggedIn ? 'workspace' : 'login')
+const endExpiredSession = () => auth.logout(true)
+onBeforeMount(() => window.addEventListener(SESSION_EXPIRED, endExpiredSession))
+onUnmounted(() => window.removeEventListener(SESSION_EXPIRED, endExpiredSession))
 </script>
 
 <template>

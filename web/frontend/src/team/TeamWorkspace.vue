@@ -10,7 +10,6 @@ import TeamDirectory from './TeamDirectory.vue'
 import OrganizationTemplateLibrary from './OrganizationTemplateLibrary.vue'
 import KnowledgeLibrary from './KnowledgeLibrary.vue'
 import './team.css'
-import './templateCatalog.css'
 import './workspaceEntry.css'
 
 const store=useTeams(), auth=useAuth()
@@ -39,25 +38,15 @@ onUnmounted(()=>{clearInterval(timer);window.removeEventListener('hashchange',sy
 </script>
 
 <template>
- <div class="team-app" :class="{'team-template-route':section==='templates'}">
+ <div class="team-app">
   <aside class="team-nav">
    <a class="team-brand" href="#/workbench"><b>g</b><span>Gill<small>数字员工团队</small></span></a>
    <small class="team-muted nav-caption">我的工作空间</small>
    <nav aria-label="主导航"><a v-for="[path,symbol,label] in nav" :key="path" :href="'#'+path" :class="{selected:section===path.slice(1)}" :aria-current="section===path.slice(1)?'page':undefined"><span aria-hidden="true">{{symbol}}</span>{{label}}<b v-if="path==='/workbench'&&unread" class="team-counter">@{{unread}}</b></a></nav>
-   <footer v-if="section==='templates'">
-    <details class="catalog-account">
-     <summary><span class="catalog-avatar" aria-hidden="true">管</span>团队管理员</summary>
-     <div class="catalog-account-actions"><span>{{auth.user}}</span><a href="#/legacy">旧版会话</a><button class="text-button" @click="auth.logout()">退出登录</button></div>
-    </details>
-   </footer>
-   <footer v-else><span>{{auth.user}} · 团队管理者</span><a href="#/legacy">旧版会话</a><button class="text-button" @click="auth.logout()">退出登录</button></footer>
+   <footer><span>{{auth.user}} · 团队管理者</span><a href="#/legacy">旧版会话</a><button class="text-button" @click="auth.logout()">退出登录</button></footer>
   </aside>
   <main class="team-main">
-   <header v-if="section==='templates'" class="team-topbar">
-    <span class="catalog-crumb">我的工作空间 <span aria-hidden="true">/</span> <b>组织模板</b></span>
-    <span class="catalog-live">真实工作空间 <button class="text-button" @click="refresh">刷新</button></span>
-   </header>
-   <header v-else class="team-topbar"><span>{{nav.find(n=>n[0].slice(1)===section)?.[2]||'团队'}}</span><span class="team-muted">真实工作空间 <button class="text-button" @click="refresh">刷新</button></span></header>
+   <header class="team-topbar"><span>{{nav.find(n=>n[0].slice(1)===section)?.[2]||'团队'}}</span><span class="team-muted">真实工作空间 <button class="text-button" @click="refresh">刷新</button></span></header>
    <div v-if="store.error||store.refreshError" class="team-error" role="alert">{{store.error||store.refreshError}} <button class="text-button" @click="refresh">重新读取</button></div>
    <div v-if="!store.loaded" class="team-empty">正在读取工作空间…</div>
    <template v-else-if="section==='workbench'">
