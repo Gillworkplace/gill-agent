@@ -6,12 +6,12 @@ import { mergeTemplateFiles, uploadTemplateFiles } from './templateFiles'
 import type { TemplateFile, TemplateFilePurpose } from './types'
 
 const props=defineProps<{
- id:string; label:string; modelValue:string; files:TemplateFile[]; rows:number; placeholder?:string; disabled?:boolean
+ id:string; label:string; modelValue:string; files:TemplateFile[]; rows:number; placeholder?:string; disabled?:boolean; expandedByDefault?:boolean
 }>()
 const emit=defineEmits<{
  'update:modelValue':[value:string]; 'update:files':[files:TemplateFile[]]; 'update:uploading':[value:boolean]
 }>()
-const uploading=ref(false),error=ref(''),expanded=ref(false)
+const uploading=ref(false),error=ref(''),expanded=ref(props.expandedByDefault||false)
 let active=true
 onBeforeUnmount(()=>{
  active=false

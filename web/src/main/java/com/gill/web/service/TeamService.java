@@ -46,6 +46,12 @@ public class TeamService {
     }
     public List<Map<String,Object>> events(long uid,long after) {return db.events(uid,after);}
 
+    public ObjectNode skillPreview(long uid,String teamId,String employeeId,String taskId) {
+        var row=db.selectById(uid);
+        ObjectNode state=row==null?json.createObjectNode():parse(row.document);
+        return engine.skillPreview(state,teamId,employeeId,taskId);
+    }
+
     public ObjectNode uploadTemplateFiles(long uid,JsonNode files) {
         if(!files.isArray()||files.isEmpty()||files.size()>TemplateFiles.MAX_FILES)
             throw new IllegalArgumentException("INVALID_INPUT: 请选择 1 到 128 个文件");
@@ -91,7 +97,7 @@ public class TeamService {
             throw new IllegalArgumentException("SCOPE_FORBIDDEN: 版本与集成结果由实际执行器提交");
         if(kind.equals("template.save")&&payload.has("files"))verifyTemplateFiles(uid,payload.path("files"));
         if(kind.equals("template.generate")&&payload.path("draft").has("files"))verifyTemplateFiles(uid,payload.path("draft").path("files"));
-        if(Set.of("team.create","team.update","employee.update").contains(kind)&&payload.has("promptFiles"))
+        if(Set.of("team.create","team.update","employee.update","role.save").contains(kind)&&payload.has("promptFiles"))
             verifyTemplateFiles(uid,payload.path("promptFiles"));
         return execute(uid,new TeamActor("user",Long.toString(uid),null),key,kind,payload);
     }
@@ -225,6 +231,7 @@ public class TeamService {
         if(!text(task,"teamId").equals(text(employee,"teamId")))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 任务身份不匹配");
         out.set("task",task.deepCopy());out.set("run",run.deepCopy());
         out.set("employee",task.path("employeeSnapshot").deepCopy());out.set("team",task.path("teamSnapshot").deepCopy());
+        if(task.path("roleSnapshot").isObject())out.set("teamRole",task.path("roleSnapshot").deepCopy());
         ArrayNode sources=out.putArray("knowledge");
         ObjectNode retained=map(task,"retainedKnowledge");
         for(JsonNode source:list(employee,"knowledgeIds")) {
@@ -235,8 +242,12 @@ public class TeamService {
         }
         out.set("retainedKnowledge",retained.deepCopy());
         ArrayNode peers=out.putArray("peers");
-        for(JsonNode e:map(s,"employees"))if(text(e,"teamId").equals(text(task,"teamId")))
-            peers.add(node("id",text(e,"id"),"name",text(e,"name"),"role",text(e,"role"),"parentId",text(e,"parentId")));
+        for(JsonNode e:map(s,"employees")) {
+            if(!text(e,"teamId").equals(text(task,"teamId")))continue;
+            JsonNode role=map(s,"teamRoles").path(text(e,"roleId"));
+            peers.add(node("id",text(e,"id"),"name",text(e,"name"),"role",text(e,"role"),
+                "teamRole",text(role,"name"),"parentId",text(e,"parentId")));
+        }
         ArrayNode msgs=out.putArray("messages");String runId=text(run,"id");
         for(JsonNode m:map(s,"messages"))if(text(m,"teamId").equals(text(task,"teamId"))&&
             (text(m,"runId").equals(runId)||text(m,"id").equals(text(task,"sourceMessageId"))))msgs.add(m.deepCopy());

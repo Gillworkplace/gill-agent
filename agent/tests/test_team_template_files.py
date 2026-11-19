@@ -34,6 +34,20 @@ class TemplatePackageTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual((await packages["employee"].read_for_model("rules.md"))["content"], "WORK")
             self.assertEqual((await packages["template"].read_for_model("rules.md"))["content"], "BASE")
 
+    async def test_role_prompt_and_role_file_are_injected_from_the_task_snapshot(self) -> None:
+        turn = TeamTurn(Mock(), Mock(), {"id": "turn"})
+        turn.context = {"kind": "turn", "teamRole": {
+            "name": "复核", "revision": 2, "prompt": "角色独立要求",
+            "promptFiles": [{"path": "SKILL.md", "key": "role", "size": 4, "utf8": True, "purpose": "skill"}],
+        }}
+        turn._consume_model = AsyncMock(return_value=("", []))
+        with patch("gill_core.team_template_files.read_template_file", AsyncMock(return_value=b"ROLE")):
+            await turn.model_request()
+            system = turn._consume_model.await_args.args[1]
+            self.assertIn("角色独立要求", system)
+            self.assertIn("[团队角色目录指令]\n[skill SKILL.md]\nROLE", system)
+            self.assertEqual(turn.prompt_packages()["role"].directory, "/tmp/gill-role-prompt")
+
     async def test_selected_instructions_keep_their_paths_and_reference_files_are_lazy(self) -> None:
         package = TemplatePackage([
             {"path": "AGENTS.md", "key": "main", "size": 1, "utf8": True, "purpose": "prompt"},

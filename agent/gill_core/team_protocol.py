@@ -75,7 +75,7 @@ def tool_schemas(template: bool = False) -> list[dict]:
         ("search_knowledge", "检索本轮显式挂载的共享源，返回来源和实际版本；没有挂载不能读取。",
          {"query": string}, ["query"]),
         ("read_template_file", "按作用域和清单中的完整相对路径读取已采用的参考文件。省略 scope 时读取模板，二进制文件在对应任务沙箱目录使用。",
-         {"path": string, "scope": {"type": "string", "enum": ["team", "employee", "template"]}}, ["path"]),
+         {"path": string, "scope": {"type": "string", "enum": ["team", "role", "employee", "template"]}}, ["path"]),
         ("shell", "在本任务隔离沙箱的/workspace执行命令；结果以真实回执为准。",
          {"command": string, "timeout": {"type": "integer"}}, ["command"]),
         ("file_write", "在隔离沙箱写文本文件，路径限制在/workspace内。",
@@ -162,6 +162,7 @@ def build_system(context: dict[str, Any]) -> str:
         "也可以先record_artifact并在上报中引用产物ID及版本。record_review记录意见，通知只收件，已有工具回执也不会自行生成报告。"
         "等待决定时不要调用complete_task，决定前不派发相关工作。"
         "员工指令中的常规交接只在团队流程允许时执行。仅在报告中写待用户决定不能代替上报。"
+        "团队角色和个人技能用于落实团队流程。发现难以调和的指令冲突时，按现有上报路径提交依据。"
         "根据要交付的结果选择工具。仅知会、进展、收到或结束确认用notify_team，@不会派工。"
         "例如‘@小李请核查 v2 并给意见’用request_peer_review；‘@小李请修正 v1 并交付’用assign_task。"
         "需要同事接手的工作，只有核查或派工工具的成功回执表示接收者会执行；通知回执没有执行任务。"
@@ -216,6 +217,8 @@ def build_system(context: dict[str, Any]) -> str:
     executions = [action for action in task.get("executedActions", []) if action.get("kind") != "model"]
     execution_protocol = ("[当前任务实际外部执行回执]\n" + json.dumps(executions, ensure_ascii=False) + "\n"
                           "无实际工具成功回执就不能声称已跑脚本、命令或外部系统；模型心算、文本核对与外部验证必须区分。")
-    return "\n\n".join([protocol, "[团队有效指令]\n" + team.get("prompt", ""),
+    role = context.get("teamRole") or {}
+    role_instructions = f"[团队角色 · {role.get('name', '')} v{role.get('revision', '')}]\n{role.get('prompt', '')}" if role else ""
+    return "\n\n".join([protocol, "[团队有效指令]\n" + team.get("prompt", ""), role_instructions,
                           "[员工有效指令]\n" + employee.get("prompt", ""), skills,
                           "[执行身份与同事]\n" + json.dumps(identity, ensure_ascii=False), resource_protocol, execution_protocol])

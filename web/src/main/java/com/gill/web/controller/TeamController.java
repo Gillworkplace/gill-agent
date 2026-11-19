@@ -13,6 +13,11 @@ public class TeamController {
     public TeamController(TeamService service,com.gill.web.storage.TeamBlobStore blobs){this.service=service;this.blobs=blobs;}
     @GetMapping
     public ObjectNode read(@RequestAttribute("uid") Long uid){return service.read(uid);}
+    @GetMapping("/skill-preview")
+    public ObjectNode skillPreview(@RequestAttribute("uid") Long uid,@RequestParam String teamId,
+                                   @RequestParam String employeeId,@RequestParam(defaultValue="") String taskId) {
+        return service.skillPreview(uid,teamId,employeeId,taskId);
+    }
     @PostMapping("/template-files")
     public ObjectNode uploadTemplateFiles(@RequestAttribute("uid") Long uid,@RequestBody ObjectNode body) {
         return service.uploadTemplateFiles(uid,body.path("files"));

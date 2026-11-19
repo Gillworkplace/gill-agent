@@ -1,0 +1,99 @@
+.team-app .team-skill-config {
+  --skill-ink:#18233a;
+  --skill-muted:#53617a;
+  --skill-line:#dfe5ef;
+  --skill-selected:#edf2ff;
+  max-width:1180px;
+  margin-inline:auto;
+  color:var(--skill-ink);
+}
+.team-skill-config .skill-page-head {padding:18px 0 21px}
+.team-app .skill-page-head h2 {font-size:clamp(25px,3vw,34px);line-height:1.24;letter-spacing:-.035em;margin:0}
+.team-app .skill-page-head p,.team-skill-config .skill-dim {color:var(--skill-muted)}
+.team-app .skill-page-head p {margin:8px 0 0}
+.team-skill-config .skill-tabs {display:flex;gap:24px;border-bottom:1px solid var(--skill-line);margin-bottom:23px}
+.team-app .skill-tabs button {padding:0 6px;min-height:43px;color:var(--skill-muted);font-weight:650;background:transparent;border:0;border-bottom:2px solid transparent;border-radius:0;white-space:nowrap}
+.team-app .skill-tabs button[aria-current] {color:var(--team-blue);border-color:var(--team-blue)}
+.skill-layout {display:grid;grid-template-columns:minmax(0,1fr) minmax(250px,342px);gap:20px;align-items:start}
+.skill-panel {min-width:0;background:#fff;border:1px solid var(--skill-line);border-radius:14px;box-shadow:0 2px 6px #22305306}
+.skill-panel-head {display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:22px 24px}
+.team-app .skill-panel-head h3 {margin:0;font-size:19px;line-height:1.35;letter-spacing:-.018em}
+.team-app .skill-panel-head p {margin:5px 0 0;color:var(--skill-muted)}
+.skill-panel-head button {white-space:nowrap}
+.skill-record {padding:0 24px 22px}
+.team-app .skill-meta {display:flex;align-items:center;gap:8px;margin:0 0 16px;color:var(--skill-muted);font-size:12px}
+.skill-version {border-radius:5px;background:#f0f3f9;color:#4b5b76;padding:1px 7px;font-weight:650}
+.team-app .skill-record-contents h3 {margin:0 0 8px;font-size:13px}
+.team-app .skill-record-prompt {margin:0 0 19px;padding:13px 15px;border-radius:9px;background:#f7f9fc;color:#293851;white-space:pre-wrap;overflow-wrap:anywhere}
+.skill-record-files {margin:0;padding:0;list-style:none}
+.skill-record-files li {display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid #edf1f6}
+.skill-record-files li:last-child {border-bottom:0}
+.skill-record-files code {font-size:12px;color:#364863;overflow-wrap:anywhere;min-width:0}
+.skill-record-files li > span {color:var(--skill-muted);white-space:nowrap;font-size:12px}
+.skill-directory {display:grid;grid-template-columns:minmax(137px,.72fr) minmax(0,1.65fr);border-top:1px solid #e8edf4}
+.skill-directory-list {min-width:0;margin:0;padding:9px;list-style:none;border-right:1px solid #e8edf4}
+.team-app .skill-item {display:flex;align-items:center;gap:9px;width:100%;margin:2px 0;padding:7px;text-align:left;color:#263752;background:transparent;border:1px solid transparent}
+.team-app .skill-item:hover {background:#f6f8fc}
+.team-app .skill-item[aria-current] {background:var(--skill-selected);border-color:#d9e4ff;color:#254fae}
+.skill-item > span:last-child,.skill-layer summary > span:last-child {min-width:0;overflow-wrap:anywhere}
+.skill-item strong,.skill-item small,.skill-layer strong,.skill-layer small {display:block}
+.skill-item small,.skill-layer small {font-size:11px;color:var(--skill-muted);font-weight:400}
+.skill-mark {display:grid;place-items:center;width:29px;height:29px;flex:0 0 auto;border-radius:8px;font-size:12px;font-weight:650}
+.mark-flow {color:#2458c7;background:#edf3ff}
+.mark-roles {color:#6243a5;background:#f1edfb}
+.mark-members {color:#146a57;background:#e8f5ef}
+.skill-selection {min-width:0}
+.skill-selection .skill-panel-head {padding-bottom:15px}
+.skill-selection h3 {min-width:0;overflow-wrap:anywhere}
+.skill-adoption {display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 14px;color:var(--skill-muted)}
+.team-app .skill-empty {padding:0 24px 22px;color:var(--skill-muted)}
+.skill-preview {padding:18px}
+.team-app .skill-preview h3 {font-size:16px;margin:0 0 14px}
+.team-app .skill-preview label {font-weight:600;margin:0 0 6px}
+.skill-segment {display:flex;padding:3px;margin:12px 0 9px;background:#edf1f7;border-radius:8px}
+.team-app .skill-segment button {flex:1;min-height:29px;padding:3px;border:0;border-radius:6px;background:transparent;color:#465671;font-size:12px;white-space:nowrap}
+.team-app .skill-segment button[aria-pressed=true] {background:#fff;color:var(--skill-ink);box-shadow:0 1px 3px #22324b16;font-weight:650}
+.team-app .skill-preview .skill-task-picker {margin-block:10px}
+.skill-task-picker select {margin-top:5px;text-overflow:ellipsis}
+.team-app .skill-preview > p {font-size:12px;margin:9px 0 12px}
+.skill-layer {border:1px solid var(--skill-line);border-radius:9px;margin-top:8px}
+.team-app .skill-layer > summary {display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:8px;padding:8px;color:var(--skill-ink);list-style:none}
+.skill-layer summary::-webkit-details-marker {display:none}
+.skill-layer > summary::after {content:"▸";color:var(--skill-muted)}
+.skill-layer[open] > summary::after {content:"▾"}
+.skill-layer .compact,.team-app .skill-layer-empty {margin:0;padding:0 10px 10px}
+.team-app .skill-layer .skill-record-prompt {font-size:12px;background:transparent;margin:0;padding:2px 0 0}
+.skill-layer .skill-record-files code,.skill-layer .skill-record-files li > span {font-size:11px}
+.team-app .skill-inherited > summary,.team-app .skill-inline > summary {font-size:12px;padding-block:4px}
+.skill-inline p {white-space:pre-wrap;overflow-wrap:anywhere}
+.team-app .skill-notice {color:#14604f;background:#e8f5ef;border-radius:8px;padding:8px 11px;margin:0 0 12px}
+.team-app .team-skill-dialog {position:fixed;inset:0;margin:auto;width:min(660px,calc(100% - 28px));max-height:90dvh;padding:0;border:1px solid var(--skill-line);border-radius:15px;background:#fff;color:var(--skill-ink);box-shadow:0 24px 90px #14224430}
+.team-skill-dialog::backdrop {background:#1826446b}
+.skill-dialog-head,.skill-dialog-foot {display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:17px 21px}
+.skill-dialog-head {border-bottom:1px solid var(--skill-line)}
+.team-app .skill-dialog-head h2 {margin:0}
+.team-app .skill-dialog-head p {margin:4px 0 0}
+.skill-dialog-body {padding:14px 21px;min-width:0}
+.skill-dialog-body label > input,.skill-dialog-body label > select {margin-top:4px}
+.skill-dialog-foot {border-top:1px solid var(--skill-line);align-items:center}
+.skill-dialog-foot .team-row {flex-wrap:nowrap}
+.skill-dialog-foot button {white-space:nowrap}
+.team-app .skill-dialog-foot p {font-size:12px;margin:0}
+.team-app .skill-close {font-size:18px;padding:4px 10px}
+@media(max-width:1120px) {
+ .skill-layout {grid-template-columns:minmax(0,1fr) minmax(238px,.58fr)}
+ .skill-directory {grid-template-columns:minmax(0,1fr)}
+ .skill-directory-list {display:flex;gap:5px;overflow:auto;border-right:0;border-bottom:1px solid #e8edf4}
+ .skill-directory-list li {flex:0 0 auto;max-width:80%}
+ .skill-directory-list .skill-item {min-width:99px}
+}
+@media(max-width:768px) {
+ .team-skill-config .skill-page-head {padding:11px 0 16px}
+ .team-skill-config .skill-tabs {gap:16px;margin-bottom:14px}
+ .skill-layout {grid-template-columns:minmax(0,1fr);gap:12px}
+ .skill-panel-head,.skill-preview {padding:15px}
+ .skill-record {padding:0 15px 15px}
+ .skill-dialog-head,.skill-dialog-body,.skill-dialog-foot {padding-inline:13px}
+ .skill-dialog-foot {flex-wrap:wrap}
+ .skill-dialog-foot .team-row {margin-left:auto}
+}

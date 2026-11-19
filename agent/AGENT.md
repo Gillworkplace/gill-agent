@@ -65,3 +65,5 @@ docker exec gill-agentd-1 python /app/four_task_e2e.py   # 或本机直跑
 `complete_task.artifact`复用产物schema，由`TeamTurn`顺序提交`artifact.save`与`run.complete`。两步独立事务、稳定幂等键；重放不得新建重复报告、跳过保存失败或绕过网关的暂停/未知动作/决定校验。不可用自然语言完成声明或已有产物自动结束任务，不提高额度掩盖未收尾。实现与真实验证见`docs/features/digital-employee-team/completion_fix_feedback_20261118.md`。
 
 团队运行端由部署命令选择。CLI 领取限定在登录工作区和项目，执行必须绑定显式选择的本机目录。模型命令只在本机 Docker 工作区运行，原始目录仅初始化时只读挂入。重新领取同一个执行必须匹配原目录标识。
+
+团队角色指令只从任务上下文的冻结 `teamRole` 读取。同名文件按团队、角色、成员及模板分别解析。

@@ -12,6 +12,7 @@ final class DefinitionPolicy {
         return switch(kind) {
             case "team.relations" -> relations(s,a,p);
             case "team.create","team.update" -> saveTeam(s,a,p);
+            case "role.save" -> saveRole(s,a,p);
             case "template.share" -> shareTemplate(s,a,p);
             case "template.save","template.revise" -> saveTemplate(s,a,p);
             case "employee.create","employee.update" -> saveEmployee(s,a,p);
@@ -50,6 +51,24 @@ final class DefinitionPolicy {
             n.set("limits",p.get("limits").deepCopy());
         }
         return save(s,"teams",n,a);
+    }
+    private static ObjectNode saveRole(ObjectNode s,TeamActor actor,ObjectNode p) {
+        human(actor);
+        String tid=required(p,"teamId"), roleId=text(p,"id");
+        get(s,"teams",tid);
+        ObjectNode role=roleId.isBlank()?node("id",id(),"teamId",tid):get(s,"teamRoles",roleId).deepCopy();
+        if(!tid.equals(text(role,"teamId")))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 角色属于其他团队");
+        if(!roleId.isBlank())revision(role,p);
+        String name=required(p,"name").strip();
+        if(name.length()>30)throw new IllegalArgumentException("INVALID_INPUT: 角色名称最多30字");
+        for(JsonNode other:map(s,"teamRoles")) {
+            if(tid.equals(text(other,"teamId"))&&!text(role,"id").equals(text(other,"id"))&&name.equalsIgnoreCase(text(other,"name")))
+                throw new IllegalArgumentException("INVALID_INPUT: 本团队已有同名角色");
+        }
+        role.put("name",name);
+        if(p.has("prompt"))role.put("prompt",text(p,"prompt"));
+        savePromptFiles(role,p);
+        return save(s,"teamRoles",role,actor);
     }
     private static ObjectNode saveTemplate(ObjectNode s,TeamActor a,ObjectNode p) {
         String id=text(p,"id");ObjectNode n=id.isEmpty()?node("id",id()):get(s,"templates",id).deepCopy();
@@ -117,6 +136,13 @@ final class DefinitionPolicy {
             n.putArray("knowledgeIds");n.put("parentId","user").put("status","idle");
         }
         for(String f:List.of("name","role","prompt","parentId","lifecycle"))if(p.has(f))n.put(f,text(p,f));
+        if(p.has("roleId")) {
+            if(!p.path("roleId").isTextual())throw new IllegalArgumentException("INVALID_INPUT: roleId 必须为字符串");
+            String roleId=text(p,"roleId");
+            if(!roleId.isBlank()&&!tid.equals(text(get(s,"teamRoles",roleId),"teamId")))
+                throw new IllegalArgumentException("SCOPE_FORBIDDEN: 仅可关联本团队角色");
+            n.put("roleId",roleId);
+        }
         if(!fresh)savePromptFiles(n,p);
         if(p.has("skills"))n.set("skills",p.path("skills").deepCopy());
         if(text(n,"name").isBlank())throw new IllegalArgumentException("INVALID_INPUT: 员工姓名不能为空");

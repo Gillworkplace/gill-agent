@@ -109,6 +109,29 @@ class TeamEngineTest {
         assertEquals("updated",next.path("files").get(0).path("key").asText());
         assertEquals("skills/review/SKILL.md",next.path("files").get(1).path("path").asText());
     }
+
+    @Test void teamRoleIsSharedAtTaskCreationAndFrozenAcrossEdits() {
+        String team=setup("任务团队"), first=employee(team), second=employee(team);
+        String role=call("role.save",body("teamId",team,"name","复核","prompt","复核规则一")).path("id").asText();
+        for(String member:new String[]{first,second})
+            call("employee.update",body("id",member,"roleId",role,"expectedRevision","1"));
+        String oldTask=call("task.assign",body("employeeId",first,"goal","首次复核")).path("id").asText();
+        call("role.save",body("id",role,"teamId",team,"name","复核","prompt","复核规则二","expectedRevision","1"));
+        for(String member:new String[]{first,second}) {
+            String id=call("task.assign",body("employeeId",member,"goal","新工作")).path("id").asText();
+            assertEquals("复核规则二",state.path("tasks").path(id).path("roleSnapshot").path("prompt").asText());
+        }
+        assertEquals("复核规则一",state.path("tasks").path(oldTask).path("roleSnapshot").path("prompt").asText());
+        assertEquals(2,engine.skillPreview(state,team,first,"").path("role").path("revision").asInt());
+        assertEquals(1,engine.skillPreview(state,team,first,oldTask).path("role").path("revision").asInt());
+        assertThrows(IllegalArgumentException.class,()->engine.skillPreview(state,team,second,oldTask));
+        assertEquals("根据事实工作",state.path("employees").path(first).path("prompt").asText());
+        assertThrows(IllegalArgumentException.class,()->call("role.save",body("teamId",team,"name","复核")));
+        String foreign=employee(setup("其他团队"));
+        assertThrows(IllegalArgumentException.class,()->call("employee.update",body("id",foreign,"roleId",role,"expectedRevision","1")));
+        assertThrows(IllegalArgumentException.class,()->engine.apply(state,new TeamActor("employee",first,team),
+            "role.save",body("teamId",team,"name","越权")));
+    }
     @Test void retryingTemplateGenerationClearsThePreviousFailure() {
         String draft=call("template.generate",body("text","创建模板")).path("id").asText();
         ObjectNode saved=(ObjectNode)state.path("drafts").path(draft);

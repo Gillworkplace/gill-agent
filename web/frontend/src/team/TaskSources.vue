@@ -15,6 +15,7 @@ const template=computed(()=>store.data.templates[props.task.employeeSnapshot?.te
   <summary>查看本任务的配置与知识来源</summary>
   <p v-if="task.teamSnapshot">团队流程 {{task.teamSnapshot.name}} v{{task.teamSnapshot.revision}}</p>
   <p v-else>未记录团队流程快照</p>
+  <p v-if="task.roleSnapshot">团队角色 {{task.roleSnapshot.name}} v{{task.roleSnapshot.revision}}</p>
   <template v-if="task.employeeSnapshot">
    <p>员工工作配置 {{task.employeeSnapshot.name}} v{{task.employeeSnapshot.revision}}</p>
    <p>采用模板 {{template?.name||task.employeeSnapshot.templateId}} v{{task.employeeSnapshot.templateRevision}}</p>

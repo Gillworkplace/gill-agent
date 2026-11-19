@@ -214,6 +214,7 @@ class TeamTurn:
         task = dict(self.context.get("task") or {})
         task.pop("employeeSnapshot", None)
         task.pop("teamSnapshot", None)
+        task.pop("roleSnapshot", None)
         payload = {"task": task, "messages": self.context.get("messages"),
                    "decision": self.context.get("decision"), "project": self.context.get("project"),
                    "artifacts": self.context.get("artifacts")}
@@ -223,7 +224,7 @@ class TeamTurn:
         """
         Resolve the persistent file manifest for this execution once.
 
-        :returns: A mapping from string scope (template, team or employee) to its frozen TemplatePackage.
+        :returns: A mapping from string scope (template, team, role or employee) to its frozen TemplatePackage.
         """
         if not self.packages:
             if self.context.get("kind") == "template":
@@ -236,11 +237,15 @@ class TeamTurn:
                     "employee": TemplatePackage(employee.get("promptFiles", []), "/tmp/gill-employee-prompt"),
                     "template": TemplatePackage(employee.get("files", [])),
                 }
+                role = self.context.get("teamRole")
+                if role:
+                    self.packages["role"] = TemplatePackage(role.get("promptFiles", []), "/tmp/gill-role-prompt")
         return self.packages
 
     async def _package_instructions(self, template: bool) -> str:
         sections = []
-        labels = {"team": "团队流程目录", "employee": "实际员工工作目录", "template": "模板文件"}
+        labels = {"team": "团队流程目录", "role": "团队角色目录",
+                  "employee": "实际员工工作目录", "template": "模板文件"}
         for scope, package in self.prompt_packages().items():
             if not package.files:
                 continue

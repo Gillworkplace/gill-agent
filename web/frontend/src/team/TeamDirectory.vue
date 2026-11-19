@@ -3,15 +3,16 @@ import { computed, ref, watch } from 'vue'
 import { useTeams } from './store'
 import ProjectLibrary from './ProjectLibrary.vue'
 import TeamEmptyState from './TeamEmptyState.vue'
+import TeamSkillConfiguration from './TeamSkillConfiguration.vue'
 import PromptPackageField from './PromptPackageField.vue'
 import type { TemplateFile } from './types'
 import { employeeActivity, stateLabel } from './presentation'
 const props=defineProps<{selectedId:string}>()
 defineEmits<{(e:'enter-chat',id:string):void;(e:'navigate',path:string):void;(e:'create-team'):void}>()
-const store=useTeams(),name=ref(''),description=ref(''),prompt=ref(''),receiver=ref(''),maxRounds=ref(25),maxSeconds=ref(900)
+const store=useTeams(),name=ref(''),description=ref(''),receiver=ref(''),maxRounds=ref(25),maxSeconds=ref(900)
 const allowCrossTeamAdoption=ref(false)
-const promptFiles=ref<TemplateFile[]>([]),employeePromptFiles=ref<TemplateFile[]>([])
-const uploadingTeam=ref(false),uploadingEmployee=ref(false)
+const employeePromptFiles=ref<TemplateFile[]>([])
+const uploadingEmployee=ref(false)
 const templateId=ref(''),memberName=ref(''),role=ref(''),parentId=ref('user'),editing=ref(''),editPrompt=ref(''),editRole=ref('')
 const tab=ref('members'),dragged=ref(''),parents=ref<Record<string,string>>({}),dirty=ref(false),mountSource=ref<Record<string,string>>({})
 const baseTeamRevision=ref(0),baseEmployeeRevision=ref(0),baseRelations=ref<Record<string,number>>({})
@@ -19,11 +20,13 @@ const team=computed(()=>store.data.teams[props.selectedId])
 const teams=computed(()=>Object.values(store.data.teams))
 const members=computed(()=>Object.values(store.data.employees).filter(e=>e.teamId===props.selectedId))
 const currentEmployee=computed(()=>store.data.employees[editing.value])
-function reset(){if(team.value){baseTeamRevision.value=team.value.revision;name.value=team.value.name;description.value=team.value.description;prompt.value=team.value.prompt||'';promptFiles.value=team.value.promptFiles||[];receiver.value=team.value.receiverId||'';maxRounds.value=team.value.limits?.maxRounds||25;maxSeconds.value=team.value.limits?.maxSeconds||900}parents.value=Object.fromEntries(members.value.map(e=>[e.id,e.parentId]));baseRelations.value=Object.fromEntries(members.value.map(e=>[e.id,e.revision]));dirty.value=false}
+function resetTeamSettings(){if(team.value){baseTeamRevision.value=team.value.revision;name.value=team.value.name;description.value=team.value.description;receiver.value=team.value.receiverId||'';maxRounds.value=team.value.limits?.maxRounds||25;maxSeconds.value=team.value.limits?.maxSeconds||900}}
+function openRuntime(){resetTeamSettings();tab.value='runtime'}
+function reset(){resetTeamSettings();parents.value=Object.fromEntries(members.value.map(e=>[e.id,e.parentId]));baseRelations.value=Object.fromEntries(members.value.map(e=>[e.id,e.revision]));dirty.value=false}
 watch(()=>props.selectedId,()=>{reset();tab.value='members';editing.value=''},{immediate:true})
 watch(()=>members.value.length,()=>{if(!dirty.value){parents.value=Object.fromEntries(members.value.map(e=>[e.id,e.parentId]));baseRelations.value=Object.fromEntries(members.value.map(e=>[e.id,e.revision]))}})
 watch(()=>team.value?.id,()=>{if(team.value&&!baseTeamRevision.value)reset()})
-async function save(){if(!team.value||store.busy||uploadingTeam.value)return;try{await store.command('team.update',{id:team.value.id,expectedRevision:baseTeamRevision.value,name:name.value,description:description.value,prompt:prompt.value,promptFiles:promptFiles.value,receiverId:receiver.value,limits:{maxRounds:maxRounds.value,maxSeconds:maxSeconds.value}});reset()}catch{}}
+async function save(){if(!team.value||store.busy)return;try{await store.command('team.update',{id:team.value.id,expectedRevision:baseTeamRevision.value,name:name.value,description:description.value,receiverId:receiver.value,limits:{maxRounds:maxRounds.value,maxSeconds:maxSeconds.value}});reset()}catch{}}
 async function addMember(){try{await store.command('employee.create',{teamId:props.selectedId,templateId:templateId.value,name:memberName.value,role:role.value,parentId:parentId.value,allowCrossTeamAdoption:allowCrossTeamAdoption.value});memberName.value='';role.value='';reset()}catch{}}
 function drop(target:string){if(dragged.value&&target!==dragged.value){parents.value[dragged.value]=target;dirty.value=true}dragged.value=''}
 function depth(id:string){let n=0,p=parents.value[id];const seen=new Set([id]);while(p&&p!=='user'&&!seen.has(p)){seen.add(p);n++;p=parents.value[p]}return n}
@@ -51,7 +54,7 @@ async function mount(id:string,source:string,remove=false){if(!source)return;try
    </section>
   </div>
   <template v-else>
-   <button class="text-button" @click="$emit('navigate','/teams')">← 返回团队</button><header class="team-page-head"><div><h1>{{team.name}}</h1><p>{{team.description}}</p></div><button @click="$emit('enter-chat',team.id)">进入群聊 →</button></header>
+   <button class="text-button" @click="$emit('navigate','/teams')">← 返回团队</button><header class="team-page-head"><div><h1>{{team.name}}</h1><p>{{team.description}}</p></div><div class="team-row" style="flex-wrap:wrap;justify-content:flex-end"><button type="button" class="secondary" @click="openRuntime">运行设置</button><button @click="$emit('enter-chat',team.id)">进入群聊 →</button></div></header>
    <nav class="team-tabs"><button v-for="[id,label] in [['members','团队成员'],['projects','项目库'],['settings','团队配置']]" :key="id" :class="{active:tab===id}" class="secondary" @click="tab=id">{{label}}</button></nav>
    <template v-if="tab==='members'">
     <section class="team-card"><div class="team-row between"><div><h2>组织关系</h2><small class="team-muted">拖动节点调整直属上级，或使用选择框；保存后生效。</small></div><div class="team-row"><button class="secondary" @click="reset">重新读取</button><button :disabled="!dirty||store.busy" @click="saveTree">保存层级</button></div></div>
@@ -65,7 +68,8 @@ async function mount(id:string,source:string,remove=false){if(!source)return;try
      <button :disabled="store.busy||uploadingEmployee">保存员工配置</button></form><h3>知识挂载</h3><p class="team-muted">本页只修改这位员工的挂载，同队其他员工不会继承。</p><div v-for="k in currentEmployee.knowledgeIds" :key="k" class="team-row"><span>{{store.data.knowledge[k]?.title}} · v{{store.data.knowledge[k]?.revision}}</span><button class="secondary small" @click="mount(currentEmployee.id,k,true)">卸载</button></div><div class="team-row"><select v-model="mountSource[currentEmployee.id]"><option value="">选择知识源</option><option v-for="k in Object.values(store.data.knowledge).filter(k=>!currentEmployee?.knowledgeIds.includes(k.id))" :key="k.id" :value="k.id">{{k.title}}</option></select><button @click="mount(currentEmployee.id,mountSource[currentEmployee.id])">挂载到此员工</button></div></section>
    </template>
    <ProjectLibrary v-else-if="tab==='projects'" :team-id="team.id"/>
-   <form v-else class="team-card team-settings" @submit.prevent="save"><h2>团队配置</h2><label>团队名称<input v-model="name" required/></label><label>产品 / 模块 / 业务描述<textarea v-model="description"/></label><PromptPackageField :key="team.id" id="team-flow-prompt" label="流程 Prompt" v-model="prompt" v-model:files="promptFiles" v-model:uploading="uploadingTeam" :disabled="store.busy" :rows="10"/><label>未指定接收人的目标交给<select v-model="receiver"><option value="">尚未指定</option><option v-for="e in members" :key="e.id" :value="e.id">{{e.name}}</option></select></label><label>每次运行的模型调用上限<input type="number" min="1" max="1000" v-model.number="maxRounds"/></label><label>每次运行的时长上限（秒）<input type="number" min="1" max="86400" v-model.number="maxSeconds"/></label><button :disabled="store.busy||uploadingTeam">保存配置版本</button><p class="team-muted">在途任务保持原配置快照，新任务按当前有效配置执行。</p></form>
+   <TeamSkillConfiguration v-else-if="tab==='settings'" :key="team.id" :team="team" :members="members"/>
+   <form v-else class="team-card team-settings" @submit.prevent="save"><h2>运行设置</h2><label>团队名称<input v-model="name" required/></label><label>产品 / 模块 / 业务描述<textarea v-model="description"/></label><label>未指定接收人的目标交给<select v-model="receiver"><option value="">尚未指定</option><option v-for="e in members" :key="e.id" :value="e.id">{{e.name}}</option></select></label><label>每次运行的模型调用上限<input type="number" min="1" max="1000" v-model.number="maxRounds"/></label><label>每次运行的时长上限（秒）<input type="number" min="1" max="86400" v-model.number="maxSeconds"/></label><button :disabled="store.busy">保存配置版本</button><p class="team-muted">在途任务保持原配置快照，新任务按当前有效配置执行。</p></form>
   </template>
  </div>
 </template>
