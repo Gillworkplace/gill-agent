@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { TemplateFile, TemplateFilePurpose } from './types'
 
-defineProps<{files:TemplateFile[];directory?:string;disabled?:boolean}>()
+defineProps<{files:TemplateFile[];directory?:string;disabled?:boolean;readOnly?:boolean}>()
+const purposeNames={prompt:'工作指令',skill:'Skill',resource:'参考文件'}
 const emit=defineEmits<{
  purpose:[path:string,purpose:TemplateFilePurpose];
  remove:[path:string];
@@ -13,15 +14,18 @@ function changePurpose(path:string,event:Event){
 </script>
 
 <template>
- <ul v-if="files.length" class="template-file-list">
+ <ul v-if="files.length" class="template-file-list" :class="{ 'file-list-readonly':readOnly }">
   <li v-for="file in files" :key="file.path">
    <code :title="file.path">{{directory?file.path.slice(directory.length+1):file.path}}</code>
-   <select :value="file.purpose" :aria-label="'文件用途 '+file.path" :disabled="disabled" @change="changePurpose(file.path,$event)">
-    <option value="prompt" :disabled="!file.utf8||!file.size">工作指令</option>
-    <option value="skill" :disabled="!file.utf8||!file.size">Skill</option>
-    <option value="resource">参考文件</option>
-   </select>
-   <button type="button" class="text-button small" :disabled="disabled" :aria-label="'移除 '+file.path" @click="emit('remove',file.path)">移除</button>
+   <span v-if="readOnly" class="file-purpose">{{purposeNames[file.purpose]}}</span>
+   <template v-else>
+    <select :value="file.purpose" :aria-label="'文件用途 '+file.path" :disabled="disabled" @change="changePurpose(file.path,$event)">
+     <option value="prompt" :disabled="!file.utf8||!file.size">工作指令</option>
+     <option value="skill" :disabled="!file.utf8||!file.size">Skill</option>
+     <option value="resource">参考文件</option>
+    </select>
+    <button type="button" class="text-button small" :disabled="disabled" :aria-label="'移除 '+file.path" @click="emit('remove',file.path)">移除</button>
+   </template>
   </li>
  </ul>
 </template>
@@ -36,4 +40,7 @@ function changePurpose(path:string,event:Event){
  .template-file-list li{grid-template-columns:minmax(0,1fr) auto}
  .template-file-list code{grid-column:1 / -1}
 }
+.file-list-readonly li{grid-template-columns:minmax(0,1fr) auto}
+.file-list-readonly code{grid-column:auto}
+.file-purpose{color:#53617a;font-size:12px;white-space:nowrap}
 </style>

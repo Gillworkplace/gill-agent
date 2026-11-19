@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { onBeforeUnmount, ref } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 import PromptFolderInput from '../components/PromptFolderInput.vue'
-import TemplateFileList from './TemplateFileList.vue'
+import SkillDirectoryList from './SkillDirectoryList.vue'
+import { groupTemplateFiles } from './templateFileLayout'
 import { mergeTemplateFiles, uploadTemplateFiles } from './templateFiles'
 import type { TemplateFile, TemplateFilePurpose } from './types'
 
@@ -12,6 +13,7 @@ const emit=defineEmits<{
  'update:modelValue':[value:string]; 'update:files':[files:TemplateFile[]]; 'update:uploading':[value:boolean]
 }>()
 const uploading=ref(false),error=ref(''),expanded=ref(props.expandedByDefault||false)
+const groups=computed(()=>groupTemplateFiles(props.files))
 let active=true
 onBeforeUnmount(()=>{
  active=false
@@ -36,6 +38,11 @@ async function importFolder(selection:File[]) {
 function changePurpose(path:string,purpose:TemplateFilePurpose){
  emit('update:files',props.files.map(file=>file.path===path?{...file,purpose}:file))
 }
+
+function removeFiles(paths:string[]){
+ const removed=new Set(paths)
+ emit('update:files',props.files.filter(file=>!removed.has(file.path)))
+}
 </script>
 
 <template>
@@ -48,10 +55,10 @@ function changePurpose(path:string,purpose:TemplateFilePurpose){
             @input="emit('update:modelValue',($event.target as HTMLTextAreaElement).value)"/>
   <p v-if="uploading" class="team-muted" role="status">正在导入文件夹…</p>
   <p v-if="error" class="team-error" role="alert">{{error}}</p>
+  <p class="team-muted import-instruction">可连续导入多个 Skill 目录，也可选择包含多个 Skill 的上级文件夹。</p>
   <details v-if="files.length" :open="expanded" @toggle="expanded=($event.target as HTMLDetailsElement).open">
-   <summary>{{ files.length }} 个已选文件</summary>
-   <TemplateFileList :files="files" :disabled="disabled||uploading" @purpose="changePurpose"
-                     @remove="path=>emit('update:files',files.filter(file=>file.path!==path))"/>
+   <summary>{{groups.packages.length ? groups.packages.length+' 个 Skill · ' : ''}}{{files.length}} 个已选文件</summary>
+   <SkillDirectoryList :groups="groups" editable :disabled="disabled||uploading" @purpose="changePurpose" @remove="removeFiles"/>
   </details>
  </div>
 </template>
@@ -62,4 +69,5 @@ function changePurpose(path:string,purpose:TemplateFilePurpose){
 .prompt-package-field label { margin: 0; }
 .prompt-package-field textarea { margin-top: 5px; }
 .prompt-package-field details { margin-top: 6px; }
+.prompt-package-field .import-instruction { font-size: 12px; }
 </style>

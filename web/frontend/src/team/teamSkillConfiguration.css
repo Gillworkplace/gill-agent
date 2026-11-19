@@ -25,11 +25,6 @@
 .skill-version {border-radius:5px;background:#f0f3f9;color:#4b5b76;padding:1px 7px;font-weight:650}
 .team-app .skill-record-contents h3 {margin:0 0 8px;font-size:13px}
 .team-app .skill-record-prompt {margin:0 0 19px;padding:13px 15px;border-radius:9px;background:#f7f9fc;color:#293851;white-space:pre-wrap;overflow-wrap:anywhere}
-.skill-record-files {margin:0;padding:0;list-style:none}
-.skill-record-files li {display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid #edf1f6}
-.skill-record-files li:last-child {border-bottom:0}
-.skill-record-files code {font-size:12px;color:#364863;overflow-wrap:anywhere;min-width:0}
-.skill-record-files li > span {color:var(--skill-muted);white-space:nowrap;font-size:12px}
 .skill-directory {display:grid;grid-template-columns:minmax(137px,.72fr) minmax(0,1.65fr);border-top:1px solid #e8edf4}
 .skill-directory-list {min-width:0;margin:0;padding:9px;list-style:none;border-right:1px solid #e8edf4}
 .team-app .skill-item {display:flex;align-items:center;gap:9px;width:100%;margin:2px 0;padding:7px;text-align:left;color:#263752;background:transparent;border:1px solid transparent}
@@ -63,7 +58,6 @@
 .skill-layer[open] > summary::after {content:"▾"}
 .skill-layer .compact,.team-app .skill-layer-empty {margin:0;padding:0 10px 10px}
 .team-app .skill-layer .skill-record-prompt {font-size:12px;background:transparent;margin:0;padding:2px 0 0}
-.skill-layer .skill-record-files code,.skill-layer .skill-record-files li > span {font-size:11px}
 .team-app .skill-inherited > summary,.team-app .skill-inline > summary {font-size:12px;padding-block:4px}
 .skill-inline p {white-space:pre-wrap;overflow-wrap:anywhere}
 .team-app .skill-notice {color:#14604f;background:#e8f5ef;border-radius:8px;padding:8px 11px;margin:0 0 12px}
