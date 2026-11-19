@@ -12,7 +12,7 @@ from .llm import LLM
 from .team_protocol import ACTION_NAMES, build_system, parse_calls, tool_schemas, search_sources
 from .team_sandbox import TeamSandbox
 from .team_local_sandbox import LocalDockerSandbox, LocalWorker
-from .team_template_files import TEMPLATE_DIRECTORY, TemplatePackage
+from .team_template_files import TemplatePackage
 
 log = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ class TeamTurn:
         self.control = {}
         self.lost = False
         self.sandbox = None
-        self.package: TemplatePackage | None = None
+        self.packages: dict[str, TemplatePackage] = {}
         self.context = {}
         self.history = []
         self.turn = 0
@@ -219,16 +219,41 @@ class TeamTurn:
                    "artifacts": self.context.get("artifacts")}
         return [{"role": "user", "content": json.dumps(payload, ensure_ascii=False)}]
 
-    def template_package(self) -> TemplatePackage:
+    def prompt_packages(self) -> dict[str, TemplatePackage]:
         """
         Resolve the persistent file manifest for this execution once.
 
-        :returns: File package of the current draft or frozen employee template.
+        :returns: A mapping from string scope (template, team or employee) to its frozen TemplatePackage.
         """
-        if self.package is None:
-            source = "draft" if self.context.get("kind") == "template" else "employee"
-            self.package = TemplatePackage(self.context.get(source, {}).get("files", []))
-        return self.package
+        if not self.packages:
+            if self.context.get("kind") == "template":
+                self.packages["template"] = TemplatePackage(self.context.get("draft", {}).get("files", []))
+            else:
+                team = self.context.get("team", {})
+                employee = self.context.get("employee", {})
+                self.packages = {
+                    "team": TemplatePackage(team.get("promptFiles", []), "/tmp/gill-team-prompt"),
+                    "employee": TemplatePackage(employee.get("promptFiles", []), "/tmp/gill-employee-prompt"),
+                    "template": TemplatePackage(employee.get("files", [])),
+                }
+        return self.packages
+
+    async def _package_instructions(self, template: bool) -> str:
+        sections = []
+        labels = {"team": "团队流程目录", "employee": "实际员工工作目录", "template": "模板文件"}
+        for scope, package in self.prompt_packages().items():
+            if not package.files:
+                continue
+            label = labels[scope]
+            manifest = [{"path": path, "purpose": entry["purpose"]} for path, entry in package.files.items()]
+            sections.append(f"\n[{label}指令]\n" + await package.instructions())
+            sections.append(f"\n[{label}清单 scope={scope}]\n" + json.dumps(manifest, ensure_ascii=False))
+            if template:
+                sections.append("\n保留用户导入的文件，根据其内容和用户要求补充可编辑的工作指令。")
+            else:
+                sections.append(f"\n参考资料通过 read_template_file 按 scope={scope} 和相对路径读取，"
+                                f"或在任务沙箱 {package.directory} 下使用相同相对路径。")
+        return "".join(sections)
 
     async def model_request(self) -> tuple[str, list[dict]]:
         """
@@ -250,15 +275,7 @@ class TeamTurn:
                 sources = [{"id": s["id"], "revision": s.get("revision"), "title": s.get("title"),
                             "content": s.get("content", "")[:10000]} for s in self.read_knowledge.values()]
                 system += "\n[已授权读取的资料，引用时标来源版本]\n" + json.dumps(sources, ensure_ascii=False)
-        package = self.template_package()
-        if package.files:
-            system += "\n[模板文件指令]\n" + await package.instructions()
-            manifest = [{"path": path, "purpose": entry["purpose"]} for path, entry in package.files.items()]
-            system += "\n[模板文件清单]\n" + json.dumps(manifest, ensure_ascii=False)
-            if template:
-                system += "\n保留用户导入的文件，根据其内容和用户要求补充可编辑的工作指令。"
-            else:
-                system += f"\n参考资料通过 read_template_file 按清单读取，或在任务沙箱 {TEMPLATE_DIRECTORY} 下使用相同相对路径。"
+        system += await self._package_instructions(template)
         self.model_cancelled = False
         self.last_usage = {}
         request = asyncio.create_task(self._consume_model(template, system))
@@ -463,7 +480,10 @@ class TeamTurn:
         if name == "search_knowledge":
             return search_sources(self.context.get("knowledge", []), args["query"])
         if name == "read_template_file":
-            return await self.template_package().read_for_model(args["path"])
+            package = self.prompt_packages().get(args.get("scope", "template"))
+            if package is None:
+                raise ValueError("该指令目录不可用")
+            return await package.read_for_model(args["path"])
         key = self.key(call["id"])
         intent = await self.op("action", requestKey=key, kind=name, input=args)
         if intent["state"] in {"succeeded", "failed"}:
@@ -508,7 +528,8 @@ class TeamTurn:
             prepared = await TeamGit(sandbox, self.context).prepare()
             if prepared.get("exitCode", 0) != 0:
                 raise RuntimeError(prepared.get("stderr", "工作区初始化失败"))
-        await self.template_package().stage(sandbox)
+        for package in self.prompt_packages().values():
+            await package.stage(sandbox)
         self.sandbox = sandbox
 
     async def execute_tool(self, name: str, args: dict) -> dict:

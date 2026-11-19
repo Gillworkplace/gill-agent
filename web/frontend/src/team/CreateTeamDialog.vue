@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useTeams } from './store'
+import PromptPackageField from './PromptPackageField.vue'
+import type { TemplateFile } from './types'
 
 const props=defineProps<{open:boolean}>()
 const emit=defineEmits<{close:[];created:[id:string]}>()
 const store=useTeams()
 const dialog=ref<HTMLDialogElement>(),nameInput=ref<HTMLInputElement>(),rules=ref<HTMLDetailsElement>()
 const name=ref(''),description=ref(''),prompt=ref(''),error=ref('')
+const files=ref<TemplateFile[]>([]),uploading=ref(false)
 
 watch(()=>props.open,open=>{
  if(!open){dialog.value?.close();return}
- name.value='';description.value='';prompt.value='';error.value=''
+ name.value='';description.value='';prompt.value='';error.value='';files.value=[]
  if(rules.value)rules.value.open=false
  dialog.value?.showModal()
  nameInput.value?.focus()
@@ -18,10 +21,10 @@ watch(()=>props.open,open=>{
 
 function close(){if(!store.busy)emit('close')}
 async function create(){
- if(store.busy||!name.value.trim())return
+ if(store.busy||uploading.value||!name.value.trim())return
  error.value=''
  try{
-  const team=await store.command('team.create',{name:name.value,description:description.value,prompt:prompt.value})
+  const team=await store.command('team.create',{name:name.value,description:description.value,prompt:prompt.value,promptFiles:files.value})
   emit('created',team.id)
  }catch{error.value=store.error}
 }
@@ -41,12 +44,12 @@ async function create(){
    <textarea id="create-team-description" v-model="description" rows="2" placeholder="一句话描述团队负责的产品、模块或业务"/>
    <details ref="rules" class="team-create-rules">
     <summary>协作规则<span class="team-create-optional">选填</span></summary>
-    <label for="create-team-prompt">协作 Prompt</label>
-    <textarea id="create-team-prompt" v-model="prompt" rows="3" placeholder="描述团队如何分工、复核和上报"/>
+    <PromptPackageField v-if="open" id="create-team-prompt" label="协作 Prompt" v-model="prompt" v-model:files="files"
+                        v-model:uploading="uploading" :disabled="store.busy" :rows="3" placeholder="描述团队如何分工、复核和上报"/>
    </details>
    <div class="team-create-actions">
     <button class="secondary" type="button" :disabled="store.busy" @click="close">取消</button>
-    <button class="team-entry-primary" type="submit" :disabled="store.busy||!name.trim()">{{store.busy?'创建中…':'创建团队'}}</button>
+    <button class="team-entry-primary" type="submit" :disabled="store.busy||uploading||!name.trim()">{{store.busy?'创建中…':'创建团队'}}</button>
    </div>
   </form>
  </dialog>

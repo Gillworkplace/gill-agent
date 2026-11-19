@@ -3,10 +3,12 @@ import { onMounted, ref } from 'vue'
 import { api } from '../api'
 import { useWorkspace } from '../stores/workspace'
 import type { ExtItem } from '../types'
+import PromptTextDialog from './PromptTextDialog.vue'
 
 const emit = defineEmits<{ (e: 'close'): void }>()
 const ws = useWorkspace()
 const list = ref<ExtItem[]>([])
+const skill = ref<{ spaceId: string; name: string; description: string }>()
 
 async function load() {
   if (!ws.curSpaceId) return
@@ -22,8 +24,10 @@ async function add() {
       const auth = prompt('鉴权头（可空，如 Bearer xxx）')
       await api(`/spaces/${ws.curSpaceId}/extensions`, { name, extType: 'mcp', manifest: { mcp: { url, headers: auth ? { Authorization: auth } : {} } } })
     } else if (kind === '4') {
-      const desc = prompt('技能描述'); const body = prompt('技能指导正文（何时用/怎么做）')
-      await api(`/spaces/${ws.curSpaceId}/extensions`, { name, extType: 'skill', manifest: { skill: { description: desc, body_md: body } } })
+      const description = prompt('技能描述')
+      if (description === null || !ws.curSpaceId) return
+      skill.value = { spaceId: ws.curSpaceId, name, description }
+      return
     } else if (kind === '2') {
       const code = prompt('Python 源码（def 内逻辑，参数经 JSON argv[1]）')
       await api(`/spaces/${ws.curSpaceId}/extensions`, { name, extType: 'script-tools', manifest: { tools: [{ name: 'run', desc: name, code, params: {} }] } })
@@ -35,6 +39,14 @@ async function add() {
     }
     await load()
   } catch (e: any) { alert('创建失败：' + e.message) }
+}
+async function saveSkill(body: string) {
+  const current = skill.value
+  if (!current) return
+  await api(`/spaces/${current.spaceId}/extensions`, {
+    name: current.name, extType: 'skill', manifest: { skill: { description: current.description, body_md: body } }
+  })
+  await load()
 }
 async function toggle(x: ExtItem) {
   await api('/extensions/' + x.id, { status: x.status === 'enabled' ? 'disabled' : 'enabled' }, 'PATCH')
@@ -68,4 +80,5 @@ onMounted(load)
       <div v-if="!list.length" class="hint2">暂无扩展</div>
     </div>
   </div>
+  <PromptTextDialog v-if="skill" title="技能指导正文" initial="" :maximum="1500" :save="saveSkill" @close="skill=undefined"/>
 </template>

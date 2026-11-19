@@ -1,8 +1,10 @@
 # 团队基础设施实现契约
 
-2026-11-18，v1.7。需求依据为 D18～D42、专题 v0.9 及六条已批准的运行政策 P01～06。v1.7 增加按启动命令选择的 Sandbox 与 CLI 执行端。v1.6 增加模板文件夹导入和独立创建入口。D40 增加分开的群聊操作和按工作启用的派工审批，v1.5 补齐交接与当前任务收尾、未知动作展示及恢复。早期修复见[修改反馈](acceptance_fix_feedback_20261117.md)。
+2026-11-19，v1.8。需求依据为 D18～D43、专题 v0.9 及六条已批准的运行政策 P01～06。v1.8 为 Prompt 配置补齐目录导入及采用。v1.7 增加按启动命令选择的 Sandbox 与 CLI 执行端。v1.6 增加模板文件夹导入和独立创建入口。D40 增加分开的群聊操作和按工作启用的派工审批，v1.5 补齐交接与当前任务收尾、未知动作展示及恢复。早期修复见[修改反馈](acceptance_fix_feedback_20261117.md)。
 
 ## 1. 组件与事实边界
+
+Prompt 目录（D43）：选择文件夹后保留相对路径，用户可修改用途、移除或继续导入。同一配置中以相对路径替换文件，保存后采用。团队、员工各自通过 `promptFiles` 固定清单，不改写员工从模板继承的 `files`。三个范围分别使用 `/tmp/gill-team-prompt`、`/tmp/gill-employee-prompt`、`/tmp/gill-template`。文本指令随采用配置进入模型，参考文件通过清单和范围读取。旧版个人指令、技能指导和模板内联 Skill 将目录中的 UTF-8 文本附加到输入框，保存前可编辑。
 
 执行端（D42）：`GILL_TEAM_EXECUTOR=sandbox` 保留远程 CubeSandbox；`GILL_TEAM_EXECUTOR=cli` 让常驻 Agent 只领取模板生成，项目和其他团队任务由登录帐号对应的 CLI 领取。CLI 按项目绑定，省略项目只领取该帐号未关联项目的任务。首次领取记录执行端和目录标识，恢复沿用原执行器。Java 工作项、租约、回执及 Git 保护规则复用现有事务。
 
@@ -40,7 +42,7 @@ Python `team_worker → team_turns → team_client` 通过内部 HTTP 协议领�
 | --- | --- |
 | GET /api/v1/team-workspace | document 逻辑对象 + revision、updatedAt；执行状态叠加真实 job 状态，租期过期显示未知 |
 | POST /api/v1/team-workspace/commands | `{requestKey, kind, payload}`；返回对象 id/revision/state，依动作而定 |
-| POST /api/v1/team-workspace/template-files | 仅用户上传 `{files:[{path,data}]}`，`data` 为 Base64 原始字节。返回 `{files:[{path,key,size,utf8}]}`。工作区归属由登录身份决定，上传后需明确保存模板版本。 |
+| POST /api/v1/team-workspace/template-files | 仅用户上传 `{files:[{path,data}]}`，`data` 为 Base64 原始字节。返回 `{files:[{path,key,size,utf8}]}`。工作区归属由登录身份决定，上传后需保存对应配置版本。 |
 | GET /api/v1/team-workspace/events?after=0 | 持久事件游标补查 |
 | GET /api/v1/team-workspace/executions/{id} | 本用户实际执行、sandboxId、动作与回执 |
 | GET /api/v1/team-workspace/object-url?key=… | 只允许本用户已登记代码版本/项目基线对象，生成 120 秒预签名 URL |

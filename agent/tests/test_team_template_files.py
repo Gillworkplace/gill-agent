@@ -5,9 +5,35 @@ import unittest
 from unittest.mock import AsyncMock, Mock, patch
 
 from gill_core.team_template_files import TemplatePackage
+from gill_core.team_turns import TeamTurn
 
 
 class TemplatePackageTests(unittest.IsolatedAsyncioTestCase):
+    async def test_task_uses_frozen_directories_independently_of_template_paths(self) -> None:
+        turn = TeamTurn(Mock(), Mock(), {"id": "turn"})
+
+        def manifest(key: str) -> list[dict]:
+            return [{"path": "rules.md", "key": key, "size": 4, "utf8": True, "purpose": "prompt"}]
+
+        turn.context = {
+            "kind": "turn",
+            "team": {"promptFiles": manifest("team")},
+            "employee": {"promptFiles": manifest("employee"), "files": manifest("template")},
+        }
+        turn._consume_model = AsyncMock(return_value=("", []))
+        with patch("gill_core.team_template_files.read_template_file", AsyncMock(side_effect=[
+            b"TEAM", b"WORK", b"BASE",
+        ])):
+            await turn.model_request()
+            system = turn._consume_model.await_args.args[1]
+            self.assertIn("[团队流程目录指令]\n[prompt rules.md]\nTEAM", system)
+            self.assertIn("[实际员工工作目录指令]\n[prompt rules.md]\nWORK", system)
+            self.assertIn("[模板文件指令]\n[prompt rules.md]\nBASE", system)
+            packages = turn.prompt_packages()
+            self.assertEqual((await packages["team"].read_for_model("rules.md"))["content"], "TEAM")
+            self.assertEqual((await packages["employee"].read_for_model("rules.md"))["content"], "WORK")
+            self.assertEqual((await packages["template"].read_for_model("rules.md"))["content"], "BASE")
+
     async def test_selected_instructions_keep_their_paths_and_reference_files_are_lazy(self) -> None:
         package = TemplatePackage([
             {"path": "AGENTS.md", "key": "main", "size": 1, "utf8": True, "purpose": "prompt"},

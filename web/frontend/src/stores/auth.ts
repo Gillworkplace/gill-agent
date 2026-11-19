@@ -33,7 +33,7 @@ export const useAuth = defineStore('auth', {
       } catch { return null }
     },
     async saveInstructions(v: string) {
-      await api('/me/instructions', { custom_instructions: v }, 'PATCH')
+      await api('/auth/me/instructions', { custom_instructions: v }, 'PATCH')
     },
     logout() {
       localStorage.removeItem('gill_token')

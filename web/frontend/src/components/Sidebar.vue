@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useAuth } from '../stores/auth'
 import { useWorkspace } from '../stores/workspace'
 import { useEvents } from '../stores/events'
 import { api } from '../api'
+import PromptTextDialog from './PromptTextDialog.vue'
 
 defineProps<{ drawerOpen: boolean }>()
 const emit = defineEmits<{
@@ -18,14 +20,17 @@ const emit = defineEmits<{
 const auth = useAuth()
 const ws = useWorkspace()
 const ev = useEvents()
+const instructions = ref<string>()
 
 async function switchSpace(id: string) { await ws.switchSpace(id) }
 
 async function editInstructions() {
   const me = await api<{ custom_instructions?: string }>('/auth/me')
-  const v = prompt('个人指令（每次任务注入，≤2000 字）', me.custom_instructions || '')
-  if (v === null) return
-  await auth.saveInstructions(v)
+  instructions.value = me.custom_instructions || ''
+}
+
+async function saveInstructions(value: string) {
+  await auth.saveInstructions(value)
   ev.addSys('🧭 个人指令已保存，下次任务生效')
 }
 </script>
@@ -65,4 +70,6 @@ async function editInstructions() {
       <button class="new" @click="auth.logout()">退出</button>
     </div>
   </aside>
+  <PromptTextDialog v-if="instructions !== undefined" title="个人指令" :initial="instructions" :maximum="2000"
+                    :save="saveInstructions" @close="instructions=undefined"/>
 </template>

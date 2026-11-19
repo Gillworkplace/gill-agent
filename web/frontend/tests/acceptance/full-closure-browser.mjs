@@ -26,10 +26,11 @@ try{
  socket=new WebSocket(tab.webSocketDebuggerUrl)
  await new Promise(resolve=>socket.onopen=resolve)
  let sequence=0
- const pending=new Map(),exceptions=[]
+  const pending=new Map(),exceptions=[],nativePrompts=[]
  socket.onmessage=e=>{
   const message=JSON.parse(e.data)
   if(message.method==='Runtime.exceptionThrown')exceptions.push(message.params.exceptionDetails)
+  if(message.method==='Page.javascriptDialogOpening')nativePrompts.push(message.params)
   if(!message.id)return
   const callbacks=pending.get(message.id)
   pending.delete(message.id)
@@ -54,9 +55,9 @@ try{
  })()`)
  const submit=selector=>evalJs('document.querySelector('+JSON.stringify(selector)+').requestSubmit()')
  const ui=(expression,seconds)=>until(()=>evalJs(expression),expression,seconds)
- const shot=async name=>{
+ const shot=async (name,date='20261118')=>{
   const image=await cdp('Page.captureScreenshot',{format:'png'})
-  await fs.writeFile('gui-test-screenshots/v20261118-full-closure-'+name+'.png',Buffer.from(image.data,'base64'))
+  await fs.writeFile('gui-test-screenshots/v'+date+'-full-closure-'+name+'.png',Buffer.from(image.data,'base64'))
  }
  const view=(width,height,mobile=false)=>cdp('Emulation.setDeviceMetricsOverride',{width,height,mobile,deviceScaleFactor:1})
  const switchTo=hash=>evalJs('location.hash='+JSON.stringify(hash))
@@ -275,6 +276,106 @@ try{
   }
   check(!exceptions.length,'Chrome raised an exception during Skill imports')
   console.log(JSON.stringify({case:'multiple-skills',passed:true,skills:names.length,files:saved.files.length}))
+ }else if(process.argv[2]==='--prompt-folders'){
+  const a=await account()
+  const createFolder=async(name,files)=>{
+   const folder=path.join(profile,name)
+   for(const [relative,content] of Object.entries(files)){
+    const dest=path.join(folder,relative)
+    await fs.mkdir(path.dirname(dest),{recursive:true})
+    await fs.writeFile(dest,content)
+   }
+   return folder
+  }
+  const teamFolder=await createFolder('team-rules',{'workflow.md':'团队流程证据','references/approval.txt':'原始参考'})
+  const employeeFolder=await createFolder('employee-rules',{'workflow.md':'员工执行证据'})
+  const legacyFolder=await createFolder('personal-rules',{'instructions.md':'个人指令证据'})
+  await cdp('DOM.enable')
+  async function chooseFolder(selector,folder){
+   const dom=await cdp('DOM.getDocument')
+   const input=await cdp('DOM.querySelector',{nodeId:dom.root.nodeId,selector})
+   check(input.nodeId,'folder picker missing',{selector})
+   await cdp('DOM.setFileInputFiles',{nodeId:input.nodeId,files:[folder]})
+  }
+  await cdp('Page.navigate',{url:origin+'/#/workbench'})
+  await ui('!!document.querySelector("#login input[type=password]")')
+  await set('#login input',a.username);await set('#login input[type=password]',a.password);await click('#login .btn')
+  await ui('!!document.querySelector(".workbench-welcome .team-entry-primary")')
+  await click('.workbench-welcome .team-entry-primary')
+  await ui('document.querySelector(".team-create-dialog").open')
+  await set('#create-team-name','目录导入验收团队')
+  await click('.team-create-rules > summary')
+  await chooseFolder('.team-create-rules input[webkitdirectory]',teamFolder)
+  await ui('document.querySelectorAll(".team-create-rules .template-file-list li").length===2')
+  await submit('.team-create-dialog form')
+  await ui('!!document.querySelector(".team-tabs")')
+  const team=Object.values((await a.read()).teams)[0]
+  check(team.promptFiles.length===2&&team.promptFiles.some(f=>f.path==='workflow.md'&&f.purpose==='prompt'),'team create did not save the imported flow directory')
+  await evalJs('[...document.querySelectorAll(".team-tabs button")].find(b=>b.textContent==="团队配置").click()')
+  await ui('!!document.querySelector("#team-flow-prompt")')
+  await set('#team-flow-prompt','保留手写的团队指令')
+  await chooseFolder('.team-settings input[webkitdirectory]',employeeFolder)
+  await ui('document.querySelector(".team-settings .prompt-package-field details").open')
+  await shot('prompt-flow-desktop','20261119')
+  await view(390,844,true)
+  await ui('document.documentElement.scrollWidth===390 && document.querySelector(".team-settings .prompt-folder-button").getBoundingClientRect().right<=390')
+  await evalJs('document.querySelector("#team-flow-prompt").scrollIntoView({block:"center"})')
+  await shot('prompt-flow-mobile','20261119')
+  await click('.team-settings button[aria-label="移除 references/approval.txt"]')
+  await submit('.team-settings')
+  const saved=await until(async()=>{
+   const current=(await a.read()).teams[team.id]
+   return current.revision>team.revision&&current
+  },'updated folder was not saved')
+  check(saved.prompt==='保留手写的团队指令'&&saved.promptFiles.length===1,'text plus directory and removal were lost')
+  const template=(await a.ok('template.save',{name:'工作模板',prompt:'遵循指令'})).id
+  const employee=(await a.ok('employee.create',{teamId:team.id,templateId:template,name:'目录验收员工'})).id
+  await click('.team-tabs button:first-child')
+  await ui('!!document.querySelector(".organization-node .text-button")')
+  await click('.organization-node .text-button')
+  await set('#employee-work-prompt','员工补充说明')
+  await chooseFolder('.employee-config input[webkitdirectory]',teamFolder)
+  await ui('document.querySelectorAll(".employee-config .template-file-list li").length===2')
+  await submit('.employee-config form')
+  await ui('!document.querySelector(".employee-config")')
+  const updated=(await a.read()).employees[employee]
+  check(updated.prompt==='员工补充说明'&&updated.promptFiles.length===2,'employee directory not saved with text')
+  const other=await account()
+  const forbidden=await other.command('team.create',{name:'外部目录',promptFiles:updated.promptFiles})
+  check(forbidden.status===403,'foreign workspace could save private Prompt objects')
+  const old=(await a.ok('task.assign',{employeeId:employee,goal:'验收配置快照'})).id
+  await a.ok('employee.update',{id:employee,expectedRevision:updated.revision,promptFiles:[]})
+  const next=(await a.ok('task.assign',{employeeId:employee,goal:'验收下一版配置'})).id
+  const snapshot=await a.read()
+  check(snapshot.tasks[old].employeeSnapshot.promptFiles.length===2&&snapshot.tasks[old].teamSnapshot.promptFiles.length===1
+      &&snapshot.tasks[next].employeeSnapshot.promptFiles.length===0,'updating files changed an existing task or failed to affect a new one')
+  await switchTo('#/legacy')
+  await view(1440,1040)
+  await ui('!!document.querySelector("aside .tools")')
+  await evalJs('[...document.querySelectorAll("aside .tools button")].find(b=>b.textContent.includes("指令")).click()')
+  await ui('document.querySelector(".prompt-dialog")?.open')
+  await chooseFolder('.prompt-dialog input[webkitdirectory]',legacyFolder)
+  await ui('document.querySelector("#prompt-dialog-text").value.includes("personal-rules/instructions.md")')
+  await submit('.prompt-dialog form')
+  await ui('!document.querySelector(".prompt-dialog")')
+  const me=(await request('/api/v1/auth/me',undefined,a.token)).body
+  check(me.custom_instructions.includes('个人指令证据'),'legacy instruction was not saved')
+  await cdp('Page.enable')
+  await evalJs('[...document.querySelectorAll("aside .tools button")].find(b=>b.textContent.includes("扩展")).click()')
+  await ui('!!document.querySelector("#ex .bar button.new")')
+  const opening=click('#ex .bar button.new')
+  for(const value of ['4','prompt-folder-skill','验证技能正文']){
+   await until(()=>nativePrompts.shift(),'extension dialog did not open')
+   await cdp('Page.handleJavaScriptDialog',{accept:true,promptText:value})
+  }
+  await opening
+  await ui('document.querySelector(".prompt-dialog")?.open')
+  await chooseFolder('.prompt-dialog input[webkitdirectory]',legacyFolder)
+  await ui('document.querySelector("#prompt-dialog-text").value.includes("个人指令证据")')
+  await submit('.prompt-dialog form')
+  await ui('document.querySelector("#exList").textContent.includes("prompt-folder-skill")')
+  check(!exceptions.length,'Chrome raised an exception during Prompt folder import')
+  console.log(JSON.stringify({case:'prompt-folders',passed:true,teamCreate:true,teamUpdate:true,employee:true,legacy:true,legacySkill:true,versions:true,mobile:true}))
  }else if(process.argv[2]==='--template-folder'){
   const a=await account()
   const team=(await a.ok('team.create',{name:'文件夹模板验收团队'})).id

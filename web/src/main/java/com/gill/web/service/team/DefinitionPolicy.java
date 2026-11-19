@@ -43,6 +43,7 @@ final class DefinitionPolicy {
         if(!id.isEmpty())revision(n,p);
         n.put("name",required(p,"name"));
         for(String f:List.of("description","prompt","receiverId"))if(p.has(f))n.put(f,text(p,f));
+        savePromptFiles(n,p);
         if(p.has("limits")){
             int calls=p.path("limits").path("maxRounds").asInt(25),seconds=p.path("limits").path("maxSeconds").asInt(900);
             if(calls<1||calls>1000||seconds<1||seconds>86400)throw new IllegalArgumentException("INVALID_INPUT: 调用上限需为1至1000，运行时长为1至86400秒");
@@ -116,6 +117,7 @@ final class DefinitionPolicy {
             n.putArray("knowledgeIds");n.put("parentId","user").put("status","idle");
         }
         for(String f:List.of("name","role","prompt","parentId","lifecycle"))if(p.has(f))n.put(f,text(p,f));
+        if(!fresh)savePromptFiles(n,p);
         if(p.has("skills"))n.set("skills",p.path("skills").deepCopy());
         if(text(n,"name").isBlank())throw new IllegalArgumentException("INVALID_INPUT: 员工姓名不能为空");
         validateParent(s,n);
@@ -123,6 +125,11 @@ final class DefinitionPolicy {
         ObjectNode t=get(s,"teams",tid);
         if(text(t,"receiverId").isBlank())t.put("receiverId",text(n,"id"));
         return result;
+    }
+    private static void savePromptFiles(ObjectNode definition,ObjectNode payload) {
+        if(!payload.has("promptFiles"))return;
+        TemplateFiles.validateManifest(payload.path("promptFiles"));
+        definition.set("promptFiles",payload.get("promptFiles").deepCopy());
     }
     private static void validateParent(ObjectNode s,ObjectNode n) {
         String id=text(n,"id"),parent=text(n,"parentId"),tid=text(n,"teamId");Set<String> seen=new HashSet<>(Set.of(id));

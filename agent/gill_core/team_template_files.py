@@ -13,13 +13,15 @@ TEMPLATE_DIRECTORY = "/tmp/gill-template"
 class TemplatePackage:
     """Use exact manifest paths and immutable bytes supplied by the gateway."""
 
-    def __init__(self, files: list[dict]) -> None:
+    def __init__(self, files: list[dict], directory: str = TEMPLATE_DIRECTORY) -> None:
         """
         Attach the authorized manifest for one draft or employee snapshot.
 
         :param files: Saved manifests containing path, purpose, key and size.
+        :param directory: Fixed sandbox directory for this configuration scope.
         """
         self.files = {entry["path"]: entry for entry in files}
+        self.directory = directory
         self.loaded: dict[str, bytes] = {}
 
     async def read(self, path: str) -> bytes:
@@ -58,7 +60,7 @@ class TemplatePackage:
         """
         data = await self.read(path)
         if not self.files[path].get("utf8", False):
-            return {"path": path, "sandboxPath": f"{TEMPLATE_DIRECTORY}/{path}"}
+            return {"path": path, "sandboxPath": f"{self.directory}/{path}"}
         text = data.decode("utf-8-sig")
         return {"path": path, "content": text[:16000], "truncated": len(text) > 16000}
 
@@ -77,8 +79,8 @@ class TemplatePackage:
                 entry = tarfile.TarInfo(path)
                 entry.size = len(data)
                 bundle.addfile(entry, io.BytesIO(data))
-        remote = "/tmp/gill-template-files.tar"
+        remote = f"{self.directory}-files.tar"
         await sandbox.write_transfer(remote, archive.getvalue())
-        result = await sandbox.run(f"mkdir -p {TEMPLATE_DIRECTORY} && tar -xf {remote} -C {TEMPLATE_DIRECTORY}")
+        result = await sandbox.run(f"mkdir -p {self.directory} && tar -xf {remote} -C {self.directory}")
         if result["exitCode"] != 0:
             raise RuntimeError("模板文件未能加载到当前沙箱")

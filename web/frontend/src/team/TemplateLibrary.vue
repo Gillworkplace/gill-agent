@@ -4,8 +4,9 @@ import { useTeams } from './store'
 import TemplateCatalog from './TemplateCatalog.vue'
 import { sortTemplates } from './templateCatalog'
 import TemplateFileList from './TemplateFileList.vue'
+import PromptTextField from '../components/PromptTextField.vue'
 import { groupTemplateFiles } from './templateFileLayout'
-import { uploadTemplateFiles } from './templateFiles'
+import { mergeTemplateFiles, uploadTemplateFiles } from './templateFiles'
 import type { Skill, TemplateFile, TemplateFilePurpose } from './types'
 
 const store=useTeams()
@@ -14,6 +15,7 @@ const mode=ref<Mode>('library')
 const selected=ref(''),draftId=ref(''),text=ref(''),name=ref(''),prompt=ref(''),note=ref('')
 const skills=ref<Skill[]>([]),files=ref<TemplateFile[]>([]),sharing=ref<string[]>([])
 const baseRevision=ref(0),uploading=ref(false),importError=ref('')
+const importingSkills=ref<Record<number,boolean>>({})
 const dialog=ref<HTMLDialogElement>(),formError=ref(''),catalogQuery=ref('')
 const folderInput=ref<HTMLInputElement>(),fileInput=ref<HTMLInputElement>(),nameInput=ref<HTMLInputElement>(),chatInput=ref<HTMLTextAreaElement>()
 let importSequence=0
@@ -23,7 +25,7 @@ const templates=computed(()=>sortTemplates(Object.values(store.data.templates)))
 const drafts=computed(()=>Object.values(store.data.drafts))
 const hasConfig=computed(()=>Boolean(prompt.value.trim()||skills.value.length||files.value.some(f=>f.purpose!=='resource')))
 const hasPreview=computed(()=>mode.value==='edit'||Boolean(name.value||hasConfig.value||files.value.length))
-const pageBusy=computed(()=>store.busy||uploading.value||draft.value?.busy)
+const pageBusy=computed(()=>store.busy||uploading.value||draft.value?.busy||Object.values(importingSkills.value).some(Boolean))
 const fileGroups=computed(()=>groupTemplateFiles(files.value))
 
 function start(next:Mode){
@@ -31,6 +33,7 @@ function start(next:Mode){
  mode.value=next
  selected.value='';draftId.value='';name.value='';prompt.value='';text.value='';note.value=''
  skills.value=[];files.value=[];sharing.value=[];formError.value='';importError.value='';uploading.value=false
+ importingSkills.value={}
 }
 function open(id:string){
  const template=store.data.templates[id]
@@ -68,18 +71,9 @@ async function importFiles(event:Event){
  const sequence=++importSequence
  uploading.value=true;importError.value=''
  try{
-  const result=await uploadTemplateFiles(chosen)
+  const result=await uploadTemplateFiles(chosen,mode.value==='chat'||mode.value==='edit')
   if(sequence!==importSequence)return
-  const merged=new Map(files.value.map(file=>[file.path,file]))
-  for(const file of result.files){
-   const previous=merged.get(file.path)
-   const purpose=previous&&file.utf8&&file.size?previous.purpose:file.purpose
-   merged.set(file.path,{...file,purpose})
-  }
-  const packageFiles=[...merged.values()]
-  if(packageFiles.length>128||packageFiles.reduce((sum,file)=>sum+file.size,0)>20*1024*1024)
-   throw new Error('当前模板最多可保留 128 个文件，合计不超过 20 MB。')
-  files.value=packageFiles.sort((a,b)=>a.path.localeCompare(b.path))
+  files.value=mergeTemplateFiles(files.value,result.files)
   if(!name.value&&result.suggestedName)name.value=result.suggestedName
  }catch(error){
   if(sequence===importSequence)importError.value=error instanceof Error?error.message:'导入失败，请重试。'
@@ -88,11 +82,11 @@ async function importFiles(event:Event){
  }
 }
 async function chat(){
- if(!text.value.trim()||pageBusy.value)return
+ if((!text.value.trim()&&!files.value.some(file=>file.purpose!=='resource'))||pageBusy.value)return
  const sequence=importSequence
  formError.value=''
  try{
-  const result=await store.command('template.generate',{id:draftId.value,text:text.value.trim(),
+  const result=await store.command('template.generate',{id:draftId.value,text:text.value.trim()||'根据导入的目录生成或完善数字员工模板。',
    draft:{name:name.value,prompt:prompt.value,skills:skills.value,files:files.value}})
   if(sequence===importSequence){draftId.value=result.id;text.value=''}
  }catch{if(sequence===importSequence)formError.value=store.error}
@@ -192,10 +186,13 @@ watch(()=>draft.value?.busy,(busy,previous)=>{
      <p v-if="draft.error" class="team-error" role="alert">{{draft.error}}</p>
     </div>
     <form @submit.prevent="chat">
-     <label for="template-chat">{{draft?'继续对话':'你需要怎样的数字员工？'}}</label>
+     <div class="team-row between">
+      <label for="template-chat">{{draft?'继续对话':'你需要怎样的数字员工？'}}</label>
+      <button v-if="!hasPreview" type="button" class="secondary small" :disabled="pageBusy" @click="folderInput?.click()">导入文件夹</button>
+     </div>
      <textarea id="template-chat" ref="chatInput" v-model="text" placeholder="例如：核查资料来源并整理证据。"/>
      <div class="catalog-actions">
-      <button class="catalog-button catalog-primary" :disabled="pageBusy||!text.trim()">{{draft?'继续生成草稿':'生成草稿'}}</button>
+      <button class="catalog-button catalog-primary" :disabled="pageBusy||(!text.trim()&&!files.some(file=>file.purpose!=='resource'))">{{draft?'继续生成草稿':'生成草稿'}}</button>
       <button v-if="!hasPreview" type="button" class="catalog-button" @click="mode='edit'">手动填写</button>
      </div>
     </form>
@@ -208,11 +205,15 @@ watch(()=>draft.value?.busy,(busy,previous)=>{
     </div>
     <label for="template-name">模板名称</label>
     <input id="template-name" ref="nameInput" v-model="name" required/>
+    <div class="team-row between">
+     <label for="template-prompt">补充工作指令</label>
+     <button type="button" class="secondary small" :disabled="pageBusy" @click="folderInput?.click()">导入文件夹</button>
+    </div>
+    <textarea id="template-prompt" v-model="prompt" rows="5" placeholder="可填写适用于这个模板的补充说明"/>
     <div class="template-package">
      <div class="team-row between">
       <h3>Skills 与模板文件</h3>
       <div class="team-row">
-       <button type="button" class="secondary small" :disabled="pageBusy" @click="folderInput?.click()">导入文件夹</button>
        <button type="button" class="text-button small" :disabled="pageBusy" @click="fileInput?.click()">添加文件</button>
       </div>
      </div>
@@ -232,13 +233,12 @@ watch(()=>draft.value?.busy,(busy,previous)=>{
       <TemplateFileList :files="fileGroups.shared" :disabled="pageBusy" @purpose="changeFilePurpose" @remove="removeFile"/>
      </section>
     </div>
-    <label for="template-prompt">补充工作指令</label>
-    <textarea id="template-prompt" v-model="prompt" rows="5" placeholder="可填写适用于这个模板的补充说明"/>
     <div class="team-row between template-skills"><h3>文本 Skills</h3><button type="button" class="text-button" @click="skills.push({name:'',content:''})">添加 Skill</button></div>
     <section v-for="(skill,index) in skills" :key="index" class="skill-editor">
      <label>名称<input v-model="skill.name" required/></label>
-     <label>指令与素材<textarea v-model="skill.content" required/></label>
-     <button type="button" class="text-button" @click="skills.splice(index,1)">移除</button>
+     <PromptTextField :id="'template-skill-'+index" label="指令与素材" v-model="skill.content" required
+                      @update:uploading="importingSkills[index]=$event"/>
+     <button type="button" class="text-button" :disabled="pageBusy" @click="skills.splice(index,1)">移除</button>
     </section>
     <label v-if="selected">修改说明<input v-model="note"/></label>
     <details v-if="current?.originTeamId">
