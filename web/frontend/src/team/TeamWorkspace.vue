@@ -18,7 +18,8 @@ const nav=[['/workbench','◉','工作台'],['/templates','◇','组织模板'],
 const teams=computed(()=>Object.values(store.data.teams))
 const selected=computed(()=>store.data.teams[active.value]||teams.value[0])
 const section=computed(()=>route.value.split('/')[1]||'workbench')
-const unread=computed(()=>mentionsForUser(store.data.messages))
+const unread=computed(()=>Object.values(store.data.messages).filter(message=>
+ store.data.teams[message.teamId]&&message.mentionUser&&message.status==='needs-user').length)
 const freshness=computed(()=>workspaceFreshness(store.observedAt,Boolean(store.refreshError)))
 let timer: ReturnType<typeof setInterval>
 function navigate(path:string){location.hash=path;panel.value=false}

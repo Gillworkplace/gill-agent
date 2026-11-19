@@ -38,6 +38,30 @@ class TeamPersistenceTest {
  }
  ObjectNode body(String... fields){ObjectNode n=json.createObjectNode();for(int i=0;i<fields.length;i+=2)n.put(fields[i],fields[i+1]);return n;}
  ObjectNode command(String kind,ObjectNode p){return service.command(uid,UUID.randomUUID().toString(),kind,p);}
+ @Test void deletionWaitsForQueuedExecutionThenPersistsWithoutErasingTaskHistory() {
+  String team=command("team.create",body("name","delete team")).path("id").asText();
+  String employee=command("employee.create",body("teamId",team,"name","delete employee")).path("id").asText();
+  String project=command("project.save",body("teamId",team,"name","delete project")).path("id").asText();
+  String task=command("task.assign",body("employeeId",employee,"projectId",project,"goal","close before deletion")).path("id").asText();
+  command("task.update",body("taskId",task,"state","cancelled"));
+  ObjectNode projectRequest=body("id",project,"expectedRevision","1");
+  ObjectNode employeeRequest=body("id",employee,"expectedRevision","1");
+  assertTrue(assertThrows(IllegalArgumentException.class,()->command("project.delete",projectRequest)).getMessage().startsWith("BUSY:"));
+  assertTrue(assertThrows(IllegalArgumentException.class,()->command("employee.delete",employeeRequest)).getMessage().startsWith("BUSY:"));
+  var job=service.claim("delete-worker","cli",uid,project,"a".repeat(24));
+  assertNotNull(job);
+  var identity=body("workerId","delete-worker","state","stopped").put("fence",((Number)job.get("fence")).longValue());
+  identity.putObject("result");
+  service.worker(job.get("id").toString(),"finish",identity);
+  command("project.delete",projectRequest);
+  command("employee.delete",employeeRequest);
+  command("team.delete",body("id",team,"expectedRevision","2"));
+  var result=service.read(uid);
+  assertFalse(result.path("projects").has(project));
+  assertFalse(result.path("employees").has(employee));
+  assertFalse(result.path("teams").has(team));
+  assertTrue(result.path("tasks").has(task));
+ }
  @Test void cliClaimIsScopedAndKeepsTheOriginalRunnerWhenResumed() throws Exception {
   String team=command("team.create",body("name","local team")).path("id").asText();
   String employee=command("employee.create",body("name","local employee","teamId",team,"prompt","按要求协作")).path("id").asText();

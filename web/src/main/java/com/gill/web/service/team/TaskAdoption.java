@@ -8,18 +8,22 @@ final class TaskAdoption {
     static ObjectNode createTask(ObjectNode s,String tid,String employee,String goal,ObjectNode parent,ObjectNode p) {
         ObjectNode e=get(s,"employees",employee);
         String runId=parent==null?id():required(parent,"runId");
+        ObjectNode team=get(s,"teams",tid);
         if(parent==null) {
+            String projectId=text(p,"projectId");
+            ObjectNode project=projectId.isBlank()?null:get(s,"projects",projectId);
+            if(project!=null&&!tid.equals(text(project,"teamId")))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 项目跨团队");
             ObjectNode run=node("id",runId,"teamId",tid,"goal",goal,"state","active","createdAt",now());
             run.put("manualPaused",false).put("controlRevision",0).put("calls",0);
-            run.set("limits",get(s,"teams",tid).path("limits").deepCopy());map(s,"runs").set(runId,run);
+            run.set("limits",team.path("limits").deepCopy());map(s,"runs").set(runId,run);
             String wi=id();ObjectNode work=node("id",wi,"teamId",tid,"runId",runId,"goal",goal,"projectId",text(p,"projectId"),"state","active");
             if(p.path("requireDispatchApproval").asBoolean())work.put("requireDispatchApproval",true);
-            String projectId=text(p,"projectId");
-            if(!projectId.isBlank()){ObjectNode project=get(s,"projects",projectId);if(!tid.equals(text(project,"teamId")))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 项目跨团队");work.set("projectSnapshot",project.deepCopy());}
+            if(project!=null)work.set("projectSnapshot",project.deepCopy());
             map(s,"workItems").set(wi,work);run.put("workItemId",wi);
         }
         ObjectNode run=get(s,"runs",runId);
         if(!tid.equals(text(run,"teamId")))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 跨团队运行");
+        if(parent!=null)requireProject(s,run);
         ObjectNode task=node("id",id(),"teamId",tid,"employeeId",employee,"runId",runId,"goal",goal,"state","queued","createdAt",now());
         task.put("revision",1).put("parentTaskId",parent==null?"":text(parent,"id")).put("workItemId",text(run,"workItemId"));
         task.put("generation",1);
@@ -32,7 +36,7 @@ final class TaskAdoption {
                 dependencies.add(id.asText());
             }
         } else if(parent!=null)dependencies.add(text(parent,"id"));
-        task.set("employeeSnapshot",e.deepCopy());ObjectNode teamSnapshot=get(s,"teams",tid).deepCopy();
+        task.set("employeeSnapshot",e.deepCopy());ObjectNode teamSnapshot=team.deepCopy();
         ObjectNode role=roleFor(s,e);
         if(role!=null)task.set("roleSnapshot",role.deepCopy().retain("id","name","revision","prompt","promptFiles","skills"));
         ObjectNode organization=teamSnapshot.putObject("organization");
@@ -46,10 +50,11 @@ final class TaskAdoption {
         JsonNode role=map(state,"teamRoles").path(text(member,"roleId"));
         return role instanceof ObjectNode object&&text(member,"teamId").equals(text(role,"teamId"))?object:null;
     }
+    static void requireProject(ObjectNode state, JsonNode run) {
+        String projectId=text(map(state,"workItems").path(text(run,"workItemId")),"projectId");
+        if(!projectId.isBlank())get(state,"projects",projectId);
+    }
     static ObjectNode preview(ObjectNode state,String teamId,String employeeId,String taskId) {
-        ObjectNode team=get(state,"teams",teamId),employee=get(state,"employees",employeeId);
-        if(!teamId.equals(text(employee,"teamId")))
-            throw new IllegalArgumentException("SCOPE_FORBIDDEN: 员工属于其他团队");
         ObjectNode result=node();
         if(!taskId.isBlank()) {
             ObjectNode task=get(state,"tasks",taskId);
@@ -60,6 +65,9 @@ final class TaskAdoption {
             result.set("role",task.path("roleSnapshot").isObject()?previewFields(task.path("roleSnapshot")):NullNode.instance);
             return result.put("taskId",taskId);
         }
+        ObjectNode team=get(state,"teams",teamId),employee=get(state,"employees",employeeId);
+        if(!teamId.equals(text(employee,"teamId")))
+            throw new IllegalArgumentException("SCOPE_FORBIDDEN: 员工属于其他团队");
         ObjectNode role=roleFor(state,employee);
         result.set("team",previewFields(team));
         result.set("employee",previewFields(employee));

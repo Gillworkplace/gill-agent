@@ -2,14 +2,15 @@ export interface Skill { name: string; content: string; description?: string }
 export type TemplateFilePurpose = 'prompt' | 'skill' | 'resource'
 export interface TemplateFile { path: string; key: string; size: number; utf8: boolean; purpose: TemplateFilePurpose }
 export interface Version { revision: number; content?: string; prompt?: string; updatedAt?: string; authorType?: string; authorId?: string; files?: TemplateFile[] }
-export interface Team { id: string; name: string; description: string; prompt: string; promptFiles?: TemplateFile[]; revision: number; receiverId?: string; limits?: {maxRounds?: number;maxSeconds?: number}; versions?: Version[] }
-export interface TeamRole { id: string; teamId: string; name: string; revision: number; prompt?: string; promptFiles?: TemplateFile[]; skills?: Skill[] }
-export interface OrganizationTemplate { id: string; type: 'team'|'role'; name: string; revision: number; description?: string; prompt?: string; promptFiles?: TemplateFile[]; skills?: Skill[]; roles?: Pick<TeamRole,'name'|'prompt'|'promptFiles'|'skills'>[] }
-export interface Employee { id: string; teamId: string; templateId?: string; templateRevision?: number; name: string; role: string; roleId?: string; personality?: string; prompt: string; promptFiles?: TemplateFile[]; skills: Skill[]; files?: TemplateFile[]; parentId: string; revision: number; knowledgeIds: string[]; lifecycle?: string }
-export interface EmployeeTemplate { id: string; name: string; prompt: string; skills: Skill[]; files?: TemplateFile[]; revision: number; versions: Version[]; reason?: string; originTeamId?: string; authorizedTeamIds?: string[] }
-export interface Knowledge { id: string; title: string; content: string; category?: string; revision: number; versions: Version[] }
-export interface Document { id: string; title: string; content: string; revision: number; versions: Version[] }
-export interface Project { id: string; teamId: string; name: string; description?: string; repositoryUrl?: string; targetBranch?: string; checkCommand?: string; protectedBranches?: string[]; baselineCommit?: string; revision: number; documents?: Record<string, Document> }
+interface ManagedResource { id: string; revision: number; updatedAt?: string }
+export interface Team extends ManagedResource { name: string; description: string; prompt: string; promptFiles?: TemplateFile[]; receiverId?: string; limits?: {maxRounds?: number;maxSeconds?: number}; versions?: Version[] }
+export interface TeamRole extends ManagedResource { teamId: string; name: string; prompt?: string; promptFiles?: TemplateFile[]; skills?: Skill[] }
+export interface OrganizationTemplate extends ManagedResource { type: 'team'|'role'; name: string; description?: string; prompt?: string; promptFiles?: TemplateFile[]; skills?: Skill[]; roles?: Pick<TeamRole,'name'|'prompt'|'promptFiles'|'skills'>[] }
+export interface Employee extends ManagedResource { teamId: string; templateId?: string; templateRevision?: number; name: string; role: string; roleId?: string; personality?: string; prompt: string; promptFiles?: TemplateFile[]; skills: Skill[]; files?: TemplateFile[]; parentId: string; knowledgeIds: string[]; lifecycle?: string }
+export interface EmployeeTemplate extends ManagedResource { name: string; prompt: string; skills: Skill[]; files?: TemplateFile[]; versions: Version[]; reason?: string; originTeamId?: string; authorizedTeamIds?: string[] }
+export interface Knowledge extends ManagedResource { title: string; content: string; category?: string; versions: Version[] }
+export interface Document extends ManagedResource { title: string; content: string; versions: Version[] }
+export interface Project extends ManagedResource { teamId: string; name: string; description?: string; repositoryUrl?: string; targetBranch?: string; checkCommand?: string; protectedBranches?: string[]; baselineCommit?: string; documents?: Record<string, Document> }
 export type ChatIntent = 'notify' | 'review' | 'assign'
 export interface Message { id: string; teamId: string; senderType: string; senderId: string; text: string; createdAt: string; kind: string; mentions?: string[]; mentionUser?: boolean; status?: string; decisionId?: string; taskId?: string; replyTo?: string; requiresResponse?: boolean; intent?: ChatIntent }
 export interface Run { id: string; teamId: string; goal: string; state: string; createdAt: string; controlRevision: number; calls: number; manualPaused?: boolean; workItemId?: string }

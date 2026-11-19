@@ -3,6 +3,9 @@ import { computed, nextTick, ref, watch } from 'vue'
 import { useTeams } from './store'
 import PromptPackageField from './PromptPackageField.vue'
 import SkillConfigurationContents from './SkillConfigurationContents.vue'
+import ResourceDelete from './ResourceDelete.vue'
+import ResourceSort from './ResourceSort.vue'
+import { sortResources, type ResourceSortOrder } from './resourceSort'
 import type { OrganizationTemplate, TemplateFile } from './types'
 
 type TemplateType=OrganizationTemplate['type']
@@ -13,9 +16,10 @@ const current=ref<OrganizationTemplate>()
 const name=ref(''),description=ref(''),prompt=ref(''),sourceKey=ref(''),error=ref('')
 const files=ref<TemplateFile[]>([]),roleTemplateIds=ref<string[]>([]),removedRoles=ref<string[]>([])
 const templates=computed(()=>Object.values(store.data.organizationTemplates))
-const visible=computed(()=>templates.value.filter(item=>item.type===tab.value))
+const order=ref<ResourceSortOrder>('name'), historyOrder=ref<ResourceSortOrder>('name')
+const visible=computed(()=>sortResources(templates.value.filter(item=>item.type===tab.value),order.value))
 const roleTemplates=computed(()=>templates.value.filter(item=>item.type==='role'))
-const oldTemplates=computed(()=>Object.values(store.data.templates))
+const oldTemplates=computed(()=>sortResources(Object.values(store.data.templates),historyOrder.value))
 const teamSources=computed(()=>Object.values(store.data.teams))
 const roleSources=computed(()=>Object.values(store.data.teamRoles))
 const source=computed(()=>{
@@ -91,30 +95,40 @@ async function save(){
      <span aria-hidden="true">＋</span> {{tab==='team'?'新建团队模板':'新建角色模板'}}
     </button>
    </header>
-   <nav class="team-tabs" aria-label="组织模板类型">
+   <div class="organization-template-toolbar"><nav class="team-tabs" aria-label="组织模板类型">
     <button type="button" class="secondary" :class="{active:tab==='team'}" :aria-current="tab==='team'?'page':undefined" @click="changeTab('team')">团队模板</button>
     <button type="button" class="secondary" :class="{active:tab==='role'}" :aria-current="tab==='role'?'page':undefined" @click="changeTab('role')">角色模板</button>
-   </nav>
+   </nav><ResourceSort v-model="order" label="组织模板"/></div>
    <p v-if="!visible.length" class="team-card team-muted">暂无{{tab==='team'?'团队':'角色'}}模板。可从现有{{tab==='team'?'团队':'角色'}}复制，或直接新建。</p>
    <div v-else class="team-grid">
-    <article v-for="item in visible" :key="item.id" class="team-card">
+    <article v-for="item in visible" :key="item.id" class="team-card organization-template-card">
      <div class="team-row between"><h2>{{item.name}}</h2><small class="team-muted">v{{item.revision}}</small></div>
      <p v-if="item.description" class="team-muted">{{item.description}}</p>
      <p v-if="item.type==='team'" class="team-muted">{{item.roles?.length||0}} 个角色 · {{item.promptFiles?.length||0}} 个流程文件</p>
      <p v-else class="team-muted">{{item.promptFiles?.length||0}} 个文件<span v-if="item.skills?.length"> · {{item.skills.length}} 个文本 Skill</span></p>
+     <p v-if="item.updatedAt" class="team-muted"><small>更新于 <time :datetime="item.updatedAt">{{new Date(item.updatedAt).toLocaleString('zh-CN')}}</time></small></p>
      <details><summary>查看配置</summary>
       <SkillConfigurationContents :record="item" compact/>
       <ul v-if="item.roles?.length"><li v-for="role in item.roles" :key="role.name">{{role.name}}</li></ul>
      </details>
-     <button type="button" class="secondary" @click="edit(item)">编辑模板</button>
+     <div class="team-row organization-template-card-actions">
+      <button type="button" class="secondary" @click="edit(item)">编辑模板</button>
+      <ResourceDelete kind="orgTemplate.delete" :id="item.id" :name="item.name" :revision="item.revision" label="模板"
+        impact="已从该模板创建的团队、角色和任务配置仍会保留。"/>
+     </div>
     </article>
    </div>
    <details v-if="oldTemplates.length" class="team-card organization-template-history">
     <summary>历史员工模板（{{oldTemplates.length}}）</summary>
     <p class="team-muted">旧配置可按需整理为角色模板。</p>
+    <ResourceSort v-model="historyOrder" label="历史员工模板"/>
     <div v-for="item in oldTemplates" :key="item.id" class="team-row between">
      <span>{{item.name}} · v{{item.revision}}</span>
-     <button class="secondary small" type="button" @click="convert(item.id)">转为角色模板</button>
+     <div class="team-row">
+      <button class="secondary small" type="button" @click="convert(item.id)">转为角色模板</button>
+      <ResourceDelete kind="template.delete" :id="item.id" :name="item.name" :revision="item.revision" label="模板"
+        impact="已转换的角色模板和员工当前采用的配置仍会保留。"/>
+     </div>
     </div>
    </details>
   </div>
@@ -163,10 +177,13 @@ async function save(){
 </template>
 
 <style scoped>
-.organization-template-library .team-tabs{margin-bottom:16px}
+.organization-template-toolbar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin-bottom:16px}
+.organization-template-toolbar .team-tabs{margin:0}
+.organization-template-card{display:flex;flex-direction:column}
+.organization-template-card-actions{margin-top:auto}
 .organization-template-library .team-card details{margin-bottom:12px}
 .organization-template-history{margin-top:16px}
-.organization-template-history .team-row{margin-top:8px}
+.organization-template-history>.team-row{margin-top:8px;flex-wrap:wrap}
 .organization-template-editor h2{margin:0;font-size:21px}
 .organization-template-editor fieldset{border:1px solid var(--team-line);border-radius:8px;margin:12px 0;padding:8px 12px}
 .organization-template-editor fieldset input{width:auto}

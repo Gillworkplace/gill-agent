@@ -56,6 +56,8 @@ final class RuntimePolicy {
         if(state.equals("queued")&&!text(task,"state").equals("queued")) {
             if(!TaskFlow.blockingDecision(s,task).isBlank())throw new IllegalArgumentException("DEPENDENCY_UNRESOLVED: 相关事项等待明确决定");
             ObjectNode run=get(s,"runs",text(task,"runId"));
+            get(s,"teams",text(task,"teamId"));get(s,"employees",text(task,"employeeId"));
+            TaskAdoption.requireProject(s,run);
             if(text(run,"state").equals("paused")&&!run.path("manualPaused").asBoolean())run.put("state","active");
             task.put("generation",TaskFlow.generation(task)+1);
             enqueue(s,node("kind","turn","teamId",text(task,"teamId"),"employeeId",text(task,"employeeId"),"taskId",text(task,"id"),"runId",text(task,"runId")));
@@ -155,6 +157,10 @@ final class RuntimePolicy {
         if(!a.human())throw new IllegalArgumentException("SCOPE_FORBIDDEN: 员工通过相关任务控制，不可解除人工全局暂停");
         String op=required(p,"operation");
         if(!Set.of("pause","resume","stop").contains(op))throw new IllegalArgumentException("INVALID_INPUT: 无效控制");
+        if(op.equals("resume")) {
+            get(s,"teams",text(run,"teamId"));
+            TaskAdoption.requireProject(s,run);
+        }
         if(op.equals("resume")&&p.path("additionalCalls").asInt()>0){
             ObjectNode limits=map(run,"limits");limits.put("maxRounds",run.path("calls").asInt()+Math.min(p.path("additionalCalls").asInt(),1000));
             for(JsonNode task:map(s,"tasks"))if(text(task,"runId").equals(text(run,"id"))&&text(task,"reason").equals("运行调用上限已达"))((ObjectNode)task).put("state","queued").remove("reason");

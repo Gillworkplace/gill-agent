@@ -4,6 +4,9 @@ import { api } from '../api'
 import { useTeams } from './store'
 import SkillConfigurationContents from './SkillConfigurationContents.vue'
 import TeamSkillEditor from './TeamSkillEditor.vue'
+import ResourceDelete from './ResourceDelete.vue'
+import ResourceSort from './ResourceSort.vue'
+import { sortResources, type ResourceSortOrder } from './resourceSort'
 import type { SkillForm } from './TeamSkillEditor.vue'
 import { inFlightTasks } from './teamSkillPreview'
 import type { SkillConfigurationRecord, SkillPreview } from './teamSkillPreview'
@@ -22,7 +25,9 @@ const tab=ref<Tab>('flow'),roleId=ref(''),memberId=ref('')
 const view=ref<'new'|'active'>('new'),taskId=ref('')
 const editor=ref<Editor>(),trigger=ref<HTMLElement>()
 const notice=ref(''),previewError=ref(''),preview=ref<SkillPreview>(),loading=ref(false)
-const roles=computed(()=>Object.values(store.data.teamRoles).filter(role=>role.teamId===props.team.id))
+const roleOrder=ref<ResourceSortOrder>('name'), memberOrder=ref<ResourceSortOrder>('name')
+const roles=computed(()=>sortResources(Object.values(store.data.teamRoles).filter(role=>role.teamId===props.team.id),roleOrder.value))
+const sortedMembers=computed(()=>sortResources(props.members,memberOrder.value))
 const role=computed(()=>roles.value.find(item=>item.id===roleId.value))
 const member=computed(()=>props.members.find(item=>item.id===memberId.value))
 const memberRole=computed(()=>roles.value.find(item=>item.id===member.value?.roleId))
@@ -135,6 +140,7 @@ async function close(){
     <header class="skill-panel-head"><div><h3>团队角色</h3><p>同一角色的成员共用一套岗位指令。</p></div>
      <button type="button" @click="open('role',$event,true)">新建角色</button>
     </header>
+    <div v-if="roles.length" class="team-row resource-list-toolbar"><ResourceSort v-model="roleOrder" label="角色"/></div>
     <div v-if="role" class="skill-directory">
      <ul class="skill-directory-list" aria-label="角色列表">
       <li v-for="item in roles" :key="item.id">
@@ -146,7 +152,10 @@ async function close(){
      </ul>
      <div class="skill-selection">
       <header class="skill-panel-head"><h3>{{role.name}}</h3>
-       <button type="button" class="secondary" @click="open('role',$event)">编辑角色</button>
+       <div class="team-row resource-actions"><button type="button" class="secondary" @click="open('role',$event)">编辑角色</button>
+        <ResourceDelete :key="role.id" kind="role.delete" :id="role.id" :name="role.name" :revision="role.revision" label="角色"
+          impact="请先解除成员与该角色的关联。已运行任务的配置快照仍会保留。"/>
+       </div>
       </header>
       <div class="skill-record">
        <p class="skill-meta"><span class="skill-version">v{{role.revision}}</span> 角色共用配置</p>
@@ -164,9 +173,10 @@ async function close(){
 
    <section v-else class="skill-panel" aria-label="成员配置">
     <header class="skill-panel-head"><div><h3>成员</h3><p>设置成员的性格、工作态度和个人 Skill，并关联角色。</p></div></header>
+    <div v-if="member" class="team-row resource-list-toolbar"><ResourceSort v-model="memberOrder" label="成员配置"/></div>
     <div v-if="member" class="skill-directory">
      <ul class="skill-directory-list" aria-label="成员列表">
-      <li v-for="item in members" :key="item.id">
+      <li v-for="item in sortedMembers" :key="item.id">
        <button type="button" class="skill-item" :aria-current="item.id===member.id?'true':undefined" @click="showMember(item.id)">
         <span class="skill-mark mark-members" aria-hidden="true">{{item.name.slice(0,1)}}</span>
         <span><strong>{{item.name}}</strong><small>{{roleName(item.roleId)||'未关联角色'}}</small></span>
@@ -175,7 +185,10 @@ async function close(){
      </ul>
      <div class="skill-selection">
       <header class="skill-panel-head"><h3>{{member.name}}</h3>
-       <button type="button" class="secondary" @click="open('member',$event)">编辑成员配置</button>
+       <div class="team-row resource-actions"><button type="button" class="secondary" @click="open('member',$event)">编辑成员配置</button>
+        <ResourceDelete :key="member.id" kind="employee.delete" :id="member.id" :name="member.name" :revision="member.revision" label="员工"
+         impact="请先处理该员工的直属下级及未结束任务。历史任务仍可保留其配置快照。"/>
+       </div>
       </header>
       <div class="skill-record">
        <p class="skill-meta"><span class="skill-version">v{{member.revision}}</span> 个人配置</p>

@@ -14,6 +14,8 @@ final class DefinitionPolicy {
             case "team.create","team.update" -> saveTeam(s,a,p);
             case "role.save" -> saveRole(s,a,p);
             case "orgTemplate.save" -> OrganizationTemplates.saveTemplate(s,a,p);
+            case "orgTemplate.delete","template.delete","team.delete","role.delete","employee.delete",
+                 "knowledge.delete","project.delete","document.delete" -> ResourceRemoval.remove(s,a,kind,p);
             case "template.save","template.revise","template.share","template.generate" ->
                 throw new IllegalArgumentException("INVALID_STATE: 历史员工模板仅供查看和转换");
             case "employee.create","employee.update" -> saveEmployee(s,a,p);
@@ -136,7 +138,12 @@ final class DefinitionPolicy {
         String source=required(p,"sourceId");get(s,"knowledge",source);
         ArrayNode mounts=list(employee,"knowledgeIds");ArrayNode next=JsonNodeFactory.instance.arrayNode();
         for(JsonNode n:mounts)if(!n.asText().equals(source))next.add(n);
-        if(add)next.add(source);employee.set("knowledgeIds",next);
+        if(add)next.add(source);
+        if(!mounts.equals(next)) {
+            ObjectNode updated=employee.deepCopy();
+            updated.set("knowledgeIds",next);
+            save(s,"employees",updated,a);
+        }
         return node("id",text(employee,"id")).put("mounted",add);
     }
     private static ObjectNode project(ObjectNode s,TeamActor a,ObjectNode p,String kind) {

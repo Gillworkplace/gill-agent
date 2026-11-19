@@ -56,6 +56,53 @@ class TeamEngineTest {
         assertEquals(id,state.path("deliveries").elements().next().path("messageId").asText());
         assertEquals(1,state.path("pending").size());
     }
+    @Test void deletingOneTemplateKeepsItsCopiesAndRejectsStaleOrEmployeeRequests() {
+        String identical=call("orgTemplate.save",body("type","role","name","复核","prompt","独立版本")).path("id").asText();
+        String role=call("orgTemplate.save",body("type","role","name","复核","prompt","已复制版本")).path("id").asText();
+        ObjectNode draft=body("type","team","name","交付团队模板");
+        draft.putArray("roleTemplateIds").add(role);
+        String template=call("orgTemplate.save",draft).path("id").asText();
+        String team=call("team.create",body("name","交付团队","orgTemplateId",template,"templateRevision","1")).path("id").asText();
+        ObjectNode removal=body("id",role,"expectedRevision","1");
+        assertThrows(IllegalArgumentException.class,()->call("orgTemplate.delete",body("id",role,"expectedRevision","0")));
+        assertThrows(IllegalArgumentException.class,()->engine.apply(state,new TeamActor("employee",employee(team),team),"orgTemplate.delete",removal));
+        call("orgTemplate.delete",removal);
+        assertFalse(state.path("organizationTemplates").has(role));
+        assertTrue(state.path("organizationTemplates").has(identical));
+        assertEquals("已复制版本",state.path("organizationTemplates").path(template).path("roles").get(0).path("prompt").asText());
+        assertEquals("已复制版本",state.path("teamRoles").elements().next().path("prompt").asText());
+    }
+
+    @Test void deletionProtectsReferencesAndPreservesHistoricalTaskConfiguration() {
+        String team=setup("一组"),first=employee(team);
+        String member=call("employee.create",body("teamId",team,"name","下属","parentId",first)).path("id").asText();
+        String task=call("task.assign",body("employeeId",member,"goal","复核")).path("id").asText();
+        assertThrows(IllegalArgumentException.class,()->call("employee.delete",body("id",first,"expectedRevision","1")));
+        assertThrows(IllegalArgumentException.class,()->call("employee.delete",body("id",member,"expectedRevision","1")));
+        assertThrows(IllegalArgumentException.class,()->call("team.delete",body("id",team,"expectedRevision","1")));
+        call("task.update",body("taskId",task,"state","cancelled"));
+        call("employee.delete",body("id",member,"expectedRevision","1"));
+        call("employee.delete",body("id",first,"expectedRevision","1"));
+        assertEquals("",state.path("teams").path(team).path("receiverId").asText());
+        call("team.delete",body("id",team,"expectedRevision","2"));
+        assertEquals("下属",engine.skillPreview(state,team,member,task).path("employee").path("name").asText());
+        assertThrows(IllegalArgumentException.class,()->call("task.update",body("taskId",task,"state","queued")));
+    }
+
+    @Test void deletingSharedKnowledgeUnmountsItAndKeepsPreviouslyReadTaskContent() {
+        String first=employee(setup("一组")),second=employee(setup("二组"));
+        String source=call("knowledge.save",body("title","来源","content","已读取版本")).path("id").asText();
+        call("knowledge.mount",body("sourceId",source,"employeeId",first));
+        call("knowledge.mount",body("sourceId",source,"employeeId",second));
+        String task=call("task.assign",body("employeeId",first,"goal","查阅")).path("id").asText();
+        var snapshot=(ObjectNode)state.path("tasks").path(task);
+        snapshot.putObject("retainedKnowledge").set(source,state.path("knowledge").path(source).deepCopy());
+        call("knowledge.delete",body("id",source,"expectedRevision","1"));
+        assertFalse(state.path("knowledge").has(source));
+        assertTrue(state.path("employees").path(first).path("knowledgeIds").isEmpty());
+        assertTrue(state.path("employees").path(second).path("knowledgeIds").isEmpty());
+        assertEquals("已读取版本",snapshot.path("retainedKnowledge").path(source).path("content").asText());
+    }
     @Test void explicitEmptyMentionsKeepAReplyAsNotificationOnly() {
         String t=setup("研究"),a=employee(t),b=employee(t);
         ObjectNode original=body("teamId",t,"text","核查已记录");original.putArray("mentions");
@@ -185,6 +232,9 @@ class TeamEngineTest {
         assertEquals("历史职责",state.path("templates").path("old").path("name").asText());
         assertThrows(IllegalArgumentException.class,()->call("orgTemplate.save",
             body("type","team","name","错误流程","sourceType","legacy","sourceId","old")));
+        call("template.delete",body("id","old","expectedRevision","0"));
+        assertFalse(state.path("templates").has("old"));
+        assertEquals("职责内容",state.path("organizationTemplates").path(role).path("prompt").asText());
     }
 
     @Test void unresolvedDecisionCannotBeBypassedByOrdinaryTaskUpdate() {

@@ -45,6 +45,8 @@
 }
 .team-directory-card .team-directory-description {color:var(--entry-muted)}
 .team-directory-card .team-row {margin-top:14px}
+.resource-list-toolbar {justify-content:flex-end;margin-bottom:12px}
+.resource-actions {flex-wrap:wrap;justify-content:flex-end}
 
 .team-app :is(.team-create-dialog,.organization-template-dialog) {
  position:fixed;inset:0;margin:auto;width:min(520px,100% - 30px);max-width:none;

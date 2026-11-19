@@ -2,14 +2,16 @@
 
 | 项 | 内容 |
 |---|---|
-| 文档版本 | v1.13（组织模板复制与员工配置归档） |
+| 文档版本 | v1.14（工作空间删除命令与排序） |
 | 编写日期 | 2026-10-17（v1.1 修订 2026-10-18；v1.2/v1.3 增补 2026-11-17） |
-| 上游文档 | 当前新增设计：主需求v1.23/专题v0.9及架构v1.15的§0；历史正文关联需求v1.5/架构v1.3/测试v1.2 |
+| 上游文档 | 当前新增设计：主需求v1.24及架构v1.16的§0；历史正文关联需求v1.5/架构v1.3/测试v1.2 |
 | 读者/用途 | 新团队实现见§0；§1起保留历史会话设计 |
 
 ---
 
 ## 0. 新团队内核契约范围
+
+D46 复用工作区 `commands` 入口。删除命令为 `orgTemplate.delete`、`template.delete`、`team.delete`、`role.delete`、`employee.delete`、`knowledge.delete`、`project.delete` 和 `document.delete`。均携带 `id`、`expectedRevision`，文档额外携带 `projectId`。依赖冲突返回 `RESOURCE_IN_USE`，执行冲突返回 `BUSY`，均为 HTTP 409。既有任务按原快照查阅，新请求校验当前资源。
 
 D45 的 `orgTemplate.save` 管理 `organizationTemplates` 内的团队和角色模板版本。新团队或新角色接收 `orgTemplateId` 与 `templateRevision`，冻结采用版本并生成实际定义。团队模板只包含说明、流程指令、文件清单和角色配置副本。员工命令支持 `personality`，与个人 `prompt` 和 `promptFiles` 一同进入快照。工作区加载时清除当前记录的旧员工模板关联，已保存的任务与模板版本继续可读。旧模板的文件与文本 Skill 可由管理者明确复制到角色模板。
 

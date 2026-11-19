@@ -114,6 +114,9 @@ public class TeamService {
             (payload.has("employeeId")||Set.of("queued","completed").contains(text(payload,"state")))))&&db.unresolvedTask(uid,required(payload,"taskId"))>0)
             throw new IllegalArgumentException("ACTION_RESULT_UNKNOWN: 请先核实尚未确认的外部动作");
         ObjectNode result=kind.equals("execution.reconcile")?reconcile(uid,s,actor,payload):engine.apply(s,actor,kind,payload);
+        if(Set.of("team.delete","employee.delete","project.delete").contains(kind)&&
+            db.resourceHasActiveJobs(uid,kind,required(result,"id")))
+            throw new IllegalArgumentException("BUSY: 仍有相关执行或未核实结果，请等待执行收尾后再删除");
         if(kind.equals("run.control")) {
             String runId=required(payload,"runId"),op=required(payload,"operation");
             if(op.equals("resume"))resumePaused(uid,s,runId);

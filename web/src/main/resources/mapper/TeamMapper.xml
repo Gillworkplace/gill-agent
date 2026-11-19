@@ -59,6 +59,22 @@
  <select id="runningTask" resultType="long">SELECT count(*) FROM team_jobs WHERE owner_user_id=#{uid} AND payload-&gt;&gt;'taskId'=#{task} AND state='running'</select>
  <update id="resolveJob">UPDATE team_jobs SET state='reconciled',fence=fence+1,lease_until=now(),updated_at=now() WHERE id=#{id}::uuid</update>
  <select id="unresolvedTask" resultType="long">SELECT count(*) FROM team_actions a JOIN team_jobs j ON j.id=a.job_id WHERE j.owner_user_id=#{uid} AND j.payload-&gt;&gt;'taskId'=#{task} AND a.state IN ('dispatched','unknown')</select>
+ <select id="resourceHasActiveJobs" resultType="boolean">
+  SELECT EXISTS(
+   SELECT 1 FROM team_jobs j JOIN team_workspaces w ON w.owner_user_id=j.owner_user_id
+   WHERE j.owner_user_id=#{uid}
+   <choose>
+    <when test="kind == 'team.delete'">AND j.team_id=#{id}::uuid</when>
+    <when test="kind == 'employee.delete'">AND j.payload-&gt;&gt;'employeeId'=#{id}</when>
+    <otherwise>
+     AND (w.document-&gt;'integrations'-&gt;(j.payload-&gt;&gt;'integrationId')-&gt;&gt;'projectId'=#{id}
+       OR w.document-&gt;'workItems'-&gt;(w.document-&gt;'runs'-&gt;(j.payload-&gt;&gt;'runId')-&gt;&gt;'workItemId')-&gt;&gt;'projectId'=#{id})
+    </otherwise>
+   </choose>
+   AND (j.state IN ('queued','running','paused','needs_reconciliation') OR EXISTS(
+    SELECT 1 FROM team_actions a WHERE a.job_id=j.id AND a.state IN ('dispatched','unknown')))
+  )
+ </select>
  <select id="unreconciledRun" resultType="long">SELECT count(*) FROM team_jobs j WHERE j.owner_user_id=#{uid} AND j.payload-&gt;&gt;'runId'=#{run}
   AND (j.state='needs_reconciliation' OR (j.state='running' AND j.lease_until&lt;now() AND EXISTS(
     SELECT 1 FROM team_actions a WHERE a.job_id=j.id AND a.state IN ('dispatched','unknown'))))

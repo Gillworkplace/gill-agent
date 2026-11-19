@@ -24,7 +24,8 @@ final class VersionPolicy {
   if(!project.isBlank()) {
    ObjectNode pr=get(s,"projects",project);
    if(!tid.equals(text(pr,"teamId")))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 项目跨团队");
-   if(text(pr,"baselineCommit").isBlank())pr.put("baselineCommit",base).put("baselineBundle",key).put("revision",pr.path("revision").asInt()+1);
+   if(text(pr,"baselineCommit").isBlank())pr.put("baselineCommit",base).put("baselineBundle",key)
+    .put("revision",pr.path("revision").asInt()+1).put("updatedAt",now());
   }
   ObjectNode n=p.deepCopy();n.put("id",id()).put("teamId",tid).put("createdAt",now()).put("scope","managed-local").put("remotePublished",false);
   map(s,"codeVersions").set(text(n,"id"),n);
@@ -66,7 +67,8 @@ final class VersionPolicy {
     String commit=required(result,"commit"),key=required(result,"bundleKey");
     if(!commit.matches("[0-9a-f]{40,64}")||!key.startsWith("teams/"+text(integration,"teamId")+"/versions/"))
      throw new IllegalArgumentException("INVALID_INPUT: 集成结果引用无效");
-    project.put("baselineCommit",commit).put("baselineBundle",key);project.put("revision",project.path("revision").asInt()+1);
+    project.put("baselineCommit",commit).put("baselineBundle",key);
+    project.put("revision",project.path("revision").asInt()+1).put("updatedAt",now());
     state="integrated";
    }
   }

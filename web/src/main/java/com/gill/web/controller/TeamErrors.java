@@ -11,7 +11,7 @@ public class TeamErrors {
     public ResponseEntity<?> invalid(IllegalArgumentException ex) {
         String message=Objects.toString(ex.getMessage(),"INVALID_INPUT");
         String code=message.contains(":")?message.substring(0,message.indexOf(':')):"INVALID_INPUT";
-        int status=switch(code){case "SCOPE_FORBIDDEN"->403;case "NOT_FOUND"->404;case "VERSION_CONFLICT","IDEMPOTENCY_CONFLICT","LEASE_LOST","BUSY"->409;default->400;};
+        int status=switch(code){case "SCOPE_FORBIDDEN"->403;case "NOT_FOUND"->404;case "VERSION_CONFLICT","IDEMPOTENCY_CONFLICT","LEASE_LOST","BUSY","RESOURCE_IN_USE"->409;default->400;};
         return ResponseEntity.status(status).body(Map.of("error",Map.of("code",code,"message",message)));
     }
 }
