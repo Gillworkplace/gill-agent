@@ -3,11 +3,31 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from gill_core.team_local_sandbox import LocalDockerSandbox
+from gill_core.team_local_sandbox import LocalDockerSandbox, LocalWorker
 
 
 class LocalSandboxTests(unittest.IsolatedAsyncioTestCase):
     """Protect local job isolation and workspace recovery."""
+
+    def test_directory_inspection_and_selection_stay_inside_the_startup_root(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve() / "root"
+            nested = root / "projects"
+            nested.mkdir(parents=True)
+            (nested / ".git").mkdir()
+            (root / ".gill").mkdir()
+            (root / "escape").symlink_to(root.parent, target_is_directory=True)
+            local = LocalWorker(root, 1, "", "runner")
+            self.assertEqual(local.inspect_directory(""), {"children": ["projects"], "hasGit": False})
+            self.assertTrue(local.inspect_directory("projects")["hasGit"])
+            selection = {"id": "project", "localDirectory": {"rootId": local.binding, "path": "projects"}}
+            self.assertEqual(local.directory_for(selection), nested)
+            for invalid in ("../", "/projects", "escape", ".gill"):
+                with self.subTest(invalid=invalid), self.assertRaises(ValueError):
+                    local.resolve_directory(invalid)
+            other = LocalWorker(root, 1, "", "other")
+            with self.assertRaises(ValueError):
+                other.directory_for(selection)
 
     async def test_paths_survive_restart_and_jobs_do_not_share_workspaces(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

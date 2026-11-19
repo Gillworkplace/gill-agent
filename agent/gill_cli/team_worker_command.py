@@ -55,7 +55,7 @@ def _binding(directory: Path, project: str | None) -> tuple[str, LocalWorker]:
 
 def team_worker(directory: Path = typer.Option(None, "--directory", "-d", exists=True, file_okay=False,
                                                help="CLI 所在机器上的工作目录，默认当前目录"),
-                project: str = typer.Option(None, "--project", help="项目名称或 ID，省略时仅领取未关联项目的任务"),
+                project: str = typer.Option(None, "--project", help="固定项目名称或 ID，省略时供网页选择子目录"),
                 slots: int = typer.Option(2, "--slots", min=1, max=16, help="本机并行执行数"),
                 env_file: Path = typer.Option(None, "--env-file", exists=True, dir_okay=False,
                                               help="可选的 Gill 执行器配置文件")) -> None:
@@ -89,7 +89,7 @@ def team_worker(directory: Path = typer.Option(None, "--directory", "-d", exists
             raise ValueError("请配置 ZHIPU_API_KEY")
         logging.basicConfig(level=logging.INFO, format="%(message)s")
         logging.getLogger("httpx").setLevel(logging.WARNING)
-        typer.echo(f"CLI 执行器已启动，目录 {binding.directory}，项目 {project or '未关联项目'}，并发 {slots}")
+        typer.echo(f"CLI 执行器已启动，目录 {binding.directory}，项目 {project or '网页可选择目录'}，并发 {slots}")
         asyncio.run(run_team_workers(settings, binding, server, slots))
     except (ValueError, OSError, subprocess.SubprocessError, httpx.HTTPError) as error:
         typer.echo(str(error), err=True)

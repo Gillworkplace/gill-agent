@@ -1,6 +1,7 @@
 package com.gill.web.controller;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.gill.web.service.CliDirectories;
 import com.gill.web.service.TeamService;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,10 +10,18 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/team-workspace")
 public class TeamController {
     private final TeamService service;
+    private final CliDirectories directories;
     private final com.gill.web.storage.TeamBlobStore blobs;
-    public TeamController(TeamService service,com.gill.web.storage.TeamBlobStore blobs){this.service=service;this.blobs=blobs;}
+    public TeamController(TeamService service,com.gill.web.storage.TeamBlobStore blobs,
+                          CliDirectories directories){this.service=service;this.blobs=blobs;this.directories=directories;}
     @GetMapping
     public ObjectNode read(@RequestAttribute("uid") Long uid){return service.read(uid);}
+    @GetMapping("/local-directories")
+    public Object localDirectories(@RequestAttribute("uid") Long uid){return directories.list(uid);}
+    @PostMapping("/local-directories/browse")
+    public Object browseLocalDirectory(@RequestAttribute("uid") Long uid,@RequestBody ObjectNode body){
+        return directories.browse(uid,body);
+    }
     @GetMapping("/skill-preview")
     public ObjectNode skillPreview(@RequestAttribute("uid") Long uid,@RequestParam String teamId,
                                    @RequestParam String employeeId,@RequestParam(defaultValue="") String taskId) {

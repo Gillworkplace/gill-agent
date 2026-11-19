@@ -215,8 +215,11 @@ class TeamTurn:
         task.pop("employeeSnapshot", None)
         task.pop("teamSnapshot", None)
         task.pop("roleSnapshot", None)
+        project = self.context.get("project")
+        if project is not None:
+            project = {key: value for key, value in project.items() if key not in {"localDirectory", "versions"}}
         payload = {"task": task, "messages": self.context.get("messages"),
-                   "decision": self.context.get("decision"), "project": self.context.get("project"),
+                   "decision": self.context.get("decision"), "project": project,
                    "artifacts": self.context.get("artifacts")}
         return [{"role": "user", "content": json.dumps(payload, ensure_ascii=False)}]
 
@@ -524,14 +527,15 @@ class TeamTurn:
         previous = self.context.get("sandboxId", "")
         if self.local:
             project = self.context.get("project", {})
-            if project.get("id", "") != self.local.project_id:
-                raise ValueError("领取的项目与 CLI 启动配置不一致")
-            sandbox = LocalDockerSandbox(self.local.directory, self.job["id"], previous, self.local.runner_id)
+            directory = self.local.directory_for(project)
+            sandbox = LocalDockerSandbox(directory, self.job["id"], previous, self.local.runner_id)
         else:
             if self.context.get("executor") == "cli" or previous.startswith("cli-"):
                 raise ValueError("本地工作必须由 CLI 执行器接续")
             sandbox = TeamSandbox(self.settings, previous)
         identifier = await sandbox.connect()
+        if self.local:
+            log.info("CLI job workspace: %s", sandbox.workspace)
         await self.op("sandbox", sandboxId=identifier)
         if self.context.get("project") or self.local:
             from .team_git import TeamGit

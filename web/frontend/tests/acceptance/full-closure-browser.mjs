@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
-import {spawn} from 'node:child_process'
+import {execFileSync,spawn} from 'node:child_process'
 import {pathToFileURL} from 'node:url'
 import {account,check,origin,request} from './harness.mjs'
 
@@ -276,6 +276,105 @@ try{
   }
   check(!exceptions.length,'Chrome raised an exception during Skill imports')
   console.log(JSON.stringify({case:'multiple-skills',passed:true,skills:names.length,files:saved.files.length}))
+ }else if(process.argv[2]==='--sandbox-project-form'){
+  const a=await account()
+  const team=(await a.ok('team.create',{name:'Sandbox 项目配置'})).id
+  const directories=await request('/api/v1/team-workspace/local-directories',undefined,a.token)
+  check(directories.body.enabled===false,'Sandbox reported a CLI directory provider')
+  await cdp('Page.navigate',{url:origin+'/#/teams/'+team})
+  await ui('!!document.querySelector("#login")')
+  await set('#login input',a.username);await set('#login input[type=password]',a.password);await click('#login .btn')
+  await ui('document.querySelectorAll(".team-tabs button").length===3')
+  await click('.team-tabs button:nth-child(2)')
+  await evalJs(`[...document.querySelectorAll('.team-page-head button')].find(button=>button.textContent.includes('新建项目')).click()`)
+  await ui('!!document.querySelector(".project-git-settings")')
+  check(await evalJs('!document.querySelector(".project-directory-field") && document.querySelector(".project-git-settings").textContent.includes("HTTPS")'),'Sandbox project source controls changed')
+  check(!exceptions.length,'Chrome raised an exception in the Sandbox project form')
+  console.log(JSON.stringify({case:'sandbox-project-form',passed:true}))
+ }else if(process.argv[2]==='--cli-project-directory'){
+  const a=await account(), stranger=await account()
+  const team=(await a.ok('team.create',{name:'本地目录验收',limits:{maxRounds:7,maxSeconds:180}})).id
+  const member=(await a.ok('employee.create',{teamId:team,name:'执行验收',prompt:'直接使用工具执行明确给出的命令，然后调用 complete_task 提交结果。'})).id
+  const fixture=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'gill-cli-directory-')))
+  const root=path.join(fixture,'projects'), repo=path.join(root,'checkout')
+  await fs.mkdir(repo,{recursive:true})
+  await fs.mkdir(path.join(root,'资料'))
+  await fs.symlink(fixture,path.join(root,'outside'),'dir')
+  await fs.writeFile(path.join(root,'资料','.gitignore'),'*.tmp\n')
+  const git=(...args)=>execFileSync('git',['-C',repo,...args],{encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim()
+  git('init','-b','main')
+  await fs.writeFile(path.join(repo,'source.txt'),'CLI_SELECTED_DIRECTORY\n')
+  git('add','source.txt')
+  git('-c','user.name=Gill Test','-c','user.email=test@example.test','commit','-m','CLI source')
+  const baseline=git('rev-parse','HEAD')
+  const credentials=path.join(fixture,'credentials')
+  await fs.writeFile(credentials,JSON.stringify({server:origin,token:a.token}),{mode:0o600})
+  const worker=spawn(path.resolve('agent/.venv/bin/gill'),['team-worker','--directory',root,'--env-file',path.resolve('deploy/.env')],
+   {env:{...process.env,GILL_CLI_CREDENTIALS:credentials,MINIO_ENDPOINT:'http://127.0.0.1:9000'},stdio:['ignore','pipe','pipe']})
+  let workerLog=''
+  for(const stream of [worker.stdout,worker.stderr])stream.on('data',chunk=>{workerLog=(workerLog+chunk).slice(-5000)})
+  try{
+   const apiPath='/api/v1/team-workspace/local-directories'
+   const binding=await until(async()=>{
+    if(worker.exitCode!==null)throw Error('CLI exited: '+workerLog)
+    return (await request(apiPath,undefined,a.token)).body.runners?.find(item=>item.label===root)
+   },'CLI directory did not come online')
+   check(!(await request(apiPath,undefined,stranger.token)).body.runners.length,'another account can see the CLI root')
+   check((await request(apiPath+'/browse',{rootId:binding.rootId,path:'..'},a.token)).status===400,'parent path was accepted')
+   await cdp('Page.navigate',{url:origin+'/#/teams/'+team})
+   await ui('!!document.querySelector("#login")')
+   await set('#login input',a.username);await set('#login input[type=password]',a.password);await click('#login .btn')
+   await ui('document.querySelectorAll(".team-tabs button").length===3')
+   await click('.team-tabs button:nth-child(2)')
+   await evalJs(`[...document.querySelectorAll('.team-page-head button')].find(button=>button.textContent.includes('新建项目')).click()`)
+   const picker='.project-directory-dialog'
+   const press=(scope,text)=>evalJs(`[...document.querySelectorAll(${JSON.stringify(scope+' button')})].find(button=>button.textContent.trim().startsWith(${JSON.stringify(text)})).click()`)
+   await ui('!!document.querySelector(".project-directory-field")')
+   check(await evalJs('!document.querySelector(".project-git-settings")'),'CLI Git controls appeared before a directory was read')
+   await press('.project-directory-field','选择本地目录')
+   await ui('document.querySelectorAll(".project-directory-list li").length===2')
+   await press(picker,'资料')
+   await ui(`document.querySelector('${picker} code')?.textContent.endsWith('/资料')`)
+   await press(picker,'选用当前目录')
+   check(await evalJs('!document.querySelector(".project-git-settings")'),'non-Git directory showed Git controls')
+   await press('.project-directory-field','选择本地目录')
+   await ui(`document.querySelector('${picker} code')?.textContent.endsWith('/资料')`)
+   await press(picker,'↑ 上一级')
+   await ui('document.querySelectorAll(".project-directory-list li").length===2')
+   await press(picker,'checkout')
+   await ui(`document.querySelector('${picker} code')?.textContent.endsWith('/checkout')`)
+   await view(390,844,true)
+   check(await evalJs('document.documentElement.scrollWidth===innerWidth&&document.querySelector(".project-directory-dialog").getBoundingClientRect().width<innerWidth'),'directory picker overflows mobile')
+   await shot('project-directory-mobile','20261119')
+   await press(picker,'选用当前目录')
+   await ui('!!document.querySelector(".project-git-settings")')
+   await view(1440,1040)
+   await set('form.team-card input','本地项目')
+   await click('.project-git-settings summary')
+   await shot('project-directory-git','20261119')
+   await submit('form.team-card')
+   await ui('!!document.querySelector(".project-picker button")')
+   const project=Object.values((await a.read()).projects).find(item=>item.name==='本地项目')
+   check(project.localDirectory.path==='checkout'&&project.localDirectory.hasGit,'bound directory or Git detection was not persisted')
+   const task=(await a.ok('task.assign',{employeeId:member,projectId:project.id,
+    goal:"用 shell 实际执行 test \"$(cat source.txt)\" = CLI_SELECTED_DIRECTORY && printf chosen > picked.txt，然后用 complete_task 提交报告。"})).id
+   const result=await until(async()=>{
+    await waitMs(1600)
+    if(worker.exitCode!==null)throw Error('CLI exited: '+workerLog)
+    const taskResult=(await a.read()).tasks[task]
+    if(['failed','needs_reconciliation'].includes(taskResult.state))throw Error('CLI task failed: '+workerLog)
+    return taskResult.state==='completed'&&taskResult.executionId?taskResult:null
+   },'CLI task did not complete: '+workerLog,80)
+   const work=path.join(repo,'.gill','workspaces',result.executionId,'workspace')
+   check((await fs.readFile(path.join(work,'picked.txt'),'utf8'))==='chosen','job did not run in the chosen directory')
+   check(git('rev-parse','HEAD')===baseline,'original source changed')
+   check(!exceptions.length,'Chrome raised an exception during project directory selection')
+   console.log(JSON.stringify({case:'cli-project-directory',passed:true,gitControls:true,ordinaryDirectory:true,realLocalJob:true}))
+  }finally{
+   worker.kill('SIGINT')
+   if(worker.exitCode===null&&worker.signalCode===null)await new Promise(resolve=>worker.once('exit',resolve))
+   await fs.rm(fixture,{recursive:true,force:true})
+  }
  }else if(process.argv[2]==='--resource-management'){
   const a=await account()
   const saveTemplate=(type,name,fields={})=>a.ok('orgTemplate.save',{type,name,...fields})

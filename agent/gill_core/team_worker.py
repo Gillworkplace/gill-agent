@@ -30,7 +30,33 @@ async def run_team_workers(settings: Settings, local: LocalWorker | None = None,
     slots = max(1, min(slots or int(os.getenv("GILL_TEAM_WORKER_SLOTS", "3")), 16))
     base = server or os.getenv("GILL_TEAM_WEB_URL", "http://web:8080")
     process = uuid.uuid4().hex[:12]
-    await asyncio.gather(*[_slot(settings, base, secret, f"team-{process}-{i}", local) for i in range(slots)])
+    loops = [_slot(settings, base, secret, f"team-{process}-{i}", local) for i in range(slots)]
+    if local and not local.project_id:
+        loops.append(_directory_loop(base, secret, f"team-{process}-directories", local))
+    await asyncio.gather(*loops)
+
+
+async def _directory_loop(base: str, secret: str, identifier: str, local: LocalWorker) -> None:
+    client = TeamClient(base, secret, identifier)
+    reply: dict = {}
+    try:
+        while True:
+            try:
+                request = await client.directories(local, reply)
+                reply = {}
+                if "id" in request:
+                    reply["id"] = request["id"]
+                    try:
+                        reply.update(await asyncio.to_thread(local.inspect_directory, request["path"]))
+                    except (OSError, ValueError):
+                        log.info("CLI directory is unavailable")
+                    continue
+                await asyncio.sleep(1)
+            except httpx.HTTPError as error:
+                log.warning("CLI directory service unavailable type=%s", type(error).__name__)
+                await asyncio.sleep(5)
+    finally:
+        await client.close()
 
 
 async def _slot(settings: Settings, base: str, secret: str, identifier: str, local: LocalWorker | None) -> None:
@@ -40,8 +66,6 @@ async def _slot(settings: Settings, base: str, secret: str, identifier: str, loc
             try:
                 job = await client.claim(local)
                 if job:
-                    if local:
-                        log.info("CLI job workspace: %s", local.directory / ".gill" / "workspaces" / job["id"] / "workspace")
                     await TeamTurn(client, settings, job, local).run()
                 else:
                     await asyncio.sleep(2)

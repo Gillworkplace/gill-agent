@@ -30,7 +30,8 @@ class TeamClient:
         """
         scope = {"workerId": self.worker_id}
         if local:
-            scope.update(localOwnerId=local.owner_id, localProjectId=local.project_id, localRunner=local.binding)
+            scope.update(localOwnerId=local.owner_id, localProjectId=local.project_id, localRunner=local.binding,
+                         localBrowse=not local.project_id)
         response = await self.http.post("claim", json=scope)
         self._check(response)
         result = response.json()
@@ -38,6 +39,20 @@ class TeamClient:
             if isinstance(result.get(key), str):
                 result[key] = json.loads(result[key])
         return result
+
+    async def directories(self, local: LocalWorker, reply: dict) -> dict:
+        """
+        Poll for a directory request and report the preceding result.
+
+        :param local: Authorized CLI startup directory and account.
+        :param reply: Request id and directory names, or an empty dictionary.
+        :returns: Dictionary with request id and relative path when a browse is pending.
+        """
+        response = await self.http.post("directories", json={
+            "localOwnerId": local.owner_id, "rootId": local.binding, "label": str(local.directory), "reply": reply,
+        })
+        self._check(response)
+        return response.json()
 
     async def operation(self, job: dict, operation: str, **payload) -> dict:
         """

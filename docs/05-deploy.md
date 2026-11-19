@@ -6,6 +6,8 @@
 
 ## 0. 部署总览
 
+CLI 目录协议 v1.12 对应 D47。重建 Web 与 Agent，并重启宿主上的 `gill team-worker`，沿用当前数据与对象存储。
+
 资源管理 v1.11 对应 D46。重建并更新 Web 即可启用删除与排序。沿用现有工作区 JSONB 和对象存储，Agent 与本地 CLI 可继续使用当前版本。
 
 团队执行协议 v1.10 对应 D45。同步更新 Web、Agent 和本地 CLI。组织模板使用当前工作区 JSONB。旧员工关联在读取时解除，并在下次工作区写入时持久化；员工的现有指令及文件引用、历史模板和任务快照保留。部署前先收尾在途任务并备份数据库。
@@ -33,10 +35,12 @@ GILL_TEAM_EXECUTOR=cli docker compose up -d --build web agentd
 ```sh
 docker build -t gill-local-executor:latest deploy/local-executor
 gill login --server http://localhost:8080 --token "$GILL_TOKEN"
-gill team-worker --project '计算器 DEMO' --directory /path/to/calculator --env-file /path/to/gill-agent/deploy/.env
+gill team-worker --directory /path/to/projects --env-file /path/to/gill-agent/deploy/.env
 ```
 
-省略 `--directory` 会使用当前目录。省略 `--project` 只领取未关联项目的任务。两个同名项目可用项目 ID 区分。`--env-file` 用来读取部署端执行凭据、模型及 MinIO 配置。CLI 在另一台机器时，使用它可访问的 Gill URL 和 `MINIO_ENDPOINT`。默认本机 MinIO 位于 `http://localhost:9000`。工作区的 `workspace/`、命令日志 `commands.jsonl` 与 `transfers/` 中的 bundle 可在 CLI 选定目录下 `.gill/workspaces/` 查看。已有 Git 项目会从项目目标分支的提交加载；本地未提交修改保存在原目录。自定义工具链可通过 `GILL_LOCAL_EXECUTOR_IMAGE` 指定兼容 Docker 镜像。
+省略 `--directory` 会使用当前目录。省略 `--project` 时，打开「团队 → 项目库 → 新建项目或项目配置 → 选择本地目录」可从在线 CLI 的根目录和子目录选择路径。若沿用 `--project`，它仍可通过名称或 ID 固定旧项目。选择列表显示可读的普通子目录。读取到 `.git` 标记后，表单展示 Git 配置。
+
+`--env-file` 提供部署端执行凭据、模型及 MinIO 配置。CLI 在另一台机器时，使用它可访问的 Gill URL 和 `MINIO_ENDPOINT`。默认本机 MinIO 位于 `http://localhost:9000`。工作区的 `workspace/`、命令日志 `commands.jsonl` 与 `transfers/` 中的 bundle 可在 CLI 选定目录下 `.gill/workspaces/` 查看。已有 Git 项目会从项目目标分支的提交加载，本地未提交修改保存在原目录。自定义工具链可通过 `GILL_LOCAL_EXECUTOR_IMAGE` 指定兼容 Docker 镜像。
 
 团队协议 v1.6 要求同步更新 Web 与 Agent。模板文件使用现有 `MINIO_BUCKET`，存于 `templates/<uid>/<sha256>`，沿用内部服务凭据。单次最多上传 128 个文件，单文件 8 MiB，整包 20 MiB，生效指令及 Skill 文件合计 128 KiB。若安装入口反向代理，需允许 Base64 请求体开销。模板文件清单沿用现有 JSONB 字段。
 

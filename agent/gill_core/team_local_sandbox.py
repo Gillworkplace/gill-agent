@@ -32,6 +32,71 @@ class LocalWorker:
         """
         return hashlib.sha256(f"{self.runner_id}\n{self.directory.resolve()}".encode()).hexdigest()[:24]
 
+    def resolve_directory(self, relative: str) -> Path:
+        """
+        Resolve a selected directory inside the startup root.
+
+        :param relative: Slash-separated path relative to the root. Empty selects the root.
+        :returns: Canonical directory on this CLI host.
+        :raises ValueError: If the path is invalid, a symbolic link, or outside the root.
+        :raises OSError: If the directory is inaccessible or has disappeared.
+        """
+        if not isinstance(relative, str) or len(relative) > 4096:
+            raise ValueError("无效 CLI 相对目录")
+        parts = relative.split("/") if relative else []
+        if any(not _visible_directory_name(part) for part in parts):
+            raise ValueError("无效 CLI 相对目录")
+        root = self.directory
+        candidate = root.joinpath(*parts)
+        try:
+            resolved = candidate.resolve(strict=True)
+        except RuntimeError as error:
+            raise ValueError("CLI 工作目录不能是循环符号链接") from error
+        if resolved != candidate or not resolved.is_dir():
+            raise ValueError("CLI 工作目录必须是启动目录内的真实目录")
+        return resolved
+
+    def inspect_directory(self, relative: str) -> dict:
+        """
+        List selectable child directories by name on the CLI host.
+
+        :param relative: Validated slash-separated path relative to the startup root.
+        :returns: ``children`` (list of directory names), ``hasGit`` (whether a Git marker is present).
+        :raises OSError: If the host cannot list the selected directory.
+        :raises ValueError: If the selected directory is invalid.
+        """
+        path = self.resolve_directory(relative)
+        marker = path / ".git"
+        with os.scandir(path) as entries:
+            children = sorted(entry.name for entry in entries
+                              if _visible_directory_name(entry.name) and entry.is_dir(follow_symlinks=False))[:2000]
+        return {"children": children, "hasGit": not marker.is_symlink() and (marker.is_dir() or marker.is_file())}
+
+    def directory_for(self, project: dict) -> Path:
+        """
+        Resolve the project directory adopted by a leased job.
+
+        :param project: Project snapshot from the gateway, or an empty dictionary.
+        :returns: Canonical workspace source on the CLI host.
+        :raises ValueError: If the job's project or startup root differs from this CLI.
+        :raises OSError: If the adopted directory is inaccessible.
+        """
+        selected = project.get("localDirectory")
+        if selected:
+            if self.project_id or selected.get("rootId") != self.binding:
+                raise ValueError("项目绑定了另一 CLI 启动目录")
+            return self.resolve_directory(selected["path"])
+        if project.get("id", "") != self.project_id:
+            raise ValueError("领取的项目与 CLI 启动配置不一致")
+        return self.resolve_directory("")
+
+
+def _visible_directory_name(name: str) -> bool:
+    return bool(name) and not name.startswith(".") and all(
+        character not in '/\\,"' and ord(character) >= 32 and not 127 <= ord(character) <= 159
+        for character in name
+    )
+
 
 class LocalDockerSandbox(TeamSandbox):
     """Keep the selected checkout read-only and persist separate execution directories."""

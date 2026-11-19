@@ -4,7 +4,9 @@ import { useTeams } from './store'
 import { api } from '../api'
 import ResourceDelete from './ResourceDelete.vue'
 import ResourceSort from './ResourceSort.vue'
+import ProjectDirectoryField from './ProjectDirectoryField.vue'
 import { sortResources, type ResourceSortOrder } from './resourceSort'
+import type { LocalDirectory } from './types'
 const props=defineProps<{teamId:string}>()
 const store=useTeams(),selected=ref(''),editing=ref(false),name=ref(''),description=ref(''),repository=ref(''),target=ref('main'),check=ref(''),protectedBranches=ref('')
 const tab=ref('documents'),documentId=ref(''),title=ref(''),content=ref(''),version=ref<number>()
@@ -12,12 +14,17 @@ const baseRevision=ref(0),baseDocumentRevision=ref(0)
 const projectOrder=ref<ResourceSortOrder>('name'), documentOrder=ref<ResourceSortOrder>('name')
 const projects=computed(()=>sortResources(Object.values(store.data.projects).filter(p=>p.teamId===props.teamId),projectOrder.value))
 const current=computed(()=>store.data.projects[selected.value])
+const localDirectoryDraft=ref<LocalDirectory|null>()
+const cliMode=ref<boolean>()
+const localDirectory=computed(()=>localDirectoryDraft.value===undefined?current.value?.localDirectory:localDirectoryDraft.value||undefined)
 const document=computed(()=>current.value?.documents?.[documentId.value])
 const documents=computed(()=>sortResources(Object.values(current.value?.documents||{}),documentOrder.value))
 const work=computed(()=>Object.values(store.data.workItems).filter(w=>w.projectId===selected.value))
-function open(id=''){selected.value=id;const p=store.data.projects[id];baseRevision.value=p?.revision||0;name.value=p?.name||'';description.value=p?.description||'';repository.value=p?.repositoryUrl||'';target.value=p?.targetBranch||'main';check.value=p?.checkCommand||'';protectedBranches.value=p?.protectedBranches?.join(',')||'';editing.value=!id;documentId.value='';title.value='';content.value='';version.value=undefined}
+function open(id=''){selected.value=id;const p=store.data.projects[id];baseRevision.value=p?.revision||0;name.value=p?.name||'';description.value=p?.description||'';repository.value=p?.repositoryUrl||'';target.value=p?.targetBranch||'main';check.value=p?.checkCommand||'';protectedBranches.value=p?.protectedBranches?.join(',')||'';editing.value=!id;documentId.value='';title.value='';content.value='';version.value=undefined;localDirectoryDraft.value=undefined}
 function editDocument(id=''){documentId.value=id;const d=current.value?.documents?.[id];baseDocumentRevision.value=d?.revision||0;title.value=d?.title||'';content.value=d?.content||'';version.value=undefined}
-async function saveProject(){try{const result=await store.command('project.save',{...(current.value?{id:current.value.id,expectedRevision:baseRevision.value}:{}),teamId:props.teamId,name:name.value,description:description.value,repositoryUrl:repository.value,targetBranch:target.value,checkCommand:check.value,protectedBranches:protectedBranches.value.split(',').map(x=>x.trim()).filter(Boolean)});open(result.id)}catch{}}
+async function saveProject(){try{const result=await store.command('project.save',{...(current.value?{id:current.value.id,expectedRevision:baseRevision.value}:{}),teamId:props.teamId,name:name.value,description:description.value,repositoryUrl:repository.value,targetBranch:target.value,checkCommand:check.value,protectedBranches:protectedBranches.value.split(',').map(x=>x.trim()).filter(Boolean),
+ ...(localDirectoryDraft.value!==undefined?{localDirectory:localDirectoryDraft.value}:{}),
+ });open(result.id)}catch{}}
 async function saveDocument(){try{const result=await store.command('document.save',{projectId:selected.value,...(document.value?{id:document.value.id,expectedRevision:baseDocumentRevision.value}:{}),title:title.value,content:content.value});editDocument(result.id)}catch{}}
 async function integrate(taskId:string,commit:string){try{await store.command('integration.request',{taskId,projectId:selected.value,sourceRef:commit,expectedTarget:current.value?.baselineCommit})}catch{}}
 async function download(key:string){try{const result=await api<{url:string}>('/team-workspace/object-url?key='+encodeURIComponent(key));location.assign(result.url)}catch(error){store.error=error instanceof Error?error.message:'下载失败'}}
@@ -29,7 +36,15 @@ watch(()=>document.value?.id,(id,old)=>{if(!id&&old===documentId.value)editDocum
  <div><header class="team-page-head"><div><h2>团队项目库</h2><p class="team-muted">归档文档、跟进并行需求，保留工作版本和集成结果。</p></div><button @click="open()">＋ 新建项目</button></header>
  <div v-if="projects.length" class="team-row resource-list-toolbar"><ResourceSort v-model="projectOrder" label="项目"/></div>
  <div class="project-picker"><button v-for="p in projects" :key="p.id" class="secondary" :class="{active:selected===p.id}" @click="open(p.id)">{{p.name}}</button></div>
- <form v-if="editing" class="team-card" @submit.prevent="saveProject"><h3>{{current?'编辑项目':'新建项目'}}</h3><label>项目名称<input v-model="name" required/></label><label>项目说明<textarea v-model="description"/></label><details><summary>代码版本与集成配置（业务项目可留空）</summary><label>HTTPS代码读取源<input v-model="repository" placeholder="可选；首期不接收URL内嵌凭证"/></label><label>授权集成目标分支<input v-model="target"/></label><label>受保护分支<input v-model="protectedBranches" placeholder="逗号分隔，禁止模型自动集成"/></label><label>项目检查命令<textarea v-model="check" placeholder="例如：npm test；需由你为项目配置"/></label></details><button :disabled="store.busy||!name.trim()">保存项目</button></form>
+ <form v-if="editing" class="team-card" @submit.prevent="saveProject">
+  <h3>{{current?'编辑项目':'新建项目'}}</h3>
+  <label>项目名称<input v-model="name" required/></label>
+  <label>项目说明<textarea v-model="description"/></label>
+  <ProjectDirectoryField :key="selected" :value="localDirectory" :disabled="store.busy" @select="localDirectoryDraft=$event" @mode="cliMode=$event"/>
+  <p v-if="current?.baselineCommit&&localDirectoryDraft!==undefined" class="team-warning">变更目录将重新建立项目代码基线。已有任务仍使用原来的目录和版本。</p>
+  <details v-if="cliMode===false||localDirectory?.hasGit" class="project-git-settings"><summary>代码版本与集成配置（可选）</summary><label v-if="cliMode===false">HTTPS代码读取源<input v-model="repository" placeholder="可选；首期不接收URL内嵌凭证"/></label><label>授权集成目标分支<input v-model="target"/></label><label>受保护分支<input v-model="protectedBranches" placeholder="逗号分隔，禁止模型自动集成"/></label><label>项目检查命令<textarea v-model="check" placeholder="例如：npm test；需由你为项目配置"/></label></details>
+  <button :disabled="store.busy||!name.trim()">保存项目</button>
+ </form>
  <section v-if="current"><div class="team-row between"><div><h2>{{current.name}}</h2><p>{{current.description}}</p></div><div class="team-row resource-actions"><button class="secondary" @click="editing=!editing">项目配置</button><ResourceDelete :key="current.id" kind="project.delete" :id="current.id" :name="current.name" :revision="current.revision" label="项目"
    impact="请先清理项目文档并结束相关执行。历史执行记录和本地仓库仍会保留。"/></div></div>
  <nav class="team-tabs"><button v-for="[id,label] in [['documents','文档归档'],['work','并行需求'],['versions','版本与集成']]" :key="id" class="secondary" :class="{active:tab===id}" @click="tab=id">{{label}}</button></nav>

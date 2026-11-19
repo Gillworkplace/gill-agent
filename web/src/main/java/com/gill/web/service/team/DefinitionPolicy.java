@@ -175,6 +175,12 @@ final class DefinitionPolicy {
         if(text(n,"targetBranch").isBlank())n.put("targetBranch","main");
         if(p.has("protectedBranches"))n.set("protectedBranches",p.path("protectedBranches").deepCopy());
         if(p.has("checkCommand"))n.put("checkCommand",text(p,"checkCommand"));
+        if(p.has("localDirectory")) {
+            JsonNode before=n.get("localDirectory");
+            if(p.hasNonNull("localDirectory"))n.set("localDirectory",p.get("localDirectory").deepCopy());
+            else n.remove("localDirectory");
+            if(!Objects.equals(before,n.get("localDirectory")))n.remove(List.of("baselineCommit","baselineBundle"));
+        }
         return save(s,"projects",n,a);
     }
     private static ObjectNode finishLegacyDraft(ObjectNode state,TeamActor actor,ObjectNode payload) {

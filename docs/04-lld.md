@@ -2,14 +2,16 @@
 
 | 项 | 内容 |
 |---|---|
-| 文档版本 | v1.14（工作空间删除命令与排序） |
+| 文档版本 | v1.15（CLI 目录读取与项目绑定） |
 | 编写日期 | 2026-10-17（v1.1 修订 2026-10-18；v1.2/v1.3 增补 2026-11-17） |
-| 上游文档 | 当前新增设计：主需求v1.24及架构v1.16的§0；历史正文关联需求v1.5/架构v1.3/测试v1.2 |
+| 上游文档 | 当前新增设计：主需求v1.25及架构v1.17的§0；历史正文关联需求v1.5/架构v1.3/测试v1.2 |
 | 读者/用途 | 新团队实现见§0；§1起保留历史会话设计 |
 
 ---
 
 ## 0. 新团队内核契约范围
+
+D47 的 `GET /api/v1/team-workspace/local-directories` 返回部署模式和当前账号的在线根目录。`POST .../local-directories/browse` 以根标识和相对路径获取子目录及 `hasGit`。CLI 通过服务身份的 `POST /internal/team-worker/directories` 心跳处理目录请求。项目保存可提交同账号近期读过的目录，网关使用 CLI 回执生成绑定信息。显式解除或变更目录时，新项目基线重新建立。历史工作保持其目录、版本和执行记录。
 
 D46 复用工作区 `commands` 入口。删除命令为 `orgTemplate.delete`、`template.delete`、`team.delete`、`role.delete`、`employee.delete`、`knowledge.delete`、`project.delete` 和 `document.delete`。均携带 `id`、`expectedRevision`，文档额外携带 `projectId`。依赖冲突返回 `RESOURCE_IN_USE`，执行冲突返回 `BUSY`，均为 HTTP 409。既有任务按原快照查阅，新请求校验当前资源。
 

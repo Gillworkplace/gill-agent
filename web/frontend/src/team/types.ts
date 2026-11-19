@@ -10,7 +10,8 @@ export interface Employee extends ManagedResource { teamId: string; templateId?:
 export interface EmployeeTemplate extends ManagedResource { name: string; prompt: string; skills: Skill[]; files?: TemplateFile[]; versions: Version[]; reason?: string; originTeamId?: string; authorizedTeamIds?: string[] }
 export interface Knowledge extends ManagedResource { title: string; content: string; category?: string; versions: Version[] }
 export interface Document extends ManagedResource { title: string; content: string; versions: Version[] }
-export interface Project extends ManagedResource { teamId: string; name: string; description?: string; repositoryUrl?: string; targetBranch?: string; checkCommand?: string; protectedBranches?: string[]; baselineCommit?: string; documents?: Record<string, Document> }
+export interface LocalDirectory { rootId: string; path: string; label: string; hasGit: boolean }
+export interface Project extends ManagedResource { teamId: string; name: string; description?: string; repositoryUrl?: string; targetBranch?: string; checkCommand?: string; protectedBranches?: string[]; baselineCommit?: string; documents?: Record<string, Document>; localDirectory?: LocalDirectory }
 export type ChatIntent = 'notify' | 'review' | 'assign'
 export interface Message { id: string; teamId: string; senderType: string; senderId: string; text: string; createdAt: string; kind: string; mentions?: string[]; mentionUser?: boolean; status?: string; decisionId?: string; taskId?: string; replyTo?: string; requiresResponse?: boolean; intent?: ChatIntent }
 export interface Run { id: string; teamId: string; goal: string; state: string; createdAt: string; controlRevision: number; calls: number; manualPaused?: boolean; workItemId?: string }

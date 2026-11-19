@@ -19,8 +19,11 @@ public class TeamService {
     private final TeamMapper db;
     private final ObjectMapper json;
     private final TeamBlobStore blobs;
+    private final CliDirectories directories;
     private final TeamEngine engine=new TeamEngine();
-    public TeamService(TeamMapper db,ObjectMapper json,TeamBlobStore blobs) {this.db=db;this.json=json;this.blobs=blobs;}
+    public TeamService(TeamMapper db,ObjectMapper json,TeamBlobStore blobs,CliDirectories directories) {
+        this.db=db;this.json=json;this.blobs=blobs;this.directories=directories;
+    }
 
     public ObjectNode read(long uid) {
         var row=db.selectById(uid);
@@ -109,6 +112,10 @@ public class TeamService {
             if(!hash.equals(prior.get("request_hash")))throw new IllegalArgumentException("IDEMPOTENCY_CONFLICT: 相同请求标识的内容不同");
             return parse(prior.get("result"));
         }
+        if(kind.equals("project.save")&&actor.human()&&payload.hasNonNull("localDirectory")) {
+            payload=payload.deepCopy();
+            payload.set("localDirectory",directories.selected(uid,payload.get("localDirectory")));
+        }
         if(kind.equals("task.update")&&payload.has("employeeId")&&db.runningTask(uid,required(payload,"taskId"))>0)throw new IllegalArgumentException("BUSY: 任务仍在执行，请先阻断并等待当前调用结束后改派");
         if((Set.of("run.complete","integration.request").contains(kind)||(kind.equals("task.update")&&
             (payload.has("employeeId")||Set.of("queued","completed").contains(text(payload,"state")))))&&db.unresolvedTask(uid,required(payload,"taskId"))>0)
@@ -166,11 +173,14 @@ public class TeamService {
         return claim(worker,"sandbox",0,"","");
     }
     public Map<String,Object> claim(String worker,String mode,long owner,String project,String runner) {
+        return claim(worker,mode,owner,project,runner,false);
+    }
+    public Map<String,Object> claim(String worker,String mode,long owner,String project,String runner,boolean browse) {
         if(worker==null||!worker.matches("[a-zA-Z0-9._-]{1,100}"))throw new IllegalArgumentException("INVALID_INPUT: 无效workerId");
         if(!Set.of("sandbox","templates","cli").contains(mode)||("cli".equals(mode)&&(owner<=0||!runner.matches("[0-9a-f]{24}")||
-            (!project.isEmpty()&&!project.matches("[a-f0-9-]{36}")))))
+            (!project.isEmpty()&&!project.matches("[a-f0-9-]{36}"))))||(browse&&(!mode.equals("cli")||!project.isEmpty())))
             throw new IllegalArgumentException("INVALID_INPUT: 无效 CLI 工作区绑定");
-        db.reconcileExpired();return db.claim(worker,mode,owner,project,runner);
+        db.reconcileExpired();return db.claim(worker,mode,owner,project,runner,browse);
     }
     private Map<String,Object> leased(String id,ObjectNode input) {
         Map<String,Object> job=db.job(id);
@@ -259,7 +269,16 @@ public class TeamService {
         if(wi.path("requireDispatchApproval").asBoolean())
             out.put("dispatchApprovalPending",TaskFlow.needsDispatchApproval(s,task));
         if(!project.isBlank())out.set("project",wi.has("projectSnapshot")?wi.path("projectSnapshot").deepCopy():get(s,"projects",project).deepCopy());
-        if(text(p,"kind").equals("integration")){ObjectNode request=get(s,"integrations",text(p,"integrationId"));out.set("integration",request.deepCopy());out.set("sourceVersion",get(s,"codeVersions",text(request,"sourceVersionId")).deepCopy());out.set("project",get(s,"projects",text(request,"projectId")).deepCopy());}
+        if(text(p,"kind").equals("integration")){
+            ObjectNode request=get(s,"integrations",text(p,"integrationId"));
+            out.set("integration",request.deepCopy());
+            out.set("sourceVersion",get(s,"codeVersions",text(request,"sourceVersionId")).deepCopy());
+            ObjectNode currentProject=get(s,"projects",text(request,"projectId")).deepCopy();
+            JsonNode boundDirectory=wi.path("projectSnapshot").get("localDirectory");
+            if(boundDirectory==null)currentProject.remove("localDirectory");
+            else currentProject.set("localDirectory",boundDirectory.deepCopy());
+            out.set("project",currentProject);
+        }
         ArrayNode artifacts=out.putArray("artifacts");
         for(JsonNode artifact:map(s,"artifacts")) {
             JsonNode sourceTask=map(s,"tasks").path(text(artifact,"taskId"));

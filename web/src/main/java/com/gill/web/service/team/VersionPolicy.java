@@ -2,6 +2,7 @@ package com.gill.web.service.team;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.Objects;
 import static com.gill.web.service.team.TeamData.*;
 
 /** Immutable actual code references and compare-and-set local integration results. */
@@ -24,7 +25,7 @@ final class VersionPolicy {
   if(!project.isBlank()) {
    ObjectNode pr=get(s,"projects",project);
    if(!tid.equals(text(pr,"teamId")))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 项目跨团队");
-   if(text(pr,"baselineCommit").isBlank())pr.put("baselineCommit",base).put("baselineBundle",key)
+   if(text(pr,"baselineCommit").isBlank()&&sameDirectory(s,task,pr))pr.put("baselineCommit",base).put("baselineBundle",key)
     .put("revision",pr.path("revision").asInt()+1).put("updatedAt",now());
   }
   ObjectNode n=p.deepCopy();n.put("id",id()).put("teamId",tid).put("createdAt",now()).put("scope","managed-local").put("remotePublished",false);
@@ -37,6 +38,7 @@ final class VersionPolicy {
   TaskFlow.requireDispatchAllowed(s,task,p);
   ObjectNode project=get(s,"projects",required(p,"projectId"));
   if(!text(project,"teamId").equals(text(task,"teamId")))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 项目跨团队");
+  if(!sameDirectory(s,task,project))throw new IllegalArgumentException("VERSION_CONFLICT: 项目目录已变更，请从当前目录基线重新开发");
   String target=text(project,"targetBranch");if(target.isBlank())target="main";
   for(JsonNode branch:project.path("protectedBranches"))if(branch.asText().equals(target))
    throw new IllegalArgumentException("SCOPE_FORBIDDEN: 目标分支受保护，禁止自主集成");
@@ -80,5 +82,9 @@ final class VersionPolicy {
   for(JsonNode i:map(s,"integrations"))if(text(i,"taskId").equals(text(task,"id"))&&text(i,"state").equals("queued"))all=false;
   if(all&&state.equals("integrated"))get(s,"runs",text(task,"runId")).put("state","completed");
   return node("id",text(integration,"id"),"state",state);
+ }
+ private static boolean sameDirectory(ObjectNode state, JsonNode task, JsonNode project) {
+  JsonNode snapshot=map(state,"workItems").path(text(task,"workItemId")).path("projectSnapshot");
+  return Objects.equals(snapshot.get("localDirectory"),project.get("localDirectory"));
  }
 }

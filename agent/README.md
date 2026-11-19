@@ -14,6 +14,8 @@ D45 的员工性格与工作态度来自 `employee.personality` 快照。历史�
 
 团队本地执行由 `gill team-worker` 启动。CLI 使用 `team_client → team_worker → team_turns → team_local_sandbox` 与同一网关协作，在指定本机目录下创建独立工作区。远程与本地执行均复用 `TeamGit` 及工作项处理。可用命令及目录见[部署说明](../docs/05-deploy.md#团队执行端启动方式)。
 
+省略 `--project` 时，CLI 按账号开放 `--directory` 指定目录及其子目录供项目配置选择。CLI 在本机读取目录并检查 Git 标记。任务领取后重新校验工作目录，避免通过符号链接跳出启动根目录。
+
 模型用 `notify_team` 发通知和意见、`request_peer_review` 邀请核查、`assign_task` 正式派工。旧员工 `team_message` 聊天请求按通知收件，重放保留原请求参数和标识。用户启用派工审批时，以当前上下文和网关为准，主任务用 `ask_superior(dispatchApproval=true)` 发起许可申请。模型预留后读取共享运行调用数和上限。实际外部回执与模型判断分开注入。
 
 `archive_document` 归档当前关联项目的文档。`complete_task` 可携带 `artifact` 最终报告，以及一项 `assign` 派工或 `review` 核查。执行器依次保存证据、提交交接、提出完成，并使用稳定请求标识支持重放。完成未确认时仍返回已经提交的交接回执。已有合格成果可用空参数提交完成。
