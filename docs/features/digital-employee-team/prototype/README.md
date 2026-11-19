@@ -4,6 +4,8 @@
 
 ## 打开与体验
 
+[极简团队群聊](workbench-chat.html) 对应 D48。直接打开可体验 `@` 搜索员工、展开「＋」里的发送方式及模拟发送。Chrome 已用合成数据走查这三步。真实工作台的验证见[测试记录](../../../03-test-cases.md)。
+
 [组织模板与独立员工](organization-templates.html) 对应 D45。用本地示例走查团队复制、角色复制和填写员工个性，Chrome 已验证三条操作路径和 390 像素视口。
 
 [团队 Skill 三层配置原型](skill-configuration/index.html) 对应 D44。从团队流程、团队角色和成员三个入口配置，右侧可以按成员查看新任务和在途任务所采用的版本。[产品设计稿](../skill_configuration.md)

@@ -2,7 +2,7 @@
 
 | 项 | 内容 |
 |---|---|
-| 文档版本 | v1.16（CLI 目录选择与 Git 设置回归） |
+| 文档版本 | v1.17（极简群聊输入回归） |
 | 编写日期 | 2026-10-16（v1.2 修订 2026-10-18；v1.3 补记 2026-11-17） |
 | 关联文档 | 《01-需求澄清 v1.5》《02-总体架构与模块设计 v1.3》 |
 | 变更说明 | v1.1：新增文件（MinIO）、管理后台、可观测性、配额、扩展性（多副本）、备份恢复用例组。v1.2：新增 §23 浏览器黑盒 E2E 三轮执行记录（API 级 E2E 之外补 UI 层覆盖）。v1.3：追加 §23.4 静态原型 v0.7 轻量走查，明确不属于真实团队运行验收。v1.5：追加§23.7真实需求验收、开放缺陷和未验证范围 |
@@ -396,3 +396,9 @@ Chrome 在 1440×1040 和 390×844 视口切换工作台、团队、知识库与
 Chrome 使用隔离工作空间和实际宿主 CLI 验证启动根目录、子目录、账号隔离及目录绑定保存。只含 `.gitignore` 的普通目录隐藏 Git 配置，选中带 `.git` 的项目后展示 Git 控件。Sandbox 表单继续提供 HTTPS 代码来源。真实任务从选中的 Git 目录读到合成数据，并将产物写到该目录的独立执行工作区，原 Git 提交与工作目录保持原状。[Git 设置](../gui-test-screenshots/v20261119-full-closure-project-directory-git.png) · [手机目录选择](../gui-test-screenshots/v20261119-full-closure-project-directory-mobile.png)
 
 48 项 Java 测试（其中 11 项使用 PostgreSQL）、47 项 Python 测试、21 项前端测试、类型检查及 Web、Agent 镜像构建通过。
+
+### 23.19 工作台群聊（2026-11-19）
+
+Chrome 在隔离工作空间验证桌面和 390 像素视口。空输入区收起动作、项目与审批，键入全角或半角 @ 后可搜索本团队成员。方向键和回车可在同名员工中选择，选中后持久化对应员工 ID。中文输入法确认阶段不发送，Shift+Enter 可换行。引用回复、通知、核查、关联项目、需审批的派工、运行入口及 @我 筛选经真实接口回归。打开 @我 筛选时待决记录仍为开放状态。
+
+24 项前端单测、类型检查及 Web 镜像构建通过。[桌面输入区](../gui-test-screenshots/v20261119-full-closure-group-chat-desktop.png) · [桌面对话](../gui-test-screenshots/v20261119-full-closure-group-chat-thread-desktop.png) · [手机 @ 提及](../gui-test-screenshots/v20261119-full-closure-group-chat-mentions-mobile.png)

@@ -1,0 +1,93 @@
+.team-chat {background:#f4f6fa}
+.team-chat-header {
+ position:relative;align-items:center;padding:13px 24px;background:#fff;
+}
+.team-chat-title {display:flex;align-items:baseline;gap:9px;min-width:0}
+.team-chat-title h2 {overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.team-chat-title small,.chat-header-actions {flex-shrink:0}
+.chat-header-actions {display:flex;align-items:center;gap:13px}
+.team-app .chat-header-actions button {padding:2px 0;min-height:32px;font-size:12px}
+.chat-run-menu summary {font-size:12px;color:#566783}
+.chat-run-panel {
+ position:absolute;top:100%;right:16px;z-index:3;
+ width:min(500px,calc(100% - 32px));max-height:min(55vh,440px);overflow:auto;
+ background:#fff;border:1px solid var(--team-line);border-radius:10px;box-shadow:0 8px 28px #23314a17;
+}
+.chat-run-panel .run-controls {border:0;border-bottom:1px solid var(--team-line)}
+.chat-run-panel .run-controls:last-child {border-bottom:0}
+.team-chat-feed {padding:20px 24px}
+.real-message {gap:9px;margin-bottom:16px}
+.real-message.self {flex-direction:row-reverse}
+.real-message.self .real-message-meta {flex-direction:row-reverse}
+.real-message-main {max-width:min(84%,720px)}
+.real-message-meta {align-items:baseline;margin-bottom:4px;font-size:11px}
+.real-message .real-avatar {height:32px;width:32px;background:#e6edfa;color:#365784}
+.real-message.self .real-avatar {background:#dce8ff;color:#2555ad}
+.real-message-bubble {padding:9px 12px;background:#fff;border-color:#e3e9f3;border-radius:4px 12px 12px}
+.real-message.self .real-message-bubble {background:#e6efff;border-color:#dce7fc;border-radius:12px 4px 12px 12px}
+.real-message-bubble>p {margin:0;line-height:1.65}
+.real-message-bubble>small {display:block;margin-top:4px}
+.mention-chips {flex-wrap:wrap;margin-bottom:3px}
+.team-app .chat-quote-action {padding:0;min-height:0;font-size:11px;color:#506688}
+@media (hover:hover) {
+ .chat-quote-action {opacity:0;pointer-events:none}
+ .real-message:hover .chat-quote-action,.real-message:focus-within .chat-quote-action {opacity:1;pointer-events:auto}
+}
+
+.team-composer {padding:11px 24px 14px}
+.composer-input-row {display:flex;gap:10px;align-items:flex-end;position:relative}
+.team-app .team-composer textarea {
+ flex:1;min-width:0;min-height:42px;max-height:128px;margin:0;
+ padding:10px 12px;border:1px solid #e3e9f4;border-radius:10px;background:#f5f7fb;
+ color:#1c2534;resize:none;field-sizing:content;line-height:1.45;font-size:14px;
+}
+.team-app .team-composer textarea:focus {background:#fff}
+.team-app .chat-icon {
+ flex:none;min-height:0;width:42px;height:42px;padding:0;border:0;border-radius:10px;
+ background:transparent;color:#526482;font-size:24px;line-height:1;
+}
+.team-app .chat-icon:hover,.team-app .chat-icon[aria-expanded=true] {background:#edf2fb;color:#265dc8}
+.team-app .composer-send {flex:none;min-height:42px;min-width:60px;border-radius:9px;padding:0 13px;white-space:nowrap}
+.team-app .composer-send:disabled {opacity:1;background:#eef2f9;color:#596b84}
+.composer-context {
+ display:flex;flex-wrap:wrap;gap:3px 12px;margin:0 0 5px 52px;font-size:12px;color:#496381;
+}
+.team-composer .reply-strip {
+ margin:0 0 7px 52px;align-items:center;padding:3px 7px 3px 10px;gap:8px;border-radius:5px;
+}
+.reply-strip span {overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.team-app .reply-strip .chat-icon {width:28px;height:28px;font-size:17px}
+.composer-popover {
+ position:absolute;bottom:calc(100% + 8px);left:0;z-index:2;
+ width:min(340px,100%);max-height:min(42dvh,310px);overflow:auto;
+ background:#fff;border:1px solid #e1e8f4;border-radius:12px;box-shadow:0 8px 30px #23314a20;padding:8px;
+}
+.composer-mentions {left:52px;width:min(340px,calc(100% - 52px))}
+.composer-mentions [role=option] {
+ display:flex;align-items:center;gap:9px;padding:6px;border-radius:8px;cursor:pointer;overflow-wrap:anywhere;
+}
+.composer-mentions [role=option]:hover,.composer-mentions [aria-selected=true] {background:#eef3ff}
+.composer-mentions small {margin-left:5px}
+.composer-mentions p {padding:0 6px}
+.composer-modes {display:grid;gap:2px}
+.team-app .composer-modes button {
+ text-align:left;min-height:36px;border:0;border-radius:7px;background:transparent;color:#24344f;padding:7px 10px;
+}
+.team-app .composer-modes button:hover,.team-app .composer-modes [aria-pressed=true] {background:#eef3ff;color:#2558bc}
+.team-app .composer-options label {margin:8px 3px 0}
+.team-app .composer-approval {display:flex;align-items:center;gap:7px;min-height:32px}
+.team-app .composer-approval input {width:auto;margin:0}
+
+@media (max-width:768px) {
+ .team-chat-header,.team-chat-feed {padding-inline:12px}
+ .chat-header-actions {gap:8px}
+ .team-chat-title {gap:5px}
+ .team-chat-title h2 {font-size:15px}
+ .team-composer {padding:8px 10px max(10px,env(safe-area-inset-bottom))}
+ .composer-input-row {gap:6px}
+ .team-app .team-composer textarea {font-size:16px}
+ .team-app .composer-send {padding-inline:10px}
+ .team-app .chat-icon {width:38px}
+ .composer-context,.team-composer .reply-strip {margin-left:44px}
+ .composer-mentions {left:44px;width:min(340px,calc(100% - 44px))}
+}

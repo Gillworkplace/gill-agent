@@ -20,7 +20,7 @@ await click('.team-chat-feed > details > summary');
 await ev('Array.from(document.querySelectorAll(".task-sources")).forEach(e=>e.open=true)');
 await check('fixed snapshot and actual v1 read are separate from current v2','Array.from(document.querySelectorAll(".task-sources")).some(e=>["团队流程","采用模板","采用的 Skills","执行器读取 v1","共享源当前 v2"].every(x=>e.innerText.includes(x)))');
 await shot('task-configuration-sources');await click('.team-chat-feed > details > summary');
-await click('.team-chat-toolbar button');await wait('!!document.querySelector(".decision-context")');await click('.decision-context summary');
+await click('.chat-header-actions [aria-pressed]');await wait('!!document.querySelector(".decision-context")');await click('.decision-context summary');
 await check('decision details include scope and both real prior opinions','(()=>{const t=document.querySelector(".decision-context").innerText;return ["选择本期资料采用范围","已核对两份合成资料","采用 A","没有单独记录","直属上级认为缺少有效依据","上一级认为需要用户明确选择"].every(x=>t.includes(x))})()');
 if((await state()).decisions[account.decisionId].state!=='open')throw Error('Viewing details resolved the decision');
 await shot('decision-context-desktop');await view(390,844,true);

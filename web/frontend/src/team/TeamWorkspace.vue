@@ -10,6 +10,7 @@ import TeamDirectory from './TeamDirectory.vue'
 import OrganizationTemplateLibrary from './OrganizationTemplateLibrary.vue'
 import KnowledgeLibrary from './KnowledgeLibrary.vue'
 import './team.css'
+import './teamChat.css'
 import './workspaceEntry.css'
 
 const store=useTeams(), auth=useAuth()

@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gill · 团队群聊交互原型</title>
+<style>
+ *{box-sizing:border-box}
+ body{margin:0;background:#eef1f7;color:#1d293a;font:14px/1.55 system-ui,sans-serif}
+ main{height:100dvh;max-width:920px;margin:auto;display:flex;flex-direction:column;background:#f4f6fa}
+ header,footer{background:#fff;padding:12px 20px;border:1px solid #e3e9f3}
+ header{display:flex;align-items:center;gap:10px}
+ h1{font-size:16px;margin:0}
+ small{color:#586b85}
+ section{flex:1;overflow:auto;padding:24px 20px}
+ article{display:flex;gap:9px;margin-bottom:16px}
+ article.self{flex-direction:row-reverse}
+ .avatar{display:grid;place-items:center;background:#e3ebfa;color:#365784;border-radius:8px;width:32px;height:32px;flex:none}
+ article p{max-width:min(82%,600px);margin:0;border:1px solid #e3e9f3;background:#fff;border-radius:4px 12px 12px;padding:9px 12px;overflow-wrap:anywhere}
+ article.self p{background:#e6efff;border-radius:12px 4px 12px 12px}
+ form{position:relative;display:flex;align-items:flex-end;gap:8px;margin:0}
+ textarea{flex:1;min-width:0;padding:10px 12px;border:1px solid #e3e9f4;border-radius:10px;background:#f5f7fb;font:inherit;field-sizing:content;resize:none;min-height:42px;max-height:128px}
+ button,select{font:inherit;cursor:pointer}
+ button{height:42px;border:0;border-radius:9px;padding:0 13px;background:#2f6bff;color:#fff}
+ button:disabled{background:#eef2f9;color:#596b84;cursor:default}
+ #options{background:transparent;color:#526482;font-size:23px;padding:0 8px}
+ #menu,#members{position:absolute;bottom:calc(100% + 8px);width:min(310px,100%);background:#fff;
+  border:1px solid #e1e8f4;border-radius:12px;box-shadow:0 8px 30px #23314a20;padding:8px}
+ #menu button,#members button{display:block;width:100%;text-align:left;background:#fff;color:#24344f;height:36px}
+ #menu button:hover,#members button:hover,#menu button[aria-pressed=true]{background:#eef3ff}
+ #menu label{display:block;margin:6px 10px}
+ #members{left:40px;width:min(310px,calc(100% - 40px))}
+ #context{display:block;margin:0 0 4px 40px}
+ #context:empty{display:none}
+ @media(max-width:560px){header,footer,section{padding-inline:10px} textarea{font-size:16px}}
+</style>
+<main>
+ <header><h1>交付小组</h1><small>3 位成员 · 交互原型</small></header>
+ <section id="feed" aria-label="群消息">
+  <article><span class="avatar">宁</span><p>本周的交付材料已经整理好了。</p></article>
+  <article class="self"><span class="avatar">我</span><p>收到，等我看一下。</p></article>
+ </section>
+ <footer>
+  <small id="context"></small>
+  <form id="chat">
+   <button type="button" id="options" aria-label="消息选项" aria-expanded="false">＋</button>
+   <textarea id="draft" aria-label="团队群聊消息" rows="1" placeholder="输入消息，@ 提及员工"></textarea>
+   <button type="submit" id="send" disabled>发送</button>
+   <div id="menu" hidden>
+    <button type="button" data-mode="通知">仅通知</button>
+    <button type="button" data-mode="核查">请同事核查</button>
+    <button type="button" data-mode="派工">正式派工</button>
+    <label id="project-row">关联项目 <select id="project"><option>不关联项目</option><option>交付材料</option></select></label>
+    <label id="approval-row"><input type="checkbox" id="approval"> 后续派工需我许可</label>
+   </div>
+   <div id="members" hidden aria-label="可提及员工"></div>
+  </form>
+ </footer>
+</main>
+<script>
+ const node=id=>document.getElementById(id)
+ const draft=node('draft'), menu=node('menu'), members=node('members'), options=node('options'), send=node('send')
+ const people=['顾言 · 协调','禾宁 · 核查','许澄 · 交付']
+ let mode='派工', explicit=false
+ function reflect(){
+  const project=node('project').selectedIndex&&node('project').value
+  node('context').textContent=[explicit?mode:'',mode!=='通知'&&project,
+   mode==='派工'&&node('approval').checked?'后续派工需我许可':''].filter(Boolean).join(' · ')
+  node('project-row').style.display=mode==='通知'?'none':''
+  node('approval-row').style.display=mode==='派工'?'':'none'
+  menu.querySelectorAll('[data-mode]').forEach(button=>button.setAttribute('aria-pressed',button.dataset.mode===mode))
+  send.disabled=!draft.value.trim()
+  send.textContent=!draft.value.trim()||mode==='通知'?'发送':mode==='核查'?'请求核查':'派工'
+ }
+ function toggleMenu(open){menu.hidden=!open;options.setAttribute('aria-expanded',open)}
+ function search(){
+  const query=/[@＠]([^\s@＠]*)$/.exec(draft.value.slice(0,draft.selectionStart))
+  members.replaceChildren()
+  members.hidden=!query
+  if(!query)return
+  toggleMenu(false)
+  people.filter(person=>person.includes(query[1])).forEach(person=>{
+   const button=document.createElement('button')
+   button.type='button'
+   button.textContent=person
+   button.onclick=()=>{
+    draft.setRangeText('@'+person.split(' · ')[0]+' ',query.index,draft.selectionStart,'end')
+    if(!explicit)mode='通知'
+    members.hidden=true
+    draft.focus()
+    reflect()
+   }
+   members.append(button)
+  })
+  if(!members.childNodes.length)members.textContent='没有匹配的员工'
+ }
+ options.onclick=()=>{members.hidden=true;toggleMenu(menu.hidden)}
+ menu.addEventListener('click',event=>{
+  if(event.target.dataset.mode){mode=event.target.dataset.mode;explicit=true;if(mode!=='派工')node('approval').checked=false}
+  reflect()
+ })
+ menu.addEventListener('change',reflect)
+ draft.oninput=()=>{search();reflect()}
+ draft.onkeydown=event=>{
+  if(event.isComposing)return
+  if(event.key==='Escape'){members.hidden=true;toggleMenu(false)}
+  if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();if(!members.hidden)members.querySelector('button')?.click();else node('chat').requestSubmit()}
+ }
+ node('chat').onsubmit=event=>{
+  event.preventDefault()
+  if(!draft.value.trim())return
+  const article=document.createElement('article'), avatar=document.createElement('span'), bubble=document.createElement('p')
+  article.className='self';avatar.className='avatar';avatar.textContent='我';bubble.textContent=draft.value.trim()
+  article.append(avatar,bubble);node('feed').append(article);article.scrollIntoView()
+  draft.value='';mode='派工';explicit=false;node('project').selectedIndex=0;node('approval').checked=false
+  members.hidden=true;toggleMenu(false);reflect()
+ }
+ reflect()
+</script>
+</html>
