@@ -4,6 +4,8 @@
 
 ## 打开与体验
 
+[组织模板与独立员工](organization-templates.html) 对应 D45。用本地示例走查团队复制、角色复制和填写员工个性，Chrome 已验证三条操作路径和 390 像素视口。
+
 [团队 Skill 三层配置原型](skill-configuration/index.html) 对应 D44。从团队流程、团队角色和成员三个入口配置，右侧可以按成员查看新任务和在途任务所采用的版本。[产品设计稿](../skill_configuration.md)
 
 [工作台空态与新建团队原型](workspace-entry.html)对应 D24、D28、D31，演示两个入口共用表单、取消、创建后进入详情及回到工作台。原型使用内存中的示例数据。产品视角代理复核了创建后的状态切换，Chrome 走查通过。

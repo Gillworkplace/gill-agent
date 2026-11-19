@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <title>组织模板与独立员工 · Gill</title>
+ <link rel="stylesheet" href="skill-configuration/style.css">
+</head>
+<body>
+ <header class="masthead"><div class="page-width masthead-inner">
+  <span class="brand"><span aria-hidden="true">g</span> Gill</span>
+  <span class="crumb">我的工作空间</span><span class="prototype-label">交互原型 · 示例数据</span>
+ </div></header>
+ <main class="page-width">
+  <header class="page-head"><h1>组织模板与成员</h1><p>团队定义协作，角色定义职责，成员保留自己的工作态度与风格。</p></header>
+  <nav class="tabs" aria-label="配置入口">
+   <button type="button" data-page="team" aria-current="page">团队模板</button>
+   <button type="button" data-page="role">角色模板</button>
+   <button type="button" data-page="member">员工</button>
+  </nav>
+  <div class="layout">
+   <section class="panel">
+    <header class="section-head"><div><h2 id="title">团队模板</h2><p class="muted" id="description">复用流程与分工。</p></div>
+     <button id="create" type="button" class="button primary">从模板创建团队</button>
+    </header>
+    <div class="record" id="record">
+     <div class="record-meta"><span class="version">v1</span><span>团队流程与角色</span></div>
+     <h3>日常交接</h3><p class="record-content">确认目标，执行后提供检查依据。交接时写明已完成和待确认事项。</p>
+     <p>角色：执行、复核</p>
+    </div>
+   </section>
+   <section class="panel preview" aria-label="创建结果">
+    <h2>创建结果</h2><p class="muted" id="result" role="status">从左侧选择一种配置进行操作。</p>
+   </section>
+  </div>
+ </main>
+ <dialog id="editor" aria-labelledby="editor-title">
+  <form id="form">
+   <header class="dialog-head"><h2 id="editor-title"></h2></header>
+   <div class="dialog-body">
+    <label for="name">名称</label><input id="name" required>
+    <div id="personal" hidden>
+     <label for="role">关联角色</label>
+     <select id="role"><option value="">暂未关联</option><option>执行</option><option>复核</option></select>
+     <label for="personality">性格与工作态度</label><textarea id="personality" rows="4"></textarea>
+    </div>
+    <p class="muted" id="effect"></p>
+   </div>
+   <footer class="dialog-foot"><button type="button" id="cancel" class="button secondary">取消</button>
+    <button class="button primary" type="submit">创建</button>
+   </footer>
+  </form>
+ </dialog>
+ <script src="organization-templates.js" defer></script>
+</body>
+</html>

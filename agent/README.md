@@ -10,6 +10,8 @@
 
 团队角色使用任务租约所返回的 `teamRole` 快照，随团队流程和成员指令一起传给模型。角色参考文件按 `scope=role` 读取，沙箱目录为 `/tmp/gill-role-prompt`。
 
+D45 的员工性格与工作态度来自 `employee.personality` 快照。历史目录仍可按原作用域读取，实际员工配置由管理者直接维护。
+
 团队本地执行由 `gill team-worker` 启动。CLI 使用 `team_client → team_worker → team_turns → team_local_sandbox` 与同一网关协作，在指定本机目录下创建独立工作区。远程与本地执行均复用 `TeamGit` 及工作项处理。可用命令及目录见[部署说明](../docs/05-deploy.md#团队执行端启动方式)。
 
 模型用 `notify_team` 发通知和意见、`request_peer_review` 邀请核查、`assign_task` 正式派工。旧员工 `team_message` 聊天请求按通知收件，重放保留原请求参数和标识。用户启用派工审批时，以当前上下文和网关为准，主任务用 `ask_superior(dispatchApproval=true)` 发起许可申请。模型预留后读取共享运行调用数和上限。实际外部回执与模型判断分开注入。

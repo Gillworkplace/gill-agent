@@ -21,8 +21,7 @@ class AcceptanceRepairTest {
     ObjectNode call(String kind,ObjectNode p){return engine.apply(state,user,kind,p);}
     String team(){return call("team.create",body("name","验收修复")).path("id").asText();}
     String employee(String team) {
-        String tpl=call("template.save",body("name","通用员工","prompt","依据事实工作")).path("id").asText();
-        return call("employee.create",body("teamId",team,"templateId",tpl,"name","员工")).path("id").asText();
+        return call("employee.create",body("teamId",team,"prompt","依据事实工作","name","员工")).path("id").asText();
     }
     String task(String employee){return call("task.assign",body("employeeId",employee,"goal","复核合成资料")).path("id").asText();}
     String escalate(String team,String employee,String task) {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useTeams } from './store'
 import PromptPackageField from './PromptPackageField.vue'
 import type { TemplateFile } from './types'
@@ -10,21 +10,30 @@ const store=useTeams()
 const dialog=ref<HTMLDialogElement>(),nameInput=ref<HTMLInputElement>(),rules=ref<HTMLDetailsElement>()
 const name=ref(''),description=ref(''),prompt=ref(''),error=ref('')
 const files=ref<TemplateFile[]>([]),uploading=ref(false)
+const sourceId=ref('')
+const templates=computed(()=>Object.values(store.data.organizationTemplates).filter(item=>item.type==='team'))
+const source=computed(()=>templates.value.find(item=>item.id===sourceId.value))
 
 watch(()=>props.open,open=>{
  if(!open){dialog.value?.close();return}
- name.value='';description.value='';prompt.value='';error.value='';files.value=[]
+ name.value='';description.value='';prompt.value='';error.value='';files.value=[];sourceId.value=''
  if(rules.value)rules.value.open=false
  dialog.value?.showModal()
  nameInput.value?.focus()
 },{flush:'post'})
 
 function close(){if(!store.busy)emit('close')}
+function chooseTemplate(){
+ if(source.value&&!name.value.trim())name.value=source.value.name
+}
 async function create(){
  if(store.busy||uploading.value||!name.value.trim())return
  error.value=''
  try{
-  const team=await store.command('team.create',{name:name.value,description:description.value,prompt:prompt.value,promptFiles:files.value})
+  const defaults=source.value
+   ?{orgTemplateId:source.value.id,templateRevision:source.value.revision,...(description.value.trim()?{description:description.value}:{})}
+   :{description:description.value,prompt:prompt.value,promptFiles:files.value}
+  const team=await store.command('team.create',{name:name.value,...defaults})
   emit('created',team.id)
  }catch{error.value=store.error}
 }
@@ -38,11 +47,19 @@ async function create(){
     <button class="team-create-close" type="button" aria-label="关闭新建团队" :disabled="store.busy" @click="close">×</button>
    </header>
    <p v-if="error" class="team-error team-create-error" role="alert">{{error}}</p>
+   <template v-if="templates.length">
+    <label for="create-team-template">团队模板<span class="team-create-optional">选填</span></label>
+    <select id="create-team-template" v-model="sourceId" :disabled="uploading" @change="chooseTemplate">
+     <option value="">空白团队</option>
+     <option v-for="item in templates" :key="item.id" :value="item.id">{{item.name}} · v{{item.revision}}</option>
+    </select>
+    <p v-if="source" class="team-muted">复制团队流程与 {{source.roles?.length||0}} 个角色。创建后可独立调整。</p>
+   </template>
    <label for="create-team-name">团队名称</label>
    <input id="create-team-name" ref="nameInput" v-model="name" placeholder="例如：产品研发团队" required/>
    <label for="create-team-description">团队简介<span class="team-create-optional">选填</span></label>
    <textarea id="create-team-description" v-model="description" rows="2" placeholder="一句话描述团队负责的产品、模块或业务"/>
-   <details ref="rules" class="team-create-rules">
+   <details v-if="!source" ref="rules" class="team-create-rules">
     <summary>协作规则<span class="team-create-optional">选填</span></summary>
     <PromptPackageField v-if="open" id="create-team-prompt" label="协作 Prompt" v-model="prompt" v-model:files="files"
                         v-model:uploading="uploading" :disabled="store.busy" :rows="3" placeholder="描述团队如何分工、复核和上报"/>

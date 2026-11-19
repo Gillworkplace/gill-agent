@@ -13,7 +13,6 @@ class DispatchApprovalTest {
     private final TeamEngine engine = new TeamEngine();
     private final TeamActor user = new TeamActor("user", "1", null);
     private final String team = command("team.create", node("name", "业务团队"));
-    private final String template = command("template.save", node("name", "员工", "prompt", "按要求协作"));
     private final String owner = employee("负责人", "user");
     private final String peer = employee("核查员工", "user");
 
@@ -26,7 +25,7 @@ class DispatchApprovalTest {
     }
 
     private String employee(String name, String parent) {
-        return command("employee.create", node("teamId", team, "name", name, "templateId", template, "parentId", parent));
+        return command("employee.create", node("teamId", team, "name", name, "prompt", "按要求协作", "parentId", parent));
     }
 
     private String start(String assignee, boolean approval) {

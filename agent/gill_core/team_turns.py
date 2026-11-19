@@ -485,7 +485,12 @@ class TeamTurn:
         if name == "search_knowledge":
             return search_sources(self.context.get("knowledge", []), args["query"])
         if name == "read_template_file":
-            package = self.prompt_packages().get(args.get("scope", "template"))
+            packages = self.prompt_packages()
+            legacy = packages.get("template")
+            scope = args.get("scope") or ("template" if legacy and legacy.files else "employee")
+            package = packages.get(scope)
+            if scope == "employee" and package and args["path"] not in package.files and legacy:
+                package = legacy
             if package is None:
                 raise ValueError("该指令目录不可用")
             return await package.read_for_model(args["path"])

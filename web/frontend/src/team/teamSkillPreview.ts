@@ -5,6 +5,7 @@ export interface SkillConfigurationRecord {
  name: string
  revision: number
  prompt?: string
+ personality?: string
  promptFiles?: TemplateFile[]
  templateRevision?: number
  files?: TemplateFile[]

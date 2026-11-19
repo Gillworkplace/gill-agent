@@ -2,11 +2,11 @@ package com.gill.web.service.team;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.*;
 import static com.gill.web.service.team.TeamData.*;
-/** Shared lower-level task snapshot factory and template three-way adoption. */
+/** Create and preview the three independent task configuration snapshots. */
 final class TaskAdoption {
  private TaskAdoption() {}
     static ObjectNode createTask(ObjectNode s,String tid,String employee,String goal,ObjectNode parent,ObjectNode p) {
-        ObjectNode e=get(s,"employees",employee);adopt(s,e,true);
+        ObjectNode e=get(s,"employees",employee);
         String runId=parent==null?id():required(parent,"runId");
         if(parent==null) {
             ObjectNode run=node("id",runId,"teamId",tid,"goal",goal,"state","active","createdAt",now());
@@ -34,7 +34,7 @@ final class TaskAdoption {
         } else if(parent!=null)dependencies.add(text(parent,"id"));
         task.set("employeeSnapshot",e.deepCopy());ObjectNode teamSnapshot=get(s,"teams",tid).deepCopy();
         ObjectNode role=roleFor(s,e);
-        if(role!=null)task.set("roleSnapshot",role.deepCopy().retain("id","name","revision","prompt","promptFiles"));
+        if(role!=null)task.set("roleSnapshot",role.deepCopy().retain("id","name","revision","prompt","promptFiles","skills"));
         ObjectNode organization=teamSnapshot.putObject("organization");
         for(JsonNode member:map(s,"employees"))if(tid.equals(text(member,"teamId")))organization.put(text(member,"id"),text(member,"parentId"));
         task.set("teamSnapshot",teamSnapshot);
@@ -60,44 +60,14 @@ final class TaskAdoption {
             result.set("role",task.path("roleSnapshot").isObject()?previewFields(task.path("roleSnapshot")):NullNode.instance);
             return result.put("taskId",taskId);
         }
-        ObjectNode proposed=employee.deepCopy();
-        adopt(state,proposed,false);
         ObjectNode role=roleFor(state,employee);
         result.set("team",previewFields(team));
-        result.set("employee",previewFields(proposed));
+        result.set("employee",previewFields(employee));
         result.set("role",role==null?NullNode.instance:previewFields(role));
         return result;
     }
     private static JsonNode previewFields(JsonNode record) {
         return record instanceof ObjectNode object?object.deepCopy().retain(
-            "id","name","revision","prompt","promptFiles","templateId","templateRevision","files","skills"):NullNode.instance;
-    }
-    private static void adopt(ObjectNode s,ObjectNode e,boolean persist) {
-        ObjectNode tpl=get(s,"templates",required(e,"templateId"));
-        int latest=tpl.path("revision").asInt();
-        if(latest==e.path("templateRevision").asInt())return;
-        String origin=text(tpl,"originTeamId"),tid=text(e,"teamId");boolean shared=origin.isBlank()||origin.equals(tid);
-        for(JsonNode target:tpl.path("authorizedTeamIds"))if(target.asText().equals(tid))shared=true;
-        if(!shared) {
-            if(persist&&e.path("sharingPendingRevision").asInt()!=latest)
-                alert(s,tid,"模板新版本来自其他团队，等待你明确授权；保留员工当前版本。",text(e,"id"));
-            e.put("sharingPendingRevision",latest);
-            return;
-        }
-        String old=text(e,"prompt"),base=text(e,"basePrompt"),next=text(tpl,"prompt");
-        boolean promptConflict=!old.equals(base)&&!next.equals(base)&&!old.equals(next);
-        JsonNode skills=e.path("skills"),baseSkills=e.path("baseSkills"),nextSkills=tpl.path("skills");
-        boolean skillConflict=!skills.equals(baseSkills)&&!nextSkills.equals(baseSkills)&&!skills.equals(nextSkills);
-        if(promptConflict||skillConflict) {
-            if(persist&&e.path("adoptionConflictRevision").asInt()!=latest)
-                alert(s,text(e,"teamId"),"模板采用存在冲突，保留员工当前工作版本，请评估后调整。",text(e,"id"));
-            e.put("adoptionConflictRevision",latest);return;
-        }
-        if(old.equals(base))e.put("prompt",next);
-        if(skills.equals(baseSkills))e.set("skills",nextSkills.deepCopy());
-        if(tpl.has("files"))e.set("files",tpl.get("files").deepCopy());
-        e.put("basePrompt",next).set("baseSkills",nextSkills.deepCopy());e.put("templateRevision",latest);
-        if(persist)save(s,"employees",e,new TeamActor("system","template-adoption",text(e,"teamId")));
-        else e.put("revision",e.path("revision").asInt()+1);
+            "id","name","revision","prompt","personality","promptFiles","templateId","templateRevision","files","skills"):NullNode.instance;
     }
 }

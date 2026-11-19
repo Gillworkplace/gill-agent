@@ -40,8 +40,7 @@ class TeamPersistenceTest {
  ObjectNode command(String kind,ObjectNode p){return service.command(uid,UUID.randomUUID().toString(),kind,p);}
  @Test void cliClaimIsScopedAndKeepsTheOriginalRunnerWhenResumed() throws Exception {
   String team=command("team.create",body("name","local team")).path("id").asText();
-  String template=command("template.save",body("name","employee","prompt","work carefully")).path("id").asText();
-  String employee=command("employee.create",body("name","local employee","teamId",team,"templateId",template)).path("id").asText();
+  String employee=command("employee.create",body("name","local employee","teamId",team,"prompt","按要求协作")).path("id").asText();
   String project=command("project.save",body("teamId",team,"name","local project")).path("id").asText();
   String task=command("task.assign",body("employeeId",employee,"projectId",project,"goal","create local artifact")).path("id").asText();
   String runner="a".repeat(24);
@@ -90,8 +89,7 @@ class TeamPersistenceTest {
  }
  @Test void claimFenceAndActionReceiptsAreDurable() {
   String team=command("team.create",body("name","worker team")).path("id").asText();
-  String template=command("template.save",body("name","employee","prompt","work carefully")).path("id").asText();
-  String employee=command("employee.create",body("name","one","teamId",team,"templateId",template)).path("id").asText();
+  String employee=command("employee.create",body("name","one","teamId",team,"prompt","按要求协作")).path("id").asText();
   var msg=body("teamId",team,"text","produce artifact");msg.putArray("mentions").add(employee);
   command("message.send",msg);
   var job=service.claim("integration-test");
@@ -121,8 +119,7 @@ class TeamPersistenceTest {
  }
  @Test void uncertainExecutionRequiresEvidenceAndLateResultsNeverApply() {
   String team=command("team.create",body("name","reconciliation team")).path("id").asText();
-  String template=command("template.save",body("name","employee","prompt","work")).path("id").asText();
-  String employee=command("employee.create",body("name","one","teamId",team,"templateId",template)).path("id").asText();
+  String employee=command("employee.create",body("name","one","teamId",team,"prompt","按要求协作")).path("id").asText();
   String task=command("task.assign",body("employeeId",employee,"goal","work")).path("id").asText();
   var job=service.claim("reconciliation-test");String id=job.get("id").toString();
   ObjectNode identity=body("workerId","reconciliation-test").put("fence",((Number)job.get("fence")).longValue());
@@ -212,8 +209,7 @@ class TeamPersistenceTest {
  }
 
  String employeeForRepair(String team) {
-  String template=command("template.save",body("name","repair","prompt","work")).path("id").asText();
-  return command("employee.create",body("name","repair","teamId",team,"templateId",template)).path("id").asText();
+  return command("employee.create",body("name","repair","teamId",team,"prompt","按要求协作")).path("id").asText();
  }
  ObjectNode identity(Map<String,Object> job,String worker) {
   return body("workerId",worker).put("fence",((Number)job.get("fence")).longValue());

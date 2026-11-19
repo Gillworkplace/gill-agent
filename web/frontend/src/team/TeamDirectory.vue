@@ -10,15 +10,16 @@ import { employeeActivity, stateLabel } from './presentation'
 const props=defineProps<{selectedId:string}>()
 defineEmits<{(e:'enter-chat',id:string):void;(e:'navigate',path:string):void;(e:'create-team'):void}>()
 const store=useTeams(),name=ref(''),description=ref(''),receiver=ref(''),maxRounds=ref(25),maxSeconds=ref(900)
-const allowCrossTeamAdoption=ref(false)
 const employeePromptFiles=ref<TemplateFile[]>([])
 const uploadingEmployee=ref(false)
-const templateId=ref(''),memberName=ref(''),role=ref(''),parentId=ref('user'),editing=ref(''),editPrompt=ref(''),editRole=ref('')
+const memberRoleId=ref(''),memberName=ref(''),personality=ref(''),parentId=ref('user')
+const editing=ref(''),editPrompt=ref(''),editRole=ref(''),editPersonality=ref('')
 const tab=ref('members'),dragged=ref(''),parents=ref<Record<string,string>>({}),dirty=ref(false),mountSource=ref<Record<string,string>>({})
 const baseTeamRevision=ref(0),baseEmployeeRevision=ref(0),baseRelations=ref<Record<string,number>>({})
 const team=computed(()=>store.data.teams[props.selectedId])
 const teams=computed(()=>Object.values(store.data.teams))
 const members=computed(()=>Object.values(store.data.employees).filter(e=>e.teamId===props.selectedId))
+const teamRoles=computed(()=>Object.values(store.data.teamRoles).filter(item=>item.teamId===props.selectedId))
 const currentEmployee=computed(()=>store.data.employees[editing.value])
 function resetTeamSettings(){if(team.value){baseTeamRevision.value=team.value.revision;name.value=team.value.name;description.value=team.value.description;receiver.value=team.value.receiverId||'';maxRounds.value=team.value.limits?.maxRounds||25;maxSeconds.value=team.value.limits?.maxSeconds||900}}
 function openRuntime(){resetTeamSettings();tab.value='runtime'}
@@ -27,13 +28,20 @@ watch(()=>props.selectedId,()=>{reset();tab.value='members';editing.value=''},{i
 watch(()=>members.value.length,()=>{if(!dirty.value){parents.value=Object.fromEntries(members.value.map(e=>[e.id,e.parentId]));baseRelations.value=Object.fromEntries(members.value.map(e=>[e.id,e.revision]))}})
 watch(()=>team.value?.id,()=>{if(team.value&&!baseTeamRevision.value)reset()})
 async function save(){if(!team.value||store.busy)return;try{await store.command('team.update',{id:team.value.id,expectedRevision:baseTeamRevision.value,name:name.value,description:description.value,receiverId:receiver.value,limits:{maxRounds:maxRounds.value,maxSeconds:maxSeconds.value}});reset()}catch{}}
-async function addMember(){try{await store.command('employee.create',{teamId:props.selectedId,templateId:templateId.value,name:memberName.value,role:role.value,parentId:parentId.value,allowCrossTeamAdoption:allowCrossTeamAdoption.value});memberName.value='';role.value='';reset()}catch{}}
+async function addMember(){
+ if(!memberName.value.trim()||store.busy)return
+ try{
+  await store.command('employee.create',{teamId:props.selectedId,name:memberName.value,personality:personality.value,
+   roleId:memberRoleId.value,parentId:parentId.value})
+  memberName.value='';personality.value='';memberRoleId.value='';reset()
+ }catch{}
+}
 function drop(target:string){if(dragged.value&&target!==dragged.value){parents.value[dragged.value]=target;dirty.value=true}dragged.value=''}
 function depth(id:string){let n=0,p=parents.value[id];const seen=new Set([id]);while(p&&p!=='user'&&!seen.has(p)){seen.add(p);n++;p=parents.value[p]}return n}
 function sortedMembers(){const output:typeof members.value=[];const seen=new Set<string>();function visit(parent:string){for(const e of members.value.filter(e=>parents.value[e.id]===parent)){if(seen.has(e.id))continue;seen.add(e.id);output.push(e);visit(e.id)}}visit('user');for(const e of members.value)if(!seen.has(e.id))output.push(e);return output}
 async function saveTree(){try{await store.command('team.relations',{teamId:props.selectedId,relations:members.value.map(e=>({id:e.id,parentId:parents.value[e.id],expectedRevision:baseRelations.value[e.id]}))});reset()}catch{}}
-function openEmployee(id:string){editing.value=id;baseEmployeeRevision.value=store.data.employees[id].revision;editPrompt.value=store.data.employees[id].prompt;employeePromptFiles.value=store.data.employees[id].promptFiles||[];editRole.value=store.data.employees[id].role}
-async function saveEmployee(){const e=currentEmployee.value;if(!e||store.busy||uploadingEmployee.value)return;try{await store.command('employee.update',{id:e.id,expectedRevision:baseEmployeeRevision.value,prompt:editPrompt.value,promptFiles:employeePromptFiles.value,role:editRole.value});editing.value=''}catch{}}
+function openEmployee(id:string){editing.value=id;baseEmployeeRevision.value=store.data.employees[id].revision;editPrompt.value=store.data.employees[id].prompt;employeePromptFiles.value=store.data.employees[id].promptFiles||[];editRole.value=store.data.employees[id].role;editPersonality.value=store.data.employees[id].personality||''}
+async function saveEmployee(){const e=currentEmployee.value;if(!e||store.busy||uploadingEmployee.value)return;try{await store.command('employee.update',{id:e.id,expectedRevision:baseEmployeeRevision.value,prompt:editPrompt.value,promptFiles:employeePromptFiles.value,role:editRole.value,personality:editPersonality.value});editing.value=''}catch{}}
 async function mount(id:string,source:string,remove=false){if(!source)return;try{await store.command(remove?'knowledge.unmount':'knowledge.mount',{employeeId:id,sourceId:source})}catch{}}
 </script>
 <template>
@@ -61,10 +69,17 @@ async function mount(id:string,source:string,remove=false){if(!source)return;try
      <div class="organization-root" @dragover.prevent @drop.prevent="drop('user')">我 · 最终人类管理者（拖到此处设为直接汇报）</div>
      <div v-for="e in sortedMembers()" :key="e.id" class="organization-node" :style="{marginLeft:Math.min(depth(e.id),4)*18+'px'}" draggable="true" @dragstart="dragged=e.id" @dragover.prevent @drop.prevent.stop="drop(e.id)">
       <button class="text-button" @click="openEmployee(e.id)"><b>{{e.name}}</b> · {{e.role||'分工待配置'}}</button><span class="team-muted">{{stateLabel(employeeActivity(store.data.tasks,e.id))}}</span><label class="organization-parent">上级<select v-model="parents[e.id]" @change="dirty=true"><option value="user">我</option><option v-for="p in members.filter(m=>m.id!==e.id)" :key="p.id" :value="p.id">{{p.name}}</option></select></label>
-     </div><p v-if="!members.length" class="team-muted">尚无员工，可从下面的模板创建。</p>
+     </div><p v-if="!members.length" class="team-muted">尚无员工，可以在下方直接创建。</p>
     </section>
-    <form class="team-card team-inline-form" @submit.prevent="addMember"><h3>从模板创建专属员工</h3><label>模板<select v-model="templateId" required><option value="">选择模板</option><option v-for="t in Object.values(store.data.templates)" :key="t.id" :value="t.id">{{t.name}} · v{{t.revision}}</option></select></label><label>员工姓名<input v-model="memberName" required/></label><label>本团队分工<input v-model="role" placeholder="开放填写"/></label><label>直属上级<select v-model="parentId"><option value="user">我</option><option v-for="e in members" :key="e.id" :value="e.id">{{e.name}}</option></select></label><label v-if="store.data.templates[templateId]?.originTeamId&&store.data.templates[templateId]?.originTeamId!==team.id"><input style="width:auto" type="checkbox" v-model="allowCrossTeamAdoption"/> 授权本次采用来自其他团队的模板版本</label><button :disabled="store.busy||!memberName||!templateId">创建员工</button></form>
-    <section v-if="currentEmployee" class="team-card employee-config"><h2>{{currentEmployee.name}} · 员工配置</h2><form @submit.prevent="saveEmployee"><label>本团队分工<input v-model="editRole"/></label><PromptPackageField :key="currentEmployee.id" id="employee-work-prompt" label="实际员工工作 Prompt" v-model="editPrompt" v-model:files="employeePromptFiles" v-model:uploading="uploadingEmployee" :disabled="store.busy" :rows="7"/>
+    <form class="team-card team-inline-form" @submit.prevent="addMember">
+     <h3>创建员工</h3>
+     <label>员工姓名<input v-model="memberName" required/></label>
+     <label>团队角色<select v-model="memberRoleId"><option value="">暂未关联</option><option v-for="item in teamRoles" :key="item.id" :value="item.id">{{item.name}}</option></select></label>
+     <label>直属上级<select v-model="parentId"><option value="user">我</option><option v-for="e in members" :key="e.id" :value="e.id">{{e.name}}</option></select></label>
+     <label>性格与工作态度<textarea v-model="personality" rows="2"/></label>
+     <button :disabled="store.busy||!memberName.trim()">创建员工</button>
+    </form>
+    <section v-if="currentEmployee" class="team-card employee-config"><h2>{{currentEmployee.name}} · 员工配置</h2><form @submit.prevent="saveEmployee"><label>个人分工备注<input v-model="editRole"/></label><label>性格与工作态度<textarea v-model="editPersonality" rows="3"/></label><PromptPackageField :key="currentEmployee.id" id="employee-work-prompt" label="实际员工工作 Prompt" v-model="editPrompt" v-model:files="employeePromptFiles" v-model:uploading="uploadingEmployee" :disabled="store.busy" :rows="7"/>
      <button :disabled="store.busy||uploadingEmployee">保存员工配置</button></form><h3>知识挂载</h3><p class="team-muted">本页只修改这位员工的挂载，同队其他员工不会继承。</p><div v-for="k in currentEmployee.knowledgeIds" :key="k" class="team-row"><span>{{store.data.knowledge[k]?.title}} · v{{store.data.knowledge[k]?.revision}}</span><button class="secondary small" @click="mount(currentEmployee.id,k,true)">卸载</button></div><div class="team-row"><select v-model="mountSource[currentEmployee.id]"><option value="">选择知识源</option><option v-for="k in Object.values(store.data.knowledge).filter(k=>!currentEmployee?.knowledgeIds.includes(k.id))" :key="k.id" :value="k.id">{{k.title}}</option></select><button @click="mount(currentEmployee.id,mountSource[currentEmployee.id])">挂载到此员工</button></div></section>
    </template>
    <ProjectLibrary v-else-if="tab==='projects'" :team-id="team.id"/>

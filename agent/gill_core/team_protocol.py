@@ -9,7 +9,7 @@ ACTION_NAMES = {
     "notify_team": "message.send", "request_peer_review": "message.send", "assign_task": "task.assign",
     "update_task": "task.update", "ask_superior": "issue.escalate",
     "respond_decision": "decision.respond", "record_artifact": "artifact.save",
-    "record_review": "check.record", "revise_template": "template.revise",
+    "record_review": "check.record",
     "complete_task": "run.complete", "request_integration": "integration.request",
     "draft_template": "draft.generated",
     "archive_document": "document.save",
@@ -67,14 +67,11 @@ def tool_schemas(template: bool = False) -> list[dict]:
         ("record_review", "对本队确定产物版本记录评估，返回reviewId及其引用的artifactId和subjectRevision。评审不是产物。模型意见与实际工具验证分开保存。",
          {"artifactId": string, "subjectRevision": {"type": "integer"}, "result": string,
           "method": string, "limitations": string}, ["artifactId", "subjectRevision", "result", "limitations"]),
-        ("revise_template", "自迭代自己采用的模板Prompt/Skills并保留来源，不自动复制知识正文，不直接修改实际员工。",
-         {"id": string, "expectedRevision": {"type": "integer"}, "name": string,
-          "prompt": string, "skills": skills, "reason": string}, ["id", "expectedRevision", "name", "prompt", "skills", "reason"]),
         ("complete_task", "结束自己的当前任务。可带artifact先保存最终报告，可通过assign正式派工或通过review邀请复核。平台会发布交接，不必重复知会。未决、交接失败或缺证据时不会完成。",
          {}, []),
         ("search_knowledge", "检索本轮显式挂载的共享源，返回来源和实际版本；没有挂载不能读取。",
          {"query": string}, ["query"]),
-        ("read_template_file", "按作用域和清单中的完整相对路径读取已采用的参考文件。省略 scope 时读取模板，二进制文件在对应任务沙箱目录使用。",
+        ("read_template_file", "按作用域和清单中的完整相对路径读取参考文件。新任务请明确使用 team、role 或 employee，历史目录沿用 template。",
          {"path": string, "scope": {"type": "string", "enum": ["team", "role", "employee", "template"]}}, ["path"]),
         ("shell", "在本任务隔离沙箱的/workspace执行命令；结果以真实回执为准。",
          {"command": string, "timeout": {"type": "integer"}}, ["command"]),
@@ -147,6 +144,13 @@ def parse_calls(calls: list[dict]) -> list[dict]:
     return result
 
 
+def _inline_skills(record: dict[str, Any]) -> str:
+    return "\n".join(
+        f"Skill {skill.get('name', '')}: {skill.get('content', skill.get('description', ''))}"
+        for skill in record.get("skills", []) if isinstance(skill, dict)
+    )
+
+
 def build_system(context: dict[str, Any]) -> str:
     """Build the actual system request from fixed employee and team snapshots.
 
@@ -163,11 +167,12 @@ def build_system(context: dict[str, Any]) -> str:
         "等待决定时不要调用complete_task，决定前不派发相关工作。"
         "员工指令中的常规交接只在团队流程允许时执行。仅在报告中写待用户决定不能代替上报。"
         "团队角色和个人技能用于落实团队流程。发现难以调和的指令冲突时，按现有上报路径提交依据。"
+        "成员性格和工作态度用于表达沟通与做事方式，团队流程和角色负责规定分工与交付。"
         "根据要交付的结果选择工具。仅知会、进展、收到或结束确认用notify_team，@不会派工。"
         "例如‘@小李请核查 v2 并给意见’用request_peer_review；‘@小李请修正 v1 并交付’用assign_task。"
         "需要同事接手的工作，只有核查或派工工具的成功回执表示接收者会执行；通知回执没有执行任务。"
         "等待决定时，依赖工作停止，独立工作照常进行。"
-        "知识仅按挂载读取，不能修改源、创建员工或改写团队流程。可自迭代自己的模板，勿复制知识正文。"
+        "知识仅按挂载读取，不能修改源、创建员工或改写组织配置。"
         "使用record_artifact保存实际成果，指出未验证和剩余问题。最终报告已就绪且无需后续操作时，"
         "优先直接用complete_task的artifact参数提交报告并提出完成，避免只为收尾再请求模型。"
         "当前工作办完、只差交接时，用complete_task一次提交并结束自己的任务。"
@@ -185,10 +190,6 @@ def build_system(context: dict[str, Any]) -> str:
         )
     if task.get("purpose") == "review":
         protocol += "本次是同事邀请核查。提供核查意见并用notify_team在原群聊回复，引用原消息及实际版本；仅在需要正式交接时使用派工入口。"
-    skills = "\n".join(
-        f"Skill {s.get('name', '')}: {s.get('content', s.get('description', ''))}"
-        for s in employee.get("skills", []) if isinstance(s, dict)
-    )
     identity = {"employeeId": employee.get("id"), "taskId": task.get("id"),
                 "templateId": employee.get("templateId"), "templateRevision": employee.get("templateRevision"),
                 "peers": context.get("peers", [])}
@@ -219,6 +220,9 @@ def build_system(context: dict[str, Any]) -> str:
                           "无实际工具成功回执就不能声称已跑脚本、命令或外部系统；模型心算、文本核对与外部验证必须区分。")
     role = context.get("teamRole") or {}
     role_instructions = f"[团队角色 · {role.get('name', '')} v{role.get('revision', '')}]\n{role.get('prompt', '')}" if role else ""
+    personality = employee.get("personality", "")
     return "\n\n".join([protocol, "[团队有效指令]\n" + team.get("prompt", ""), role_instructions,
-                          "[员工有效指令]\n" + employee.get("prompt", ""), skills,
+                          _inline_skills(role),
+                          "[成员性格与工作态度]\n" + personality if personality else "",
+                          "[员工有效指令]\n" + employee.get("prompt", ""), _inline_skills(employee),
                           "[执行身份与同事]\n" + json.dumps(identity, ensure_ascii=False), resource_protocol, execution_protocol])

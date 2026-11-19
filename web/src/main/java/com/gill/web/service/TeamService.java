@@ -95,9 +95,7 @@ public class TeamService {
     public ObjectNode command(long uid,String key,String kind,ObjectNode payload) {
         if(Set.of("integration.result","version.record").contains(kind))
             throw new IllegalArgumentException("SCOPE_FORBIDDEN: 版本与集成结果由实际执行器提交");
-        if(kind.equals("template.save")&&payload.has("files"))verifyTemplateFiles(uid,payload.path("files"));
-        if(kind.equals("template.generate")&&payload.path("draft").has("files"))verifyTemplateFiles(uid,payload.path("draft").path("files"));
-        if(Set.of("team.create","team.update","employee.update","role.save").contains(kind)&&payload.has("promptFiles"))
+        if(Set.of("team.create","team.update","employee.create","employee.update","role.save","orgTemplate.save").contains(kind)&&payload.has("promptFiles"))
             verifyTemplateFiles(uid,payload.path("promptFiles"));
         return execute(uid,new TeamActor("user",Long.toString(uid),null),key,kind,payload);
     }

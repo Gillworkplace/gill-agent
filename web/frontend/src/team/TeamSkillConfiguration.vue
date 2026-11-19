@@ -26,7 +26,7 @@ const roles=computed(()=>Object.values(store.data.teamRoles).filter(role=>role.t
 const role=computed(()=>roles.value.find(item=>item.id===roleId.value))
 const member=computed(()=>props.members.find(item=>item.id===memberId.value))
 const memberRole=computed(()=>roles.value.find(item=>item.id===member.value?.roleId))
-const memberTemplate=computed(()=>store.data.templates[member.value?.templateId||''])
+const roleTemplates=computed(()=>Object.values(store.data.organizationTemplates).filter(item=>item.type==='role'))
 const adopters=computed(()=>props.members.filter(item=>item.roleId===role.value?.id && role.value))
 const tasks=computed(()=>inFlightTasks(Object.values(store.data.tasks),props.team.id,memberId.value))
 
@@ -38,7 +38,7 @@ const previewSignal=computed(()=>{
  if(!member.value||view.value==='active'&&!taskId.value)return ''
  if(view.value==='active')return [props.team.id,memberId.value,taskId.value].join('/')
  return [props.team.id,memberId.value,props.team.revision,member.value.revision,
-  memberRole.value?.revision,memberTemplate.value?.revision,memberTemplate.value?.authorizedTeamIds?.join(',')].join('/')
+  memberRole.value?.revision].join('/')
 })
 watch(previewSignal,async (signal,_previous,cleanup)=>{
  let current=true
@@ -83,7 +83,7 @@ function open(mode:EditorMode,event:MouseEvent,create=false){
    mode==='member'?'保存仅影响该成员的新任务。':
    record?`保存影响 ${adoptionCount(record.id||'')} 位采用成员的新任务。`:'成员关联后，新任务才会采用。',
   initial:{name:record?.name||'',roleId:mode==='member'?member.value?.roleId||'':'',
-   prompt:record?.prompt||'',promptFiles:record?.promptFiles||[]},
+   personality:mode==='member'?member.value?.personality||'':'',prompt:record?.prompt||'',promptFiles:record?.promptFiles||[]},
  }
 }
 
@@ -95,8 +95,9 @@ async function save(form:SkillForm){
  const result=draft.mode==='flow'
   ?await store.command('team.update',{...identity,...fields,name:draft.record?.name})
   :draft.mode==='role'
-   ?await store.command('role.save',{...identity,...fields,teamId:draft.teamId,name:form.name})
-   :await store.command('employee.update',{...identity,...fields,roleId:form.roleId})
+   ?await store.command('role.save',{...identity,...fields,teamId:draft.teamId,name:form.name,
+    ...(form.orgTemplateId?{orgTemplateId:form.orgTemplateId,templateRevision:form.templateRevision}:{})})
+   :await store.command('employee.update',{...identity,...fields,roleId:form.roleId,personality:form.personality})
  if(draft.mode==='role')roleId.value=result.id
  notice.value=`已保存 ${draft.mode==='flow'?'团队流程':form.name} · v${result.revision}`
 }
@@ -162,7 +163,7 @@ async function close(){
    </section>
 
    <section v-else class="skill-panel" aria-label="成员配置">
-    <header class="skill-panel-head"><div><h3>成员</h3><p>关联角色，并配置成员自己的 Skill。</p></div></header>
+    <header class="skill-panel-head"><div><h3>成员</h3><p>设置成员的性格、工作态度和个人 Skill，并关联角色。</p></div></header>
     <div v-if="member" class="skill-directory">
      <ul class="skill-directory-list" aria-label="成员列表">
       <li v-for="item in members" :key="item.id">
@@ -187,7 +188,7 @@ async function close(){
       </div>
      </div>
     </div>
-    <p v-else class="skill-empty">从「团队成员」创建员工后，即可配置个人 Skill。</p>
+    <p v-else class="skill-empty">在「团队成员」创建员工后，即可配置个人设定。</p>
    </section>
 
    <section class="skill-panel skill-preview" aria-label="生效预览">
@@ -232,7 +233,8 @@ async function close(){
    </section>
   </div>
   <TeamSkillEditor v-if="editor" :title="editor.title" :context="editor.context" :impact="editor.impact"
-                   :mode="editor.mode" :initial="editor.initial" :roles="roles" :save="save" @close="close"/>
+                   :mode="editor.mode" :initial="editor.initial" :roles="roles"
+                   :role-templates="editor.mode==='role'&&!editor.record?roleTemplates:undefined" :save="save" @close="close"/>
  </section>
 </template>
 

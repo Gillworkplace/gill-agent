@@ -7,6 +7,7 @@ import static com.gill.web.service.team.TeamData.*;
 /** Pure command entry point; application service owns atomic commit and identity. */
 public final class TeamEngine {
     public ObjectNode skillPreview(ObjectNode state,String teamId,String employeeId,String taskId) {
+        init(state);
         return TaskAdoption.preview(state,teamId,employeeId,taskId);
     }
 

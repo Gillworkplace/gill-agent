@@ -276,12 +276,73 @@ try{
   }
   check(!exceptions.length,'Chrome raised an exception during Skill imports')
   console.log(JSON.stringify({case:'multiple-skills',passed:true,skills:names.length,files:saved.files.length}))
+ }else if(process.argv[2]==='--organization-templates'){
+  const a=await account()
+  await cdp('Page.navigate',{url:origin+'/#/templates'})
+  await ui('!!document.querySelector("#login input[type=password]")')
+  await set('#login input',a.username);await set('#login input[type=password]',a.password);await click('#login .btn')
+  await ui('document.querySelector(".organization-template-library h1")?.textContent==="组织模板"')
+  await click('.organization-template-library nav button:nth-child(2)')
+  await click('.organization-template-library .catalog-primary')
+  await ui('document.querySelector(".organization-template-dialog")?.open')
+  await set('#org-template-name','复核角色模板')
+  await set('#org-template-prompt','ROLE_STANDARD 核对依据并归档结论')
+  await submit('.organization-template-dialog form')
+  await ui('!document.querySelector(".organization-template-dialog").open')
+  const roleTemplate=Object.values((await a.read()).organizationTemplates)[0]
+  await click('.organization-template-library nav button:first-child')
+  await click('.organization-template-library .catalog-primary')
+  await ui('document.querySelector(".organization-template-dialog")?.open')
+  await set('#org-template-name','协作团队模板')
+  await set('#org-template-prompt','TEAM_FLOW 先检查，再交付')
+  await click('.organization-template-dialog fieldset input[type=checkbox]')
+  await submit('.organization-template-dialog form')
+  await ui('!document.querySelector(".organization-template-dialog").open')
+  const teamTemplate=Object.values((await a.read()).organizationTemplates).find(item=>item.type==='team')
+  check(teamTemplate.roles.length===1,'team template did not keep a role definition')
+  await shot('organization-templates','20261119')
+  await switchTo('#/teams')
+  await ui('!!document.querySelector(".team-entry-primary")')
+  await click('.team-entry-primary')
+  await ui('document.querySelector(".team-create-dialog")?.open')
+  await set('#create-team-template',teamTemplate.id)
+  await set('#create-team-name','新建组织验收')
+  await submit('.team-create-dialog form')
+  await ui('!!document.querySelector(".team-inline-form")')
+  const created=await a.read()
+  const team=Object.values(created.teams)[0]
+  const role=Object.values(created.teamRoles)[0]
+  check(team.prompt.includes('TEAM_FLOW')&&role.prompt.includes('ROLE_STANDARD')&&!Object.keys(created.employees).length,
+    'organization template did not copy only the workflow and roles')
+  await set('.team-inline-form input','独立成员')
+  await set('.team-inline-form select:first-of-type',role.id)
+  await set('.team-inline-form textarea','PERSONALITY 谨慎，先听取意见')
+  await submit('.team-inline-form')
+  await ui('!!document.querySelector(".organization-node")')
+  const member=Object.values((await a.read()).employees)[0]
+  check(!member.templateId&&member.roleId===role.id&&member.personality.includes('PERSONALITY'),'member was not independently configured')
+  const task=(await a.ok('task.assign',{employeeId:member.id,goal:'快照验收'})).id
+  const snap=(await a.read()).tasks[task]
+  check(snap.employeeSnapshot.personality===member.personality&&snap.roleSnapshot.id===role.id,'task lost independent sources')
+  await click('.team-tabs button:nth-child(3)')
+  await click('[data-skill-tab=members]')
+  await ui('document.querySelector(".skill-selection")?.textContent.includes("PERSONALITY")')
+  await click('.skill-selection header button')
+  await ui('document.querySelector(".team-skill-dialog")?.open')
+  await view(390,844,true)
+  await ui('document.documentElement.scrollWidth===390&&document.querySelector(".team-skill-dialog").scrollWidth<=document.querySelector(".team-skill-dialog").clientWidth')
+  await shot('organization-member-mobile','20261119')
+  await click('.team-skill-dialog [aria-label="关闭编辑"]')
+  await a.ok('orgTemplate.save',{id:roleTemplate.id,type:'role',name:roleTemplate.name,expectedRevision:roleTemplate.revision,prompt:'新版职责'})
+  const updated=await a.read()
+  check(updated.teamRoles[role.id].prompt.includes('ROLE_STANDARD'),'editing role template changed an existing role')
+  check(!exceptions.length,'Chrome raised an exception during organization template flow')
+  console.log(JSON.stringify({case:'organization-templates',passed:true,teamCopied:true,roleCopied:true,independentMember:true,mobile:true}))
  }else if(process.argv[2]==='--team-skill-configuration'){
   const a=await account()
   const team=(await a.ok('team.create',{name:'团队配置验收',prompt:'团队流程验收'})).id
-  const template=(await a.ok('template.save',{name:'岗位模板',prompt:'既有岗位指令'})).id
-  const first=(await a.ok('employee.create',{teamId:team,templateId:template,name:'成员 A'})).id
-  const second=(await a.ok('employee.create',{teamId:team,templateId:template,name:'成员 B'})).id
+  const first=(await a.ok('employee.create',{teamId:team,prompt:'既有个人指令',name:'成员 A'})).id
+  const second=(await a.ok('employee.create',{teamId:team,prompt:'既有个人指令',name:'成员 B'})).id
   await cdp('Page.navigate',{url:origin+'/#/teams/'+team})
   await ui('!!document.querySelector("#login input[type=password]")')
   await set('#login input',a.username);await set('#login input[type=password]',a.password);await click('#login .btn')
@@ -360,7 +421,7 @@ try{
   await submit('.team-skill-dialog form')
   await ui('!document.querySelector(".team-skill-dialog")')
   const saved=await a.read()
-  check(saved.employees[second].prompt==='成员 B 的独立说明'&&saved.employees[first].prompt==='既有岗位指令','personal edit leaked between members')
+  check(saved.employees[second].prompt==='成员 B 的独立说明'&&saved.employees[first].prompt==='既有个人指令','personal edit leaked between members')
   check(!exceptions.length,'Chrome raised an exception during the three-layer configuration')
   console.log(JSON.stringify({case:'team-skill-configuration',passed:true,roleSkills:entries.length,adopters:2,snapshot:true,mobile:true}))
  }else if(process.argv[2]==='--prompt-folders'){
@@ -416,8 +477,7 @@ try{
    return current.revision>team.revision&&current
   },'updated folder was not saved')
   check(saved.prompt==='保留手写的团队指令'&&saved.promptFiles.length===1,'text plus directory and removal were lost')
-  const template=(await a.ok('template.save',{name:'工作模板',prompt:'遵循指令'})).id
-  const employee=(await a.ok('employee.create',{teamId:team.id,templateId:template,name:'目录验收员工'})).id
+  const employee=(await a.ok('employee.create',{teamId:team.id,prompt:'遵循指令',name:'目录验收员工'})).id
   await click('.team-tabs button:first-child')
   await ui('!!document.querySelector(".organization-node .text-button")')
   await click('.organization-node .text-button')

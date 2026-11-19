@@ -1,7 +1,17 @@
 import unittest
 from gill_core.team_protocol import parse_calls, build_system, tool_schemas
 
+
 class ProtocolTests(unittest.TestCase):
+    def test_personality_is_separate_from_organizational_definitions(self) -> None:
+        context = {"team": {"prompt": "流程规则"}, "teamRole": {"name": "复核", "prompt": "岗位标准"},
+                   "employee": {"name": "成员", "personality": "审慎而坦率", "prompt": "个人工作习惯"}}
+        system = build_system(context)
+        self.assertIn("[成员性格与工作态度]\n审慎而坦率", system)
+        for value in ("岗位标准", "流程规则", "个人工作习惯"):
+            self.assertIn(value, system)
+        self.assertNotIn("revise_template", {tool["function"]["name"] for tool in tool_schemas()})
+
     def test_complete_calls_preserve_ids_and_do_not_execute_text(self):
         calls=[{"id":"call-a","function":{"name":"team_message","arguments":'{"text":"ok","mentions":[]}'}}]
         parsed=parse_calls(calls)

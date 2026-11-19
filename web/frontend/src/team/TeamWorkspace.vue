@@ -7,7 +7,7 @@ import TeamChat from './TeamChat.vue'
 import TeamEmptyState from './TeamEmptyState.vue'
 import CreateTeamDialog from './CreateTeamDialog.vue'
 import TeamDirectory from './TeamDirectory.vue'
-import TemplateLibrary from './TemplateLibrary.vue'
+import OrganizationTemplateLibrary from './OrganizationTemplateLibrary.vue'
 import KnowledgeLibrary from './KnowledgeLibrary.vue'
 import './team.css'
 import './templateCatalog.css'
@@ -15,7 +15,7 @@ import './workspaceEntry.css'
 
 const store=useTeams(), auth=useAuth()
 const route=ref(location.hash.slice(1)||'/workbench'), active=ref(''), panel=ref(false),creatingTeam=ref(false)
-const nav=[['/workbench','◉','工作台'],['/templates','◇','数字员工模板'],['/teams','♧','团队'],['/knowledge','▤','知识库']]
+const nav=[['/workbench','◉','工作台'],['/templates','◇','组织模板'],['/teams','♧','团队'],['/knowledge','▤','知识库']]
 const teams=computed(()=>Object.values(store.data.teams))
 const selected=computed(()=>store.data.teams[active.value]||teams.value[0])
 const section=computed(()=>route.value.split('/')[1]||'workbench')
@@ -54,7 +54,7 @@ onUnmounted(()=>{clearInterval(timer);window.removeEventListener('hashchange',sy
   </aside>
   <main class="team-main">
    <header v-if="section==='templates'" class="team-topbar">
-    <span class="catalog-crumb">我的工作空间 <span aria-hidden="true">/</span> <b>数字员工模板</b></span>
+    <span class="catalog-crumb">我的工作空间 <span aria-hidden="true">/</span> <b>组织模板</b></span>
     <span class="catalog-live">真实工作空间 <button class="text-button" @click="refresh">刷新</button></span>
    </header>
    <header v-else class="team-topbar"><span>{{nav.find(n=>n[0].slice(1)===section)?.[2]||'团队'}}</span><span class="team-muted">真实工作空间 <button class="text-button" @click="refresh">刷新</button></span></header>
@@ -85,7 +85,7 @@ onUnmounted(()=>{clearInterval(timer);window.removeEventListener('hashchange',sy
      </aside>
     </div>
    </template>
-   <TemplateLibrary v-else-if="section==='templates'"/>
+   <OrganizationTemplateLibrary v-else-if="section==='templates'"/>
    <KnowledgeLibrary v-else-if="section==='knowledge'"/>
    <TeamDirectory v-else :selected-id="route.split('/')[2]||''" @enter-chat="select" @navigate="navigate" @create-team="creatingTeam=true"/>
   </main>

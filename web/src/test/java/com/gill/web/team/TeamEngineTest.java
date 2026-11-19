@@ -23,8 +23,26 @@ class TeamEngineTest {
         return call("team.create", body("name",name)).path("id").asText();
     }
     private String employee(String team) {
-        String template=call("template.save",body("name","分析员","prompt","根据事实工作")).path("id").asText();
-        return call("employee.create",body("teamId",team,"templateId",template,"name","同名员工")).path("id").asText();
+        return call("employee.create",body("teamId",team,"prompt","根据事实工作","name","同名员工")).path("id").asText();
+    }
+
+    @Test void organizationTemplatesCopyRolesAndWorkflowButEmployeeProfilesStayIndependent() {
+        String roleTemplate=call("orgTemplate.save",body("type","role","name","核查","prompt","检查依据")).path("id").asText();
+        ObjectNode teamDraft=body("type","team","name","协作方法","prompt","交接前说明剩余问题");
+        teamDraft.putArray("roleTemplateIds").add(roleTemplate);
+        String teamTemplate=call("orgTemplate.save",teamDraft).path("id").asText();
+        String team=call("team.create",body("name","新团队","orgTemplateId",teamTemplate,"templateRevision","1")).path("id").asText();
+        assertEquals("交接前说明剩余问题",state.path("teams").path(team).path("prompt").asText());
+        assertTrue(state.path("employees").isEmpty());
+        var role=state.path("teamRoles").elements().next();
+        assertEquals("检查依据",role.path("prompt").asText());
+        String employee=call("employee.create",body("teamId",team,"roleId",role.path("id").asText(),
+            "name","独立员工","personality","谨慎且直接")).path("id").asText();
+        String task=call("task.assign",body("employeeId",employee,"goal","开始核查")).path("id").asText();
+        assertEquals("谨慎且直接",state.path("tasks").path(task).path("employeeSnapshot").path("personality").asText());
+        assertFalse(state.path("employees").path(employee).has("templateId"));
+        call("orgTemplate.save",body("id",roleTemplate,"type","role","name","核查","prompt","新版职责","expectedRevision","1"));
+        assertEquals("检查依据",role.path("prompt").asText());
     }
 
     @Test void directedMentionCreatesDurableRecipientWithoutWakingEveryone() {
@@ -81,33 +99,36 @@ class TeamEngineTest {
         assertEquals(0,state.path("employees").path(b).path("knowledgeIds").size());
     }
 
-    @Test void templateRevisionDoesNotMutateExistingEmployeeSnapshot() {
-        String t=setup("研究"), a=employee(t);
-        String tpl=state.path("employees").path(a).path("templateId").asText();
-        call("template.save",body("id",tpl,"name","新版分析员","prompt","增加出处","expectedRevision","1"));
-        assertEquals("根据事实工作",state.path("employees").path(a).path("prompt").asText());
-        assertEquals(2,state.path("templates").path(tpl).path("revision").asInt());
+    @Test void legacyEmployeeRetainsAdoptedContentWithoutLegacyTemplate() {
+        String team=setup("历史团队"), member=employee(team);
+        ObjectNode legacy=(ObjectNode)state.path("employees").path(member);
+        legacy.put("templateId","retired-template").put("templateRevision",2).put("basePrompt","旧模板");
+        legacy.putArray("files").add(body("path","SKILL.md","key","existing","purpose","skill").put("size",10));
+        ObjectNode frozen=legacy.deepCopy();
+        String task=call("task.assign",body("employeeId",member,"goal","保留个人配置")).path("id").asText();
+        var current=state.path("tasks").path(task).path("employeeSnapshot");
+        assertEquals("根据事实工作",current.path("prompt").asText());
+        assertEquals("existing",current.path("files").get(0).path("key").asText());
+        assertFalse(current.has("templateId"));
+        assertEquals("retired-template",frozen.path("templateId").asText());
     }
 
-    @Test void folderFilesHaveIndependentPathsAndFollowTheAdoptedTemplateRevision() {
-        String t=setup("文件夹团队");
-        ObjectNode first=body("name","多文件模板");
-        first.putArray("files")
-            .add(body("path","AGENTS.md","purpose","prompt","key","first").put("size",12))
-            .add(body("path","skills/review/SKILL.md","purpose","skill","key","second").put("size",20));
-        String template=call("template.save",first).path("id").asText();
-        String employee=call("employee.create",body("teamId",t,"templateId",template,"name","文件员工")).path("id").asText();
-        String oldTask=call("task.assign",body("employeeId",employee,"goal","固定旧文件")).path("id").asText();
-        ObjectNode second=first.deepCopy().put("id",template).put("expectedRevision",1);
-        ((ObjectNode)second.path("files").get(0)).put("key","updated");
-        assertThrows(IllegalArgumentException.class,()->engine.apply(state,new TeamActor("employee",employee,t),"template.revise",second));
-        call("template.save",second);
-        String nextTask=call("task.assign",body("employeeId",employee,"goal","采用新文件")).path("id").asText();
-        var old=state.path("tasks").path(oldTask).path("employeeSnapshot");
-        var next=state.path("tasks").path(nextTask).path("employeeSnapshot");
-        assertEquals("first",old.path("files").get(0).path("key").asText());
-        assertEquals("updated",next.path("files").get(0).path("key").asText());
-        assertEquals("skills/review/SKILL.md",next.path("files").get(1).path("path").asText());
+    @Test void personalFilesAndPersonalityUseTaskVersions() {
+        String team=setup("成员文件");
+        ObjectNode first=body("teamId",team,"name","文件员工","personality","耐心");
+        first.putArray("promptFiles").add(body("path","SKILL.md","purpose","skill","key","first").put("size",12));
+        String employee=call("employee.create",first).path("id").asText();
+        String old=call("task.assign",body("employeeId",employee,"goal","旧设定")).path("id").asText();
+        ObjectNode second=first.deepCopy().put("id",employee).put("expectedRevision",1).put("personality","直接");
+        ((ObjectNode)second.path("promptFiles").get(0)).put("key","updated");
+        call("employee.update",second);
+        String next=call("task.assign",body("employeeId",employee,"goal","采用新文件")).path("id").asText();
+        var oldSnapshot=state.path("tasks").path(old).path("employeeSnapshot");
+        var newSnapshot=state.path("tasks").path(next).path("employeeSnapshot");
+        assertEquals("first",oldSnapshot.path("promptFiles").get(0).path("key").asText());
+        assertEquals("耐心",oldSnapshot.path("personality").asText());
+        assertEquals("updated",newSnapshot.path("promptFiles").get(0).path("key").asText());
+        assertEquals("直接",newSnapshot.path("personality").asText());
     }
 
     @Test void teamRoleIsSharedAtTaskCreationAndFrozenAcrossEdits() {
@@ -132,33 +153,38 @@ class TeamEngineTest {
         assertThrows(IllegalArgumentException.class,()->engine.apply(state,new TeamActor("employee",first,team),
             "role.save",body("teamId",team,"name","越权")));
     }
-    @Test void retryingTemplateGenerationClearsThePreviousFailure() {
-        String draft=call("template.generate",body("text","创建模板")).path("id").asText();
-        ObjectNode saved=(ObjectNode)state.path("drafts").path(draft);
-        saved.put("busy",false).put("error","previous provider rejection");
-        call("template.generate",body("id",draft,"text","资源已恢复，请继续"));
-        assertFalse(state.path("drafts").path(draft).has("error"));
-        assertTrue(state.path("drafts").path(draft).path("busy").asBoolean());
-        assertEquals(2,state.path("drafts").path(draft).path("messages").size());
+    @Test void retiredTemplateCommandsRejectEmployeeTemplateCreationAndAdoption() {
+        String team=setup("研究");
+        assertThrows(IllegalArgumentException.class,()->call("template.generate",body("text","创建模板")));
+        assertThrows(IllegalArgumentException.class,()->call("template.save",body("name","旧用途","prompt","模板")));
+        assertThrows(IllegalArgumentException.class,()->call("employee.create",
+            body("teamId",team,"name","成员","templateId","legacy")));
     }
 
-    @Test void mountedEmployeeCanImproveTemplateWithoutCopyingKnowledge() {
-        String t=setup("研究"),a=employee(t);
-        String k=call("knowledge.save",body("title","资料","content","只读资料内容")).path("id").asText();
-        call("knowledge.mount",body("employeeId",a,"sourceId",k));
-        String tpl=state.path("employees").path(a).path("templateId").asText();
-        ObjectNode result=engine.apply(state,new TeamActor("employee",a,t),"template.revise",
-            body("id",tpl,"name","分析员","prompt","核对事实并说明未验证项","expectedRevision","1"));
-        assertEquals(2,result.path("revision").asInt());
-        assertEquals("只读资料内容",state.path("knowledge").path(k).path("content").asText());
+    @Test void mountedEmployeeCannotEditOrganizationTemplates() {
+        String team=setup("研究"), member=employee(team), content="只读资料原文";
+        String knowledge=call("knowledge.save",body("title","资料","content",content)).path("id").asText();
+        call("knowledge.mount",body("employeeId",member,"sourceId",knowledge));
+        TeamActor actor=new TeamActor("employee",member,team);
+        assertThrows(IllegalArgumentException.class,()->engine.apply(state,actor,"orgTemplate.save",
+            body("type","role","name","分析员","prompt",content)));
+        assertTrue(state.path("organizationTemplates").isEmpty());
+        assertEquals(content,state.path("knowledge").path(knowledge).path("content").asText());
     }
-    @Test void templateCannotCopyMultilineMountedKnowledge() {
-        String t=setup("研究"),a=employee(t),content="原始知识第一行\n原始知识第二行";
-        String k=call("knowledge.save",body("title","资料","content",content)).path("id").asText();
-        call("knowledge.mount",body("employeeId",a,"sourceId",k));
-        String tpl=state.path("employees").path(a).path("templateId").asText();
-        assertThrows(IllegalArgumentException.class,()->engine.apply(state,new TeamActor("employee",a,t),"template.revise",
-            body("id",tpl,"name","分析员","prompt",content,"expectedRevision","1")));
+
+    @Test void historicalTemplateCanBeExplicitlyCopiedToRoleOnly() {
+        var archive=state.putObject("templates");
+        var old=archive.putObject("old").put("id","old").put("name","历史职责").put("prompt","职责内容");
+        old.putArray("skills").add(body("name","核查","content","核对证据"));
+        old.putArray("files").add(body("path","SKILL.md","purpose","skill","key","file").put("size",12));
+        String role=call("orgTemplate.save",body("type","role","name","核查职责","sourceType","legacy","sourceId","old")).path("id").asText();
+        var result=state.path("organizationTemplates").path(role);
+        assertEquals("职责内容",result.path("prompt").asText());
+        assertEquals("file",result.path("promptFiles").get(0).path("key").asText());
+        assertEquals("核对证据",result.path("skills").get(0).path("content").asText());
+        assertEquals("历史职责",state.path("templates").path("old").path("name").asText());
+        assertThrows(IllegalArgumentException.class,()->call("orgTemplate.save",
+            body("type","team","name","错误流程","sourceType","legacy","sourceId","old")));
     }
 
     @Test void unresolvedDecisionCannotBeBypassedByOrdinaryTaskUpdate() {
@@ -238,17 +264,16 @@ class TeamEngineTest {
   assertEquals(base,state.path("projects").path(project).path("baselineCommit").asText());
  }
 
- @Test void agentDerivedTemplateRequiresExplicitCrossTeamSharing() {
+ @Test void creatingRolesFromARevisionMakesIndependentCopies() {
   String one=setup("甲"),two=setup("乙");
-  String tpl=call("template.save",body("name","通用分析","prompt","初始方法")).path("id").asText();
-  String a=call("employee.create",body("teamId",one,"templateId",tpl,"name","甲员工")).path("id").asText();
-  String b=call("employee.create",body("teamId",two,"templateId",tpl,"name","乙员工")).path("id").asText();
-  engine.apply(state,new TeamActor("employee",a,one),"template.revise",body("id",tpl,"expectedRevision","1","name","通用分析","prompt","团队甲迭代的方法"));
-  String task=call("task.assign",body("employeeId",b,"goal","继续分析")).path("id").asText();
-  assertEquals("初始方法",state.path("tasks").path(task).path("employeeSnapshot").path("prompt").asText());
-  ObjectNode sharing=body("id",tpl).put("expectedRevision",2);sharing.putArray("teamIds").add(two);call("template.share",sharing);
-  String after=call("task.assign",body("employeeId",b,"goal","采用明确分享后的方法")).path("id").asText();
-  assertEquals("团队甲迭代的方法",state.path("tasks").path(after).path("employeeSnapshot").path("prompt").asText());
+  String tpl=call("orgTemplate.save",body("type","role","name","分析","prompt","初始方法")).path("id").asText();
+  String a=call("role.save",body("teamId",one,"orgTemplateId",tpl,"templateRevision","1","name","分析")).path("id").asText();
+  call("orgTemplate.save",body("type","role","id",tpl,"expectedRevision","1","name","分析","prompt","新方法"));
+  assertThrows(IllegalArgumentException.class,()->call("role.save",
+      body("teamId",two,"orgTemplateId",tpl,"templateRevision","1","name","分析")));
+  String b=call("role.save",body("teamId",two,"orgTemplateId",tpl,"templateRevision","2","name","分析")).path("id").asText();
+  assertEquals("初始方法",state.path("teamRoles").path(a).path("prompt").asText());
+  assertEquals("新方法",state.path("teamRoles").path(b).path("prompt").asText());
  }
 
  @Test void reassignmentCreatesNewSnapshotAndPreservesOriginalTask() {

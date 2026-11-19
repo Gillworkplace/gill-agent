@@ -13,13 +13,14 @@ final class DefinitionPolicy {
             case "team.relations" -> relations(s,a,p);
             case "team.create","team.update" -> saveTeam(s,a,p);
             case "role.save" -> saveRole(s,a,p);
-            case "template.share" -> shareTemplate(s,a,p);
-            case "template.save","template.revise" -> saveTemplate(s,a,p);
+            case "orgTemplate.save" -> OrganizationTemplates.saveTemplate(s,a,p);
+            case "template.save","template.revise","template.share","template.generate" ->
+                throw new IllegalArgumentException("INVALID_STATE: 历史员工模板仅供查看和转换");
             case "employee.create","employee.update" -> saveEmployee(s,a,p);
             case "knowledge.save" -> saveKnowledge(s,a,p);
             case "knowledge.mount","knowledge.unmount" -> mount(s,a,p,kind.endsWith(".mount"));
             case "project.save","document.save","workspace.configure" -> project(s,a,p,kind);
-            case "template.generate","draft.generated" -> draft(s,a,p,kind);
+            case "draft.generated" -> finishLegacyDraft(s,a,p);
             default -> throw new IllegalArgumentException("UNSUPPORTED_ACTION: "+kind);
         };
     }
@@ -42,6 +43,11 @@ final class DefinitionPolicy {
     private static ObjectNode saveTeam(ObjectNode s,TeamActor a,ObjectNode p) {
         human(a);String id=text(p,"id");ObjectNode n=id.isEmpty()?node("id",id()):get(s,"teams",id).deepCopy();
         if(!id.isEmpty())revision(n,p);
+        ObjectNode template=id.isEmpty()&&p.hasNonNull("orgTemplateId")?OrganizationTemplates.select(s,"team",p):null;
+        if(template!=null){
+            OrganizationTemplates.copyRoleFields(n,template);
+            n.put("description",text(template,"description"));
+        }
         n.put("name",required(p,"name"));
         for(String f:List.of("description","prompt","receiverId"))if(p.has(f))n.put(f,text(p,f));
         savePromptFiles(n,p);
@@ -50,7 +56,9 @@ final class DefinitionPolicy {
             if(calls<1||calls>1000||seconds<1||seconds>86400)throw new IllegalArgumentException("INVALID_INPUT: 调用上限需为1至1000，运行时长为1至86400秒");
             n.set("limits",p.get("limits").deepCopy());
         }
-        return save(s,"teams",n,a);
+        ObjectNode saved=save(s,"teams",n,a);
+        if(template!=null)OrganizationTemplates.createRoles(s,a,text(n,"id"),template);
+        return saved;
     }
     private static ObjectNode saveRole(ObjectNode s,TeamActor actor,ObjectNode p) {
         human(actor);
@@ -65,58 +73,12 @@ final class DefinitionPolicy {
             if(tid.equals(text(other,"teamId"))&&!text(role,"id").equals(text(other,"id"))&&name.equalsIgnoreCase(text(other,"name")))
                 throw new IllegalArgumentException("INVALID_INPUT: 本团队已有同名角色");
         }
+        if(roleId.isBlank()&&p.hasNonNull("orgTemplateId"))
+            OrganizationTemplates.copyRoleFields(role,OrganizationTemplates.select(s,"role",p));
         role.put("name",name);
         if(p.has("prompt"))role.put("prompt",text(p,"prompt"));
         savePromptFiles(role,p);
         return save(s,"teamRoles",role,actor);
-    }
-    private static ObjectNode saveTemplate(ObjectNode s,TeamActor a,ObjectNode p) {
-        String id=text(p,"id");ObjectNode n=id.isEmpty()?node("id",id()):get(s,"templates",id).deepCopy();
-        if(!a.human()) {
-            if(id.isEmpty())throw new IllegalArgumentException("SCOPE_FORBIDDEN: 员工只能迭代已有模板");
-            if(p.has("files"))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 仅用户可以调整模板文件");
-            ObjectNode employee=get(s,"employees",a.id());
-            if(!id.equals(text(employee,"templateId")))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 非本员工采用的模板");
-            if(p.path("knowledgeRefs").size()>0)
-                throw new IllegalArgumentException("REVIEW_REQUIRED: 模板不能自动传播挂载知识，请提交去除知识正文的候选");
-        }
-        if(!a.human())guardKnowledgeCopy(s,a,p);
-        if(!id.isEmpty())revision(n,p);
-        if(p.has("files")) {
-            TemplateFiles.validateManifest(p.path("files"));
-            n.set("files",p.get("files").deepCopy());
-        }
-        String prompt=text(p,"prompt");
-        if(prompt.length()>100000||(prompt.isBlank()&&!TemplateFiles.hasInstructions(n.path("files"))&&p.path("skills").isEmpty()))
-            throw new IllegalArgumentException("INVALID_INPUT: 请提供工作指令或 Skill");
-        n.put("name",required(p,"name")).put("prompt",prompt);
-        n.set("skills",p.path("skills").isArray()?p.get("skills").deepCopy():JsonNodeFactory.instance.arrayNode());
-        if(!a.human()){n.put("originTeamId",a.teamId());n.putArray("authorizedTeamIds").add(a.teamId());}
-        n.put("reason",text(p,"reason")).put("draftId",text(p,"draftId"));
-        return save(s,"templates",n,a);
-    }
-    private static void guardKnowledgeCopy(ObjectNode s,TeamActor a,ObjectNode p) {
-        StringBuilder candidate=new StringBuilder(text(p,"prompt"));
-        for(JsonNode skill:p.path("skills"))candidate.append('\n').append(text(skill,"content"));
-        List<JsonNode> sources=new ArrayList<>();
-        for(JsonNode source:list(get(s,"employees",a.id()),"knowledgeIds"))sources.add(get(s,"knowledge",source.asText()));
-        if(p.has("taskId")) {
-            ObjectNode task=get(s,"tasks",required(p,"taskId"));
-            if(!a.id().equals(text(task,"employeeId")))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 非本员工任务");
-            for(JsonNode source:map(task,"retainedKnowledge"))sources.add(source);
-        }
-        for(JsonNode source:sources){String content=text(source,"content");
-            if(content.length()>=12&&candidate.indexOf(content)>=0)throw new IllegalArgumentException("KNOWLEDGE_COPY_FORBIDDEN: 模板不能复制知识正文");
-        }
-    }
-    private static ObjectNode shareTemplate(ObjectNode s,TeamActor a,ObjectNode p) {
-        human(a);ObjectNode template=get(s,"templates",required(p,"id"));revision(template,p);
-        ArrayNode targets=JsonNodeFactory.instance.arrayNode();
-        String origin=text(template,"originTeamId");if(!origin.isBlank())targets.add(origin);
-        for(JsonNode target:p.path("teamIds")){String tid=target.asText();get(s,"teams",tid);if(!tid.equals(origin))targets.add(tid);}
-        template.set("authorizedTeamIds",targets);
-        list(template,"sharingRecords").add(node("at",now(),"actorId",a.id()).put("templateRevision",template.path("revision").asInt()).set("teamIds",targets.deepCopy()));
-        return node("id",text(template,"id")).put("revision",template.path("revision").asInt());
     }
     private static ObjectNode saveEmployee(ObjectNode s,TeamActor a,ObjectNode p) {
         human(a);String id=text(p,"id");boolean fresh=id.isEmpty();
@@ -124,18 +86,14 @@ final class DefinitionPolicy {
         String tid=required(n,"teamId");get(s,"teams",tid);
         if(!fresh)revision(n,p);
         if(p.has("teamId")&&!tid.equals(text(p,"teamId")))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 员工不能跨团队移动");
+        if(p.has("templateId")||p.has("orgTemplateId"))
+            throw new IllegalArgumentException("INVALID_INPUT: 员工直接创建，请配置个人设定");
         if(fresh) {
-            ObjectNode tpl=get(s,"templates",required(p,"templateId"));
-            String origin=text(tpl,"originTeamId");boolean shared=origin.isBlank()||origin.equals(tid);
-            for(JsonNode target:tpl.path("authorizedTeamIds"))if(target.asText().equals(tid))shared=true;
-            if(!shared&&!p.path("allowCrossTeamAdoption").asBoolean())throw new IllegalArgumentException("SCOPE_FORBIDDEN: 该模板迭代来自其他团队，需要用户明确授权本次采用");
-            n.put("templateId",text(tpl,"id")).put("templateRevision",tpl.path("revision").asInt());
-            n.put("prompt",text(tpl,"prompt")).put("basePrompt",text(tpl,"prompt"));
-            n.set("skills",tpl.path("skills").deepCopy());n.set("baseSkills",tpl.path("skills").deepCopy());
-            if(tpl.has("files"))n.set("files",tpl.get("files").deepCopy());
-            n.putArray("knowledgeIds");n.put("parentId","user").put("status","idle");
+            n.putArray("knowledgeIds");
+            n.putArray("skills");
+            n.put("parentId","user").put("status","idle").put("prompt","");
         }
-        for(String f:List.of("name","role","prompt","parentId","lifecycle"))if(p.has(f))n.put(f,text(p,f));
+        for(String f:List.of("name","role","prompt","personality","parentId","lifecycle"))if(p.has(f))n.put(f,text(p,f));
         if(p.has("roleId")) {
             if(!p.path("roleId").isTextual())throw new IllegalArgumentException("INVALID_INPUT: roleId 必须为字符串");
             String roleId=text(p,"roleId");
@@ -143,7 +101,7 @@ final class DefinitionPolicy {
                 throw new IllegalArgumentException("SCOPE_FORBIDDEN: 仅可关联本团队角色");
             n.put("roleId",roleId);
         }
-        if(!fresh)savePromptFiles(n,p);
+        savePromptFiles(n,p);
         if(p.has("skills"))n.set("skills",p.path("skills").deepCopy());
         if(text(n,"name").isBlank())throw new IllegalArgumentException("INVALID_INPUT: 员工姓名不能为空");
         validateParent(s,n);
@@ -212,21 +170,13 @@ final class DefinitionPolicy {
         if(p.has("checkCommand"))n.put("checkCommand",text(p,"checkCommand"));
         return save(s,"projects",n,a);
     }
-    private static ObjectNode draft(ObjectNode s,TeamActor a,ObjectNode p,String kind) {
-        String id=text(p,"id");
-        if(kind.equals("draft.generated")) {
-            if(!a.type().equals("template"))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 非模板生成实例");
-            ObjectNode d=get(s,"drafts",a.id());d.put("busy",false).put("name",required(p,"name")).put("prompt",required(p,"prompt"));
-            d.remove("error");
-            d.set("skills",p.path("skills").deepCopy());list(d,"messages").add(node("role","assistant","content",text(p,"summary")));
-            return node("id",a.id());
-        }
-        human(a);ObjectNode d=id.isBlank()?node("id",id()):get(s,"drafts",id);
-        if(p.path("draft").isObject())for(String f:List.of("name","prompt","skills","files"))if(p.path("draft").has(f))d.set(f,p.path("draft").get(f).deepCopy());
-        if(d.path("busy").asBoolean())throw new IllegalArgumentException("BUSY: 正在生成，请等待");
-        d.remove("error");
-        list(d,"messages").add(node("role","user","content",required(p,"text")));d.put("busy",true);
-        map(s,"drafts").set(text(d,"id"),d);enqueue(s,node("kind","template","draftId",text(d,"id")));
-        return node("id",text(d,"id"));
+    private static ObjectNode finishLegacyDraft(ObjectNode state,TeamActor actor,ObjectNode payload) {
+        if(!actor.type().equals("template"))throw new IllegalArgumentException("SCOPE_FORBIDDEN: 非历史草稿生成实例");
+        ObjectNode draft=get(state,"drafts",actor.id());
+        draft.put("busy",false).put("name",required(payload,"name")).put("prompt",required(payload,"prompt"));
+        draft.remove("error");
+        draft.set("skills",payload.path("skills").deepCopy());
+        list(draft,"messages").add(node("role","assistant","content",text(payload,"summary")));
+        return node("id",actor.id());
     }
 }

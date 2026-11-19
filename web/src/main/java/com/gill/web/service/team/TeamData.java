@@ -65,7 +65,11 @@ public final class TeamData {
         ObjectNode m=message(s,team,"system","system",text,"attention");m.put("mentionUser",true).put("status","needs-user").put("subjectId",subject);
     }
     public static void init(ObjectNode s) {
-        for(String g:List.of("teams","teamRoles","templates","employees","knowledge","projects","workItems","tasks","runs","messages","deliveries","artifacts","decisions","drafts","checks","integrations","codeVersions"))map(s,g);
+        for(String g:List.of("teams","teamRoles","organizationTemplates","templates","employees","knowledge","projects","workItems","tasks","runs","messages","deliveries","artifacts","decisions","drafts","checks","integrations","codeVersions"))map(s,g);
+        for(JsonNode member:map(s,"employees")) {
+            if(member instanceof ObjectNode employee && employee.has("templateId"))
+                employee.remove(List.of("templateId","templateRevision","basePrompt","baseSkills","sharingPendingRevision","adoptionConflictRevision"));
+        }
         list(s,"pending");
     }
 }
