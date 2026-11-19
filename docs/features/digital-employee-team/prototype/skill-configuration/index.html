@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>团队 Skill 配置 · Gill</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="prototype.js" defer></script>
+</head>
+<body>
+  <header class="masthead">
+    <div class="page-width masthead-inner">
+      <span class="brand"><span aria-hidden="true">g</span> Gill</span>
+      <span class="crumb">团队 <span aria-hidden="true">/</span> 我的团队</span>
+      <span class="prototype-label">交互原型 · 示例数据</span>
+    </div>
+  </header>
+  <main class="page-width">
+    <header class="page-head">
+      <h1>团队 Skill 配置</h1>
+      <p>统一团队协作规则，复用角色指令，保留成员自己的能力。</p>
+    </header>
+    <nav aria-label="配置维度" id="tabs" class="tabs">
+      <button data-tab="flow" aria-current="page" aria-controls="configuration">团队流程</button>
+      <button data-tab="roles" aria-controls="configuration">团队角色</button>
+      <button data-tab="members" aria-controls="configuration">成员</button>
+    </nav>
+    <div class="layout">
+      <section id="configuration" aria-label="当前配置"></section>
+      <aside class="panel preview" aria-labelledby="preview-title">
+        <div id="preview-context">
+          <h2 id="preview-title">生效预览</h2>
+          <label for="preview-member">选择成员</label>
+          <select id="preview-member"></select>
+          <div id="preview-state" class="segmented" aria-label="任务配置版本">
+            <button type="button" data-view="new" aria-pressed="true">新任务</button>
+            <button type="button" data-view="active" aria-pressed="false">在途任务</button>
+          </div>
+        </div>
+        <p id="preview-note" class="muted"></p>
+        <div id="preview-layers" class="layers"></div>
+      </aside>
+    </div>
+  </main>
+  <dialog id="editor" aria-labelledby="dialog-title">
+    <form id="edit-form">
+      <header class="dialog-head">
+        <div><h2 id="dialog-title"></h2><p id="edit-context" class="muted"></p></div>
+        <button type="button" class="button close" data-close aria-label="关闭编辑">×</button>
+      </header>
+      <div class="dialog-body">
+        <div id="name-field" hidden><label for="record-name">角色名称</label><input id="record-name" maxlength="30"></div>
+        <div id="role-field" hidden><label for="member-role">采用角色</label><select id="member-role"></select></div>
+        <label for="prompt-text">Prompt</label>
+        <textarea id="prompt-text" rows="5" placeholder="填写适用范围内的工作指令"></textarea>
+        <div class="line import-head">
+          <h3>文件与 Skills</h3>
+          <div class="line actions">
+            <button type="button" class="button link" id="sample-folder">试用示例目录</button>
+            <button type="button" class="button secondary" id="import-button">导入文件夹</button>
+            <input id="folder" type="file" webkitdirectory multiple hidden aria-label="选择指令目录">
+          </div>
+        </div>
+        <div id="edit-files"></div>
+        <p id="edit-error" class="error" role="alert" hidden></p>
+      </div>
+      <footer class="dialog-foot">
+        <p id="save-effect" class="muted"></p>
+        <div class="line actions">
+          <button type="button" class="button secondary" data-close>取消</button>
+          <button type="submit" class="button primary">保存配置</button>
+        </div>
+      </footer>
+    </form>
+  </dialog>
+  <p id="notice" class="notice" role="status" hidden></p>
+</body>
+</html>

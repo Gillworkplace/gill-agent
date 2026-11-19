@@ -4,6 +4,8 @@
 
 ## 打开与体验
 
+[团队 Skill 三层配置原型](skill-configuration/index.html) 对应 D44。从团队流程、团队角色和成员三个入口配置，右侧可以按成员查看新任务和在途任务所采用的版本。[产品设计稿](../skill_configuration.md)
+
 [工作台空态与新建团队原型](workspace-entry.html)对应 D24、D28、D31，演示两个入口共用表单、取消、创建后进入详情及回到工作台。原型使用内存中的示例数据。产品视角代理复核了创建后的状态切换，Chrome 走查通过。
 
 真实页面在 1440 × 1040 和 390 × 844 验证了工作台空态和新建团队表单。真实创建持久化名称、简介及折叠后的协作规则，跳转到团队详情后，工作台重新显示群聊和右侧状态。前端 18 项单测、类型检查、构建、模板交互及 7 项基础浏览器回归通过。[工作台桌面](../../../../gui-test-screenshots/v20261118-full-closure-workbench-empty-desktop.png) · [工作台手机](../../../../gui-test-screenshots/v20261118-full-closure-workbench-empty-mobile.png) · [新建团队桌面](../../../../gui-test-screenshots/v20261118-full-closure-team-create-desktop.png) · [新建团队手机](../../../../gui-test-screenshots/v20261118-full-closure-team-create-mobile.png)
